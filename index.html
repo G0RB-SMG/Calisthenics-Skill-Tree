@@ -107,8 +107,10 @@
           <sc-if value="{{ node.showFingertip }}" hint-placeholder-val="{{ false }}">
             <span style="position: absolute; top: -5px; left: -5px; width: 17px; height: 17px; border-radius: 50%; background: #0a0a14; border: 1.5px solid {{ node.color }}; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: {{ node.color }}; font-family: 'JetBrains Mono', monospace;">F</span>
           </sc-if>
-          <!-- Label below -->
-          <div style="position: absolute; top: {{ node.labelTop }}px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: {{ node.labelSize }}px; font-weight: {{ node.labelWeight }}; color: {{ node.labelColor }}; text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); letter-spacing: 0.02em; pointer-events: none; font-family: 'Space Grotesk', sans-serif;">{{ node.name }}</div>
+          <!-- Label below (auto-hides at low zoom on unimportant nodes) -->
+          <sc-if value="{{ node.showLabel }}" hint-placeholder-val="{{ true }}">
+            <div style="position: absolute; top: {{ node.labelTop }}px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: {{ node.labelSize }}px; font-weight: {{ node.labelWeight }}; color: {{ node.labelColor }}; text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); letter-spacing: 0.02em; pointer-events: none; font-family: 'Space Grotesk', sans-serif;">{{ node.name }}</div>
+          </sc-if>
           <!-- Difficulty number for normal nodes -->
           <sc-if value="{{ node.showDiff }}" hint-placeholder-val="{{ false }}">
             <span style="position: absolute; bottom: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #0a0a14; border: 1.5px solid {{ node.color }}; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: {{ node.color }}; font-family: 'JetBrains Mono', monospace;">{{ node.diff }}</span>
@@ -1024,7 +1026,7 @@ class Component extends DCLogic {
 
       // Label
       const labelTop = size + 6;
-      const isImportant = s.isRoot || s.isStub || isChecked || isExpanded || s.diff >= 9;
+      const isImportant = s.isRoot || s.isStub || isChecked || isExpanded || s.diff >= 9 || !!s.isFingertip;
       const labelSize = s.isRoot ? 13 : s.isStub ? 12 : 11;
       const labelWeight = s.isRoot ? 700 : isImportant ? 600 : 500;
       const labelColor = s.isStub
@@ -1066,7 +1068,8 @@ class Component extends DCLogic {
         figBody: figDef ? figDef.body : '',
         showCheck: isChecked && !s.isStub && !s.isRoot,
         showFingertip: !!s.isFingertip,
-        showDiff: !s.isRoot && !s.isStub,
+        showDiff: !s.isRoot && !s.isStub && scale >= 0.45,
+        showLabel: isImportant || scale >= 0.55,
         diff: s.diff,
         labelTop,
         labelSize,
