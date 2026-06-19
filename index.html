@@ -12,11 +12,51 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #06060c; color: #e8e8ef; font-family: 'Space Grotesk', system-ui, sans-serif; }
+    html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #06060c; color: #e8e8ef; font-family: 'Space Grotesk', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     *::-webkit-scrollbar { width: 6px; height: 6px; }
     *::-webkit-scrollbar-track { background: transparent; }
     *::-webkit-scrollbar-thumb { background: #25253a; border-radius: 4px; }
     @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ─── Mobile (≤ 760px) ───────────────────────────────── */
+    @media (max-width: 760px) {
+      /* Header: compact, hide title + extras, keep tier + score only */
+      #header-bar { top: 10px !important; padding: 8px 12px !important; gap: 6px !important; max-width: calc(100vw - 20px); }
+      #header-bar .hb-title, #header-bar .hb-count, #header-bar .hb-pct, #header-bar .hb-sep-2, #header-bar .hb-sep-3 { display: none !important; }
+      #header-bar .hb-tier, #header-bar .hb-score { font-size: 11px !important; }
+
+      /* Sidebar: bottom sheet */
+      #sidebar-panel {
+        position: fixed !important;
+        top: auto !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        width: auto !important;
+        max-height: 65vh !important;
+      }
+      #sidebar-reopen-btn { top: auto !important; bottom: 12px !important; left: 12px !important; }
+
+      /* Detail panel: bottom sheet — override inline left/top */
+      #detail-panel {
+        position: fixed !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        top: auto !important;
+        width: auto !important;
+        max-height: 78vh !important;
+      }
+
+      /* Zoom controls + minimap: hide on mobile (pinch handles zoom) */
+      #zoom-controls, #minimap-box { display: none !important; }
+
+      /* Milestone toast: narrower */
+      #milestone-toast { right: 10px !important; left: 10px !important; max-width: none !important; top: 64px !important; }
+
+      /* Shared banner: stack */
+      #shared-banner { left: 10px !important; right: 10px !important; transform: none !important; top: 60px !important; flex-wrap: wrap !important; }
+    }
   </style>
   <script src="./skills.js"></script>
 </helmet>
@@ -79,21 +119,21 @@
   </div>
 
   <!-- Header -->
-  <div data-no-pan="1" style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 18px; background: rgba(10, 10, 22, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; z-index: 100; pointer-events: none;">
+  <div id="header-bar" data-no-pan="1" style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 18px; background: rgba(10, 10, 22, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; z-index: 100; pointer-events: none;">
     <div style="width: 8px; height: 8px; border-radius: 50%; background: oklch(0.7 0.22 25); box-shadow: 0 0 12px oklch(0.7 0.22 25);"></div>
-    <span style="font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #c8c8d4;">Calisthenics Skill Tree</span>
-    <span style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">{{ totalCheckedLabel }}</span>
-    <span style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
-    <span style="font-size: 11px; color: {{ overallTierColor }}; font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">{{ overallTierName }}</span>
-    <span style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
-    <span style="font-size: 11px; color: #c0c0d0; font-family: 'JetBrains Mono', monospace;">{{ overallScore }} pts</span>
-    <span style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
-    <span style="font-size: 11px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">top {{ overallPercentile }}</span>
+    <span class="hb-title" style="font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #c8c8d4;">Calisthenics Skill Tree</span>
+    <span class="hb-count" style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">{{ totalCheckedLabel }}</span>
+    <span class="hb-sep-1" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-tier" style="font-size: 11px; color: {{ overallTierColor }}; font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">{{ overallTierName }}</span>
+    <span class="hb-sep-2" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-score" style="font-size: 11px; color: #c0c0d0; font-family: 'JetBrains Mono', monospace;">{{ overallScore }} pts</span>
+    <span class="hb-sep-3" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-pct" style="font-size: 11px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">top {{ overallPercentile }}</span>
   </div>
 
   <!-- Sidebar -->
   <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
-  <div data-no-pan="1" style="position: absolute; top: 80px; left: 18px; width: 288px; background: rgba(10, 10, 22, 0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; z-index: 100; max-height: calc(100vh - 100px); overflow-y: auto;">
+  <div id="sidebar-panel" data-no-pan="1" style="position: absolute; top: 80px; left: 18px; width: 288px; background: rgba(10, 10, 22, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; z-index: 100; max-height: calc(100vh - 100px); overflow-y: auto;">
 
     <!-- Header row: title + collapse -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
@@ -244,28 +284,28 @@
     <!-- Help text -->
     <div style="margin-top: 18px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 11px; line-height: 1.5; color: #8a8aa0;">
       <div style="font-weight: 600; color: #b0b0c0; margin-bottom: 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;">How to use</div>
-      Drag to pan · Scroll to zoom · Click a node to see details and mark complete
+      Drag (or swipe) to pan · Scroll or pinch to zoom · Tap a node for details
     </div>
   </div>
   </sc-if>
 
   <!-- Reopen sidebar tab (visible only when closed) -->
   <sc-if value="{{ sidebarClosed }}" hint-placeholder-val="{{ false }}">
-    <button data-no-pan="1" onClick="{{ onToggleSidebar }}" title="Show progress panel" style="position: absolute; top: 80px; left: 18px; padding: 10px 12px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; z-index: 100; display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); color: #fff;">
+    <button id="sidebar-reopen-btn" data-no-pan="1" onClick="{{ onToggleSidebar }}" title="Show progress panel" style="position: absolute; top: 80px; left: 18px; padding: 10px 12px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; z-index: 100; display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); color: #fff;">
       <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">»</span>
       <span>Progress</span>
     </button>
   </sc-if>
 
   <!-- Zoom controls -->
-  <div data-no-pan="1" style="position: absolute; bottom: 20px; left: 18px; display: flex; flex-direction: column; gap: 6px; z-index: 100;">
+  <div id="zoom-controls" data-no-pan="1" style="position: absolute; bottom: 20px; left: 18px; display: flex; flex-direction: column; gap: 6px; z-index: 100;">
     <button onClick="{{ onZoomIn }}" style="width: 36px; height: 36px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;" style-hover="background: rgba(40,40,60,0.85);">+</button>
     <button onClick="{{ onZoomOut }}" style="width: 36px; height: 36px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;" style-hover="background: rgba(40,40,60,0.85);">−</button>
     <div style="margin-top: 4px; padding: 4px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; text-align: center;">{{ zoomLabel }}</div>
   </div>
 
   <!-- Minimap -->
-  <div data-no-pan="1" style="position: absolute; bottom: 20px; right: 18px; padding: 8px; background: rgba(10,10,22,0.82); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; z-index: 100;">
+  <div id="minimap-box" data-no-pan="1" style="position: absolute; bottom: 20px; right: 18px; padding: 8px; background: rgba(10,10,22,0.82); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; z-index: 100;">
     <div style="font-size: 9px; font-weight: 600; letter-spacing: 0.1em; color: #6a6a82; text-transform: uppercase; margin-bottom: 6px; padding: 0 2px;">Map</div>
     <svg width="{{ minimap.width }}" height="{{ minimap.height }}" onClick="{{ minimap.onClick }}" style="display: block; cursor: crosshair; background: rgba(0,0,0,0.3); border-radius: 6px;">
       <sc-for list="{{ minimap.dots }}" as="dot" hint-placeholder-count="50">
@@ -277,7 +317,7 @@
 
   <!-- Shared progress banner -->
   <sc-if value="{{ isShared }}" hint-placeholder-val="{{ false }}">
-    <div data-no-pan="1" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: rgba(40, 30, 60, 0.85); backdrop-filter: blur(14px); border: 1px solid oklch(0.55 0.18 300 / 0.5); border-radius: 12px; z-index: 110;">
+    <div id="shared-banner" data-no-pan="1" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: rgba(40, 30, 60, 0.85); backdrop-filter: blur(14px); border: 1px solid oklch(0.55 0.18 300 / 0.5); border-radius: 12px; z-index: 110;">
       <span style="font-size: 18px;">👁</span>
       <div style="font-size: 12px; line-height: 1.4;">
         <div style="font-weight: 600; color: #e8e8ef;">Viewing shared progress</div>
@@ -290,7 +330,7 @@
 
   <!-- Expanded detail panel (floats over the clicked node) -->
   <sc-if value="{{ expandedPanel }}" hint-placeholder-val="{{ false }}">
-    <div data-no-pan="1" style="position: absolute; left: {{ expandedPanel.left }}px; top: {{ expandedPanel.top }}px; width: 360px; max-height: 70vh; overflow-y: auto; background: linear-gradient(180deg, rgba(18,18,32,0.96), rgba(10,10,20,0.96)); backdrop-filter: blur(16px); border: 1.5px solid {{ expandedPanel.borderColor }}; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px {{ expandedPanel.glowColor }}; padding: 0; z-index: 200; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif;">
+    <div id="detail-panel" data-no-pan="1" style="position: absolute; left: {{ expandedPanel.left }}px; top: {{ expandedPanel.top }}px; width: 360px; max-height: 70vh; overflow-y: auto; background: linear-gradient(180deg, rgba(18,18,32,0.96), rgba(10,10,20,0.96)); backdrop-filter: blur(16px); border: 1.5px solid {{ expandedPanel.borderColor }}; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px {{ expandedPanel.glowColor }}; padding: 0; z-index: 200; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif;">
 
       <!-- Header -->
       <div style="position: relative; padding: 16px 18px 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);">
@@ -401,7 +441,7 @@
 
   <!-- Milestone toast (auto-dismisses; click to skip) -->
   <sc-if value="{{ activeMilestone }}" hint-placeholder-val="{{ false }}">
-    <div data-no-pan="1" onClick="{{ onDismissMilestone }}" style="position: absolute; top: 80px; right: 18px; padding: 14px 18px; background: linear-gradient(135deg, oklch(0.32 0.18 75 / 0.94), oklch(0.25 0.15 110 / 0.94)); backdrop-filter: blur(14px); border: 1.5px solid oklch(0.7 0.20 80); border-radius: 12px; font-family: 'Space Grotesk', sans-serif; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 28px oklch(0.7 0.20 80 / 0.4); cursor: pointer; max-width: 320px; display: flex; align-items: center; gap: 12px;">
+    <div id="milestone-toast" data-no-pan="1" onClick="{{ onDismissMilestone }}" style="position: absolute; top: 80px; right: 18px; padding: 14px 18px; background: linear-gradient(135deg, oklch(0.32 0.18 75 / 0.94), oklch(0.25 0.15 110 / 0.94)); backdrop-filter: blur(14px); border: 1.5px solid oklch(0.7 0.20 80); border-radius: 12px; font-family: 'Space Grotesk', sans-serif; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 28px oklch(0.7 0.20 80 / 0.4); cursor: pointer; max-width: 320px; display: flex; align-items: center; gap: 12px;">
       <span style="font-size: 24px; color: oklch(0.85 0.18 80); line-height: 1;">{{ activeMilestone.icon }}</span>
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.85 0.18 80); text-transform: uppercase; margin-bottom: 3px;">Milestone unlocked</div>
@@ -456,16 +496,17 @@ class Component extends DCLogic {
         if (ids.length) { sharedChecked = new Set(ids); viewMode = 'shared'; }
       }
     } catch (e) {}
+    const isMobile = w < 760;
     return {
       // Tree grows upward → anchor root near the bottom of the viewport.
-      pan: { x: w / 2, y: h - 150 },
-      scale: 0.82,
+      pan: { x: w / 2, y: h - (isMobile ? 100 : 150) },
+      scale: isMobile ? 0.45 : 0.82,
       expandedId: null,
       myChecked,
       sharedChecked,
       viewMode,
       copyFeedback: '',
-      sidebarOpen: true,
+      sidebarOpen: !isMobile,
       mathOpen: false,
       milestonesSeen,
       milestonesFirstLoad,
@@ -529,10 +570,11 @@ class Component extends DCLogic {
   centerView = () => {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const scale = 0.82;
+    const isMobile = w < 760;
+    const scale = isMobile ? 0.45 : 0.82;
     // Tree grows UPWARD (negative y), so anchor the root near the bottom
     // of the viewport and let the branches fill the space above it.
-    this.setState({ pan: { x: w / 2, y: h - 150 }, scale });
+    this.setState({ pan: { x: w / 2, y: h - (isMobile ? 100 : 150) }, scale });
   };
 
   zoomBy = (factor) => {
@@ -586,6 +628,69 @@ class Component extends DCLogic {
     this.dragInfo = null;
   };
 
+  // ─── touch interactions (mobile) ──────────────────────────────────────────
+  onTouchStart = (e) => {
+    const t = e.target;
+    if (t && t.closest && (t.closest('[data-node]') || t.closest('[data-no-pan]'))) return;
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      this.touchInfo = {
+        mode: 'pan',
+        startX: touch.clientX, startY: touch.clientY,
+        startPanX: this.state.pan.x, startPanY: this.state.pan.y,
+        moved: false,
+      };
+    } else if (e.touches.length === 2) {
+      const [a, b] = e.touches;
+      this.touchInfo = {
+        mode: 'pinch',
+        startDist: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY),
+        startScale: this.state.scale,
+        startPanX: this.state.pan.x,
+        startPanY: this.state.pan.y,
+        cx: (a.clientX + b.clientX) / 2,
+        cy: (a.clientY + b.clientY) / 2,
+      };
+    }
+  };
+
+  onTouchMove = (e) => {
+    if (!this.touchInfo) return;
+    if (e.cancelable) e.preventDefault();
+    if (this.touchInfo.mode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - this.touchInfo.startX;
+      const dy = t.clientY - this.touchInfo.startY;
+      if (Math.abs(dx) + Math.abs(dy) > 5) this.touchInfo.moved = true;
+      this.setState({ pan: { x: this.touchInfo.startPanX + dx, y: this.touchInfo.startPanY + dy } });
+    } else if (this.touchInfo.mode === 'pinch' && e.touches.length === 2) {
+      const [a, b] = e.touches;
+      const dist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const factor = dist / this.touchInfo.startDist;
+      const newScale = Math.max(0.25, Math.min(2.5, this.touchInfo.startScale * factor));
+      const realFactor = newScale / this.touchInfo.startScale;
+      const cx = this.touchInfo.cx, cy = this.touchInfo.cy;
+      const newPanX = cx - (cx - this.touchInfo.startPanX) * realFactor;
+      const newPanY = cy - (cy - this.touchInfo.startPanY) * realFactor;
+      this.setState({ scale: newScale, pan: { x: newPanX, y: newPanY } });
+    }
+  };
+
+  onTouchEnd = (e) => {
+    if (e.touches.length === 0) {
+      this.touchInfo = null;
+    } else if (e.touches.length === 1 && this.touchInfo && this.touchInfo.mode === 'pinch') {
+      // pinch released to a single finger — restart as pan
+      const touch = e.touches[0];
+      this.touchInfo = {
+        mode: 'pan',
+        startX: touch.clientX, startY: touch.clientY,
+        startPanX: this.state.pan.x, startPanY: this.state.pan.y,
+        moved: true,
+      };
+    }
+  };
+
   // ─── node interactions ────────────────────────────────────────────────────
   onNodeClick = (id) => {
     const s = this.skillById(id);
@@ -596,7 +701,13 @@ class Component extends DCLogic {
       this.centerView();
       return;
     }
-    this.setState({ expandedId: this.state.expandedId === id ? null : id });
+    // On mobile, close the sidebar when opening a detail panel — they
+    // both occupy the bottom-sheet slot.
+    const next = { expandedId: this.state.expandedId === id ? null : id };
+    if (window.innerWidth < 760 && this.state.sidebarOpen && next.expandedId) {
+      next.sidebarOpen = false;
+    }
+    this.setState(next);
   };
 
   toggleCheck = (id) => {
@@ -1228,8 +1339,18 @@ class Component extends DCLogic {
 
   attachWheel = (el) => {
     if (el === this._wheelAttachedEl) return;
-    if (this._wheelAttachedEl) this._wheelAttachedEl.removeEventListener('wheel', this.onWheel);
+    if (this._wheelAttachedEl) {
+      this._wheelAttachedEl.removeEventListener('wheel', this.onWheel);
+      this._wheelAttachedEl.removeEventListener('touchstart', this.onTouchStart);
+      this._wheelAttachedEl.removeEventListener('touchmove', this.onTouchMove);
+      this._wheelAttachedEl.removeEventListener('touchend', this.onTouchEnd);
+      this._wheelAttachedEl.removeEventListener('touchcancel', this.onTouchEnd);
+    }
     el.addEventListener('wheel', this.onWheel, { passive: false });
+    el.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    el.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    el.addEventListener('touchend', this.onTouchEnd);
+    el.addEventListener('touchcancel', this.onTouchEnd);
     this._wheelAttachedEl = el;
   };
 
