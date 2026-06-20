@@ -500,9 +500,9 @@ class Component extends DCLogic {
     } catch (e) {}
     const isMobile = w < 760;
     const scale = isMobile ? 0.32 : 0.5;
-    // Tree spans roughly x=-2200 (OAP) to x=+3700 (mobility), visual center ~x=+750.
+    // Tree spans roughly x=-2200 (OAP) to x=+3450 (mobility), visual center ~x=+625.
     return {
-      pan: { x: w / 2 - 750 * scale, y: h - (isMobile ? 100 : 150) },
+      pan: { x: w / 2 - 625 * scale, y: h - (isMobile ? 100 : 150) },
       scale,
       expandedId: null,
       myChecked,
@@ -594,8 +594,8 @@ class Component extends DCLogic {
     const h = window.innerHeight || 700;
     const isMobile = w < 760;
     const scale = isMobile ? 0.32 : 0.5;
-    // Tree spans roughly x=-2200 to x=+3700, visual center ~x=+750.
-    this.setState({ pan: { x: w / 2 - 750 * scale, y: h - (isMobile ? 100 : 150) }, scale });
+    // Tree spans roughly x=-2200 to x=+3450, visual center ~x=+625.
+    this.setState({ pan: { x: w / 2 - 625 * scale, y: h - (isMobile ? 100 : 150) }, scale });
   };
 
   zoomBy = (factor) => {
