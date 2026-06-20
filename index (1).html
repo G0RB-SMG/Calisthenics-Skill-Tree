@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #06060c; color: #e8e8ef; font-family: 'Space Grotesk', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: #25253a; border-radius: 4px; }
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ─── Mobile (≤ 760px) ───────────────────────────────── */
+    @media (max-width: 760px) {
+      /* Header: compact, hide title + extras, keep tier + score only */
+      #header-bar { top: 10px !important; padding: 8px 12px !important; gap: 6px !important; max-width: calc(100vw - 20px); }
+      #header-bar .hb-title, #header-bar .hb-count, #header-bar .hb-pct, #header-bar .hb-sep-2, #header-bar .hb-sep-3 { display: none !important; }
+      #header-bar .hb-tier, #header-bar .hb-score { font-size: 11px !important; }
+
+      /* Sidebar: bottom sheet */
+      #sidebar-panel {
+        position: fixed !important;
+        top: auto !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        width: auto !important;
+        max-height: 65vh !important;
+      }
+      #sidebar-reopen-btn { top: auto !important; bottom: 12px !important; left: 12px !important; }
+
+      /* Detail panel: bottom sheet — override inline left/top */
+      #detail-panel {
+        position: fixed !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        top: auto !important;
+        width: auto !important;
+        max-height: 78vh !important;
+      }
+
+      /* Zoom controls + minimap: hide on mobile (pinch handles zoom) */
+      #zoom-controls, #minimap-box { display: none !important; }
+
+      /* Milestone toast: narrower */
+      #milestone-toast { right: 10px !important; left: 10px !important; max-width: none !important; top: 64px !important; }
+
+      /* Shared banner: stack */
+      #shared-banner { left: 10px !important; right: 10px !important; transform: none !important; top: 60px !important; flex-wrap: wrap !important; }
+    }
+  </style>
+  <script src="./skills.js"></script>
+</helmet>
+
+<div style="position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 25%, #18182c 0%, #0a0a18 50%, #050509 100%); overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e8e8ef; user-select: none;">
+
+  <!-- Pan/Zoom Canvas -->
+  <div data-canvas="1" ref="{{ canvasRef }}" onMouseDown="{{ onPanStart }}" style="position: absolute; inset: 0; cursor: grab;">
+
+    <!-- Inner transform layer -->
+    <div style="position: absolute; left: 0; top: 0; transform: translate({{ panX }}px, {{ panY }}px) scale({{ scale }}); transform-origin: 0 0; will-change: transform;">
+
+      <!-- Connection lines -->
+      <svg width="4400" height="2400" viewBox="-2200 -300 4400 2400" style="position: absolute; left: -2200px; top: -300px; pointer-events: none; overflow: visible;">
+        <defs>
+          <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"></feGaussianBlur>
+            <feMerge>
+              <feMergeNode in="blur"></feMergeNode>
+              <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+          </filter>
+        </defs>
+        <sc-for list="{{ connections }}" as="conn" hint-placeholder-count="40">
+          <path d="{{ conn.d }}" stroke="{{ conn.stroke }}" stroke-width="{{ conn.strokeWidth }}" stroke-dasharray="{{ conn.dash }}" fill="none" stroke-linecap="round"></path>
+        </sc-for>
+      </svg>
+
+      <!-- Skill nodes -->
+      <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="50">
+        <div data-node="{{ node.id }}" onClick="{{ node.onClick }}" style="position: absolute; left: {{ node.lx }}px; top: {{ node.ty }}px; width: {{ node.size }}px; height: {{ node.size }}px; border-radius: 50%; border: 2px solid {{ node.color }}; background: {{ node.fill }}; box-shadow: {{ node.shadow }}; cursor: {{ node.cursor }}; display: flex; align-items: center; justify-content: center; z-index: {{ node.z }}; opacity: {{ node.opacity }}; transition: box-shadow 0.25s ease, transform 0.15s ease; font-family: 'Space Grotesk', sans-serif;" style-hover="transform: scale(1.12); z-index: 30;">
+          <!-- Stick figure -->
+          <sc-if value="{{ node.hasFig }}" hint-placeholder-val="{{ false }}">
+            <svg width="{{ node.figSize }}" height="{{ node.figSize }}" viewBox="0 0 60 60" fill="none" stroke="{{ node.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; overflow: visible;">
+              <circle cx="{{ node.figHx }}" cy="{{ node.figHy }}" r="{{ node.figHr }}"></circle>
+              <path d="{{ node.figBody }}"></path>
+            </svg>
+          </sc-if>
+          <!-- Root star -->
+          <sc-if value="{{ node.isRoot }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 26px; line-height: 1; color: {{ node.figStroke }};">✦</span>
+          </sc-if>
+          <!-- Checked corner badge -->
+          <sc-if value="{{ node.showCheck }}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; bottom: -5px; left: -5px; width: 19px; height: 19px; border-radius: 50%; background: oklch(0.7 0.18 145); border: 1.5px solid #0a0a14; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #06120a; line-height: 1; box-shadow: 0 0 8px oklch(0.7 0.18 145 / 0.7);">✓</span>
+          </sc-if>
+          <!-- Fingertip marker -->
+          <sc-if value="{{ node.showFingertip }}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; top: -5px; left: -5px; width: 17px; height: 17px; border-radius: 50%; background: #0a0a14; border: 1.5px solid {{ node.color }}; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: {{ node.color }}; font-family: 'JetBrains Mono', monospace;">F</span>
+          </sc-if>
+          <!-- Label below (auto-hides at low zoom on unimportant nodes) -->
+          <sc-if value="{{ node.showLabel }}" hint-placeholder-val="{{ true }}">
+            <div style="position: absolute; top: {{ node.labelTop }}px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: {{ node.labelSize }}px; font-weight: {{ node.labelWeight }}; color: {{ node.labelColor }}; text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); letter-spacing: 0.02em; pointer-events: none; font-family: 'Space Grotesk', sans-serif;">{{ node.name }}</div>
+          </sc-if>
+          <!-- Difficulty number for normal nodes -->
+          <sc-if value="{{ node.showDiff }}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; bottom: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #0a0a14; border: 1.5px solid {{ node.color }}; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: {{ node.color }}; font-family: 'JetBrains Mono', monospace;">{{ node.diff }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div id="header-bar" data-no-pan="1" style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 18px; background: rgba(10, 10, 22, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; z-index: 100; pointer-events: none;">
+    <div style="width: 8px; height: 8px; border-radius: 50%; background: oklch(0.7 0.22 25); box-shadow: 0 0 12px oklch(0.7 0.22 25);"></div>
+    <span class="hb-title" style="font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #c8c8d4;">Calisthenics Skill Tree</span>
+    <span class="hb-count" style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">{{ totalCheckedLabel }}</span>
+    <span class="hb-sep-1" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-tier" style="font-size: 11px; color: {{ overallTierColor }}; font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">{{ overallTierName }}</span>
+    <span class="hb-sep-2" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-score" style="font-size: 11px; color: #c0c0d0; font-family: 'JetBrains Mono', monospace;">{{ overallScore }} pts</span>
+    <span class="hb-sep-3" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
+    <span class="hb-pct" style="font-size: 11px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">top {{ overallPercentile }}</span>
+  </div>
+
+  <!-- Sidebar -->
+  <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+  <div id="sidebar-panel" data-no-pan="1" style="position: absolute; top: 80px; left: 18px; width: 288px; background: rgba(10, 10, 22, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; z-index: 100; max-height: calc(100vh - 100px); overflow-y: auto;">
+
+    <!-- Header row: title + collapse -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <span style="font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase;">Your progress</span>
+      <button onClick="{{ onToggleSidebar }}" title="Hide panel" style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #8a8aa0; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; font-family: 'JetBrains Mono', monospace;" style-hover="background: rgba(255,255,255,0.1); color: #e8e8ef;">«</button>
+    </div>
+
+    <!-- Overall tier card (always visible — start at Novice / 0 pts) -->
+    <div style="margin-bottom: 18px; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+      <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 5px;">Overall tier</div>
+      <div style="font-size: 19px; font-weight: 700; color: {{ overallTierColor }}; letter-spacing: 0.01em; line-height: 1.1; margin-bottom: 10px;">{{ overallTierName }}</div>
+      <div style="display: flex; align-items: center; gap: 9px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+        <span style="color: #d8d8e4; font-weight: 600;">{{ overallScore }} pts</span>
+        <span style="color: #3a3a52;">·</span>
+        <span style="color: #a8a8c0;">top {{ overallPercentile }}</span>
+      </div>
+    </div>
+
+    <!-- Per-category section label -->
+    <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 10px;">By category</div>
+
+    <sc-for list="{{ categoryStats }}" as="cat" hint-placeholder-count="5">
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ cat.dotColor }}; box-shadow: {{ cat.dotGlow }};"></div>
+            <span style="font-size: 13px; font-weight: 600; color: {{ cat.labelColor }};">{{ cat.name }}</span>
+            <sc-if value="{{ cat.isStub }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #6a6a82; font-weight: 500; letter-spacing: 0.05em;">SOON</span>
+            </sc-if>
+          </div>
+          <span style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: {{ cat.statColor }};">{{ cat.statText }}</span>
+        </div>
+        <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
+          <div style="height: 100%; width: {{ cat.pct }}%; background: {{ cat.barColor }}; box-shadow: {{ cat.barGlow }}; border-radius: 2px; transition: width 0.3s ease;"></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; line-height: 1;">
+          <span style="font-size: 9px; color: {{ cat.tierColor }}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">{{ cat.tierName }}</span>
+          <span style="font-size: 9px; color: #3a3a52;">·</span>
+          <span style="font-size: 10px; color: #9a9ab0;">top {{ cat.percentileStr }}</span>
+          <span style="font-size: 9px; color: #3a3a52;">·</span>
+          <span style="font-size: 10px; color: #9a9ab0;">{{ cat.scoreStr }} pts</span>
+        </div>
+      </div>
+    </sc-for>
+
+    <!-- Path badges (completed lines) -->
+    <sc-if value="{{ hasBadges }}" hint-placeholder-val="{{ false }}">
+      <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 18px 0;"></div>
+      <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 10px;">Path badges</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
+        <sc-for list="{{ badges }}" as="b" hint-placeholder-count="2">
+          <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: {{ b.bg }}; border: 1px solid {{ b.border }}; border-radius: 100px; font-family: 'Space Grotesk', sans-serif;">
+            <span style="font-size: 10px; color: {{ b.color }}; line-height: 1;">✤</span>
+            <span style="font-size: 10.5px; font-weight: 600; color: {{ b.color }};">{{ b.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ─── Score-math dropdown (collapsible) ──────────────────────────────── -->
+    <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 18px 0;"></div>
+    <button onClick="{{ onToggleMath }}" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 6px 0; background: transparent; border: none; cursor: pointer; font-family: 'Space Grotesk', sans-serif; color: inherit;" style-hover="opacity: 0.85;">
+      <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">How it's calculated</span>
+      <span style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace; line-height: 1;">
+        <sc-if value="{{ mathOpen }}" hint-placeholder-val="{{ true }}">−</sc-if>
+        <sc-if value="{{ mathClosed }}" hint-placeholder-val="{{ false }}">+</sc-if>
+      </span>
+    </button>
+    <sc-if value="{{ mathOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; font-family: 'Space Grotesk', sans-serif; color: #c0c0d0; font-size: 11px; line-height: 1.5;">
+
+        <!-- Score formula -->
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #8a8aa0; text-transform: uppercase; margin-bottom: 4px;">Score</div>
+        <div style="margin-bottom: 6px;">Each achieved skill contributes <span style="font-family: 'JetBrains Mono', monospace; color: #e0e0ec;">100 / rarity%</span>. Rarer skills are worth dramatically more — the elite tail dominates.</div>
+        <sc-if value="{{ hasTop5Points }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 9px; color: #6a6a82; text-transform: uppercase; letter-spacing: 0.1em; margin: 8px 0 4px;">Your top 5 contributors</div>
+          <div style="display: flex; flex-direction: column; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+            <sc-for list="{{ top5Points }}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+                <span style="color: #d0d0dc; font-family: 'Space Grotesk', sans-serif; font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.name }}</span>
+                <span style="color: #8a8aa0; font-size: 10px;">{{ s.rarityStr }}</span>
+                <span style="color: #e0e0ec; min-width: 50px; text-align: right;">{{ s.pointsStr }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- Percentile formula -->
+        <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 12px 0;"></div>
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #8a8aa0; text-transform: uppercase; margin-bottom: 4px;">Percentile</div>
+        <div style="margin-bottom: 6px;">Your top 5 rarest skills compounded with α = 0.25 damping — second through fifth give a meaningful boost but never a runaway one.</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #b0b0c4; background: rgba(0,0,0,0.25); padding: 6px 8px; border-radius: 4px; overflow-x: auto; white-space: nowrap;">
+          P = r₁ × r₂<sup>0.25</sup> × r₃<sup>0.25</sup> × r₄<sup>0.25</sup> × r₅<sup>0.25</sup>
+        </div>
+        <sc-if value="{{ hasTop5Rarest }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 9px; color: #6a6a82; text-transform: uppercase; letter-spacing: 0.1em; margin: 8px 0 4px;">Your top 5 rarest</div>
+          <div style="display: flex; flex-direction: column; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+            <sc-for list="{{ top5Rarest }}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+                <span style="color: #d0d0dc; font-family: 'Space Grotesk', sans-serif; font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.name }}</span>
+                <span style="color: #e0e0ec; min-width: 70px; text-align: right;">{{ s.rarityStr }}<sup style="color: #8a8aa0; font-size: 8px;">{{ s.exponent }}</sup></span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- Tier ladder -->
+        <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 12px 0;"></div>
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #8a8aa0; text-transform: uppercase; margin-bottom: 6px;">Tier</div>
+        <div style="margin-bottom: 6px;">Derived from the hardest difficulty (1–10) you've achieved.</div>
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+          <span style="color: oklch(0.62 0.04 240); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">Novice</span>
+          <span style="color: #9a9ab0;">diff 1–2</span>
+          <span style="color: oklch(0.75 0.18 145); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">Beginner</span>
+          <span style="color: #9a9ab0;">diff 3–4</span>
+          <span style="color: oklch(0.78 0.18 80); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">Intermediate</span>
+          <span style="color: #9a9ab0;">diff 5–6</span>
+          <span style="color: oklch(0.78 0.20 50); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">Advanced</span>
+          <span style="color: #9a9ab0;">diff 7–8</span>
+          <span style="color: oklch(0.78 0.22 25); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">Elite</span>
+          <span style="color: #9a9ab0;">diff 9</span>
+          <span style="color: oklch(0.78 0.20 305); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9.5px;">World-class</span>
+          <span style="color: #9a9ab0;">diff 10</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Separator -->
+    <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 18px 0;"></div>
+
+    <!-- Actions -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button onClick="{{ onExport }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
+        <span>↗</span>
+        <span>{{ exportLabel }}</span>
+      </button>
+      <button onClick="{{ onResetView }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
+        <span>⊕</span>
+        <span>Center on root</span>
+      </button>
+      <button onClick="{{ onReset }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; background: rgba(220, 60, 60, 0.06); border: 1px solid rgba(220, 60, 60, 0.2); border-radius: 8px; color: oklch(0.7 0.18 25); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(220, 60, 60, 0.12); border-color: rgba(220, 60, 60, 0.35);">
+        <span>↺</span>
+        <span>Reset progress</span>
+      </button>
+    </div>
+
+    <!-- Help text -->
+    <div style="margin-top: 18px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 11px; line-height: 1.5; color: #8a8aa0;">
+      <div style="font-weight: 600; color: #b0b0c0; margin-bottom: 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;">How to use</div>
+      Drag (or swipe) to pan · Scroll or pinch to zoom · Tap a node for details
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- Reopen sidebar tab (visible only when closed) -->
+  <sc-if value="{{ sidebarClosed }}" hint-placeholder-val="{{ false }}">
+    <button id="sidebar-reopen-btn" data-no-pan="1" onClick="{{ onToggleSidebar }}" title="Show progress panel" style="position: absolute; top: 80px; left: 18px; padding: 10px 12px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; z-index: 100; display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); color: #fff;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">»</span>
+      <span>Progress</span>
+    </button>
+  </sc-if>
+
+  <!-- Zoom controls -->
+  <div id="zoom-controls" data-no-pan="1" style="position: absolute; bottom: 20px; left: 18px; display: flex; flex-direction: column; gap: 6px; z-index: 100;">
+    <button onClick="{{ onZoomIn }}" style="width: 36px; height: 36px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;" style-hover="background: rgba(40,40,60,0.85);">+</button>
+    <button onClick="{{ onZoomOut }}" style="width: 36px; height: 36px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #d0d0dc; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;" style-hover="background: rgba(40,40,60,0.85);">−</button>
+    <div style="margin-top: 4px; padding: 4px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; text-align: center;">{{ zoomLabel }}</div>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap-box" data-no-pan="1" style="position: absolute; bottom: 20px; right: 18px; padding: 8px; background: rgba(10,10,22,0.82); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; z-index: 100;">
+    <div style="font-size: 9px; font-weight: 600; letter-spacing: 0.1em; color: #6a6a82; text-transform: uppercase; margin-bottom: 6px; padding: 0 2px;">Map</div>
+    <svg width="{{ minimap.width }}" height="{{ minimap.height }}" onClick="{{ minimap.onClick }}" style="display: block; cursor: crosshair; background: rgba(0,0,0,0.3); border-radius: 6px;">
+      <sc-for list="{{ minimap.dots }}" as="dot" hint-placeholder-count="50">
+        <circle cx="{{ dot.x }}" cy="{{ dot.y }}" r="{{ dot.r }}" fill="{{ dot.color }}"></circle>
+      </sc-for>
+      <rect x="{{ minimap.viewport.x }}" y="{{ minimap.viewport.y }}" width="{{ minimap.viewport.w }}" height="{{ minimap.viewport.h }}" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" rx="2"></rect>
+    </svg>
+  </div>
+
+  <!-- Shared progress banner -->
+  <sc-if value="{{ isShared }}" hint-placeholder-val="{{ false }}">
+    <div id="shared-banner" data-no-pan="1" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: rgba(40, 30, 60, 0.85); backdrop-filter: blur(14px); border: 1px solid oklch(0.55 0.18 300 / 0.5); border-radius: 12px; z-index: 110;">
+      <span style="font-size: 18px;">👁</span>
+      <div style="font-size: 12px; line-height: 1.4;">
+        <div style="font-weight: 600; color: #e8e8ef;">Viewing shared progress</div>
+        <div style="color: #a8a8c0; font-size: 11px;">Read-only — your own progress isn't affected.</div>
+      </div>
+      <button onClick="{{ onMakeMine }}" style="padding: 8px 14px; background: oklch(0.6 0.18 300); border: none; border-radius: 6px; color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: oklch(0.65 0.20 300);">Make it mine</button>
+      <button onClick="{{ onDiscardShared }}" style="padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.12);">Discard</button>
+    </div>
+  </sc-if>
+
+  <!-- Expanded detail panel (floats over the clicked node) -->
+  <sc-if value="{{ expandedPanel }}" hint-placeholder-val="{{ false }}">
+    <div id="detail-panel" data-no-pan="1" style="position: absolute; left: {{ expandedPanel.left }}px; top: {{ expandedPanel.top }}px; width: 360px; max-height: 70vh; overflow-y: auto; background: linear-gradient(180deg, rgba(18,18,32,0.96), rgba(10,10,20,0.96)); backdrop-filter: blur(16px); border: 1.5px solid {{ expandedPanel.borderColor }}; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px {{ expandedPanel.glowColor }}; padding: 0; z-index: 200; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif;">
+
+      <!-- Header -->
+      <div style="position: relative; padding: 16px 18px 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding-right: 34px;">
+          <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: {{ expandedPanel.catColor }}; text-transform: uppercase;">{{ expandedPanel.catLabel }}</span>
+          <sc-if value="{{ expandedPanel.isFingertip }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #c0c0d0; font-weight: 600; letter-spacing: 0.05em;">FINGERTIP</span>
+          </sc-if>
+          <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 100px; background: {{ expandedPanel.diffBg }}; border: 1px solid {{ expandedPanel.borderColor }};">
+            <span style="font-size: 9px; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace; color: #9a9ab0;">DIFF</span>
+            <span style="font-size: 13px; font-weight: 700; color: {{ expandedPanel.catColor }}; font-family: 'JetBrains Mono', monospace; line-height: 1;">{{ expandedPanel.diffLabel }}</span>
+          </span>
+        </div>
+        <h2 style="margin: 0; font-size: 19px; font-weight: 600; color: #f0f0f8; line-height: 1.2; text-wrap: pretty;">{{ expandedPanel.name }}</h2>
+        <button onClick="{{ expandedPanel.onClose }}" style="position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0b0c0; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;" style-hover="background: rgba(255,255,255,0.12); color: #fff;">×</button>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 14px 18px 16px 18px;">
+
+        <!-- Achieved checkbox (top) -->
+        <button onClick="{{ expandedPanel.onToggle }}" disabled="{{ expandedPanel.isShared }}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; margin-bottom: 14px; background: {{ expandedPanel.checkBg }}; border: 1.5px solid {{ expandedPanel.checkBorder }}; border-radius: 10px; color: {{ expandedPanel.checkColor }}; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; cursor: {{ expandedPanel.checkCursor }}; font-family: 'Space Grotesk', sans-serif; opacity: {{ expandedPanel.checkOpacity }};" style-hover="filter: brightness(1.15);">
+          <div style="width: 20px; height: 20px; border-radius: 5px; border: 2px solid {{ expandedPanel.checkColor }}; background: {{ expandedPanel.checkBoxBg }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <sc-if value="{{ expandedPanel.isChecked }}" hint-placeholder-val="{{ false }}">
+              <span style="color: #fff; font-size: 14px; font-weight: 700; line-height: 1;">✓</span>
+            </sc-if>
+          </div>
+          <span>{{ expandedPanel.checkLabel }}</span>
+        </button>
+
+        <!-- Rarity -->
+        <sc-if value="{{ expandedPanel.hasRarity }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 14px; background: {{ expandedPanel.diffBg }}; border: 1px solid {{ expandedPanel.borderColor }}; border-radius: 8px;">
+            <span style="font-size: 16px; line-height: 1;">🌍</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: #8a8aa0; text-transform: uppercase; margin-bottom: 2px;">Est. who can do it</div>
+              <div style="font-size: 12px; color: #d8d8e4; line-height: 1.35;">
+                <span style="font-weight: 700; color: {{ expandedPanel.catColor }}; font-family: 'JetBrains Mono', monospace;">{{ expandedPanel.rarity }}</span>
+                <span style="color: #9a9ab0;"> of physically active adults</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- Description -->
+        <p style="margin: 0 0 14px 0; font-size: 13px; line-height: 1.55; color: #d0d0dc; text-wrap: pretty;">{{ expandedPanel.desc }}</p>
+
+        <!-- Standard + Time -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
+          <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: #6a6a82; text-transform: uppercase; margin-bottom: 4px;">Standard</div>
+            <div style="font-size: 12px; color: #e0e0ec; line-height: 1.3; font-family: 'JetBrains Mono', monospace;">{{ expandedPanel.std }}</div>
+          </div>
+          <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: #6a6a82; text-transform: uppercase; margin-bottom: 4px;">Est. time</div>
+            <div style="font-size: 12px; color: #e0e0ec; line-height: 1.3; font-family: 'JetBrains Mono', monospace;">{{ expandedPanel.time }}</div>
+          </div>
+        </div>
+
+        <!-- Cues -->
+        <sc-if value="{{ expandedPanel.hasCues }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: oklch(0.7 0.15 145); text-transform: uppercase; margin-bottom: 8px;">Form cues</div>
+            <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px;">
+              <sc-for list="{{ expandedPanel.cues }}" as="cue" hint-placeholder-count="3">
+                <li style="display: flex; gap: 8px; font-size: 12px; line-height: 1.4; color: #c8c8d4;">
+                  <span style="color: oklch(0.7 0.15 145); flex-shrink: 0;">→</span>
+                  <span>{{ cue }}</span>
+                </li>
+              </sc-for>
+            </ul>
+          </div>
+        </sc-if>
+
+        <!-- Mistakes -->
+        <sc-if value="{{ expandedPanel.hasMist }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: oklch(0.7 0.18 25); text-transform: uppercase; margin-bottom: 8px;">Common mistakes</div>
+            <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px;">
+              <sc-for list="{{ expandedPanel.mist }}" as="m" hint-placeholder-count="2">
+                <li style="display: flex; gap: 8px; font-size: 12px; line-height: 1.4; color: #c8c8d4;">
+                  <span style="color: oklch(0.7 0.18 25); flex-shrink: 0;">×</span>
+                  <span>{{ m }}</span>
+                </li>
+              </sc-for>
+            </ul>
+          </div>
+        </sc-if>
+
+        <!-- Prerequisites -->
+        <sc-if value="{{ expandedPanel.hasPrereqs }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #8a8aa0; text-transform: uppercase; margin-bottom: 8px;">Prerequisites</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <sc-for list="{{ expandedPanel.prereqs }}" as="pr" hint-placeholder-count="2">
+                <button onClick="{{ pr.onClick }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255,255,255,0.05); border: 1px solid {{ pr.borderColor }}; border-radius: 100px; color: #d0d0dc; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.1);">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ pr.dotColor }};"></span>
+                  {{ pr.name }}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Milestone toast (auto-dismisses; click to skip) -->
+  <sc-if value="{{ activeMilestone }}" hint-placeholder-val="{{ false }}">
+    <div id="milestone-toast" data-no-pan="1" onClick="{{ onDismissMilestone }}" style="position: absolute; top: 80px; right: 18px; padding: 14px 18px; background: linear-gradient(135deg, oklch(0.32 0.18 75 / 0.94), oklch(0.25 0.15 110 / 0.94)); backdrop-filter: blur(14px); border: 1.5px solid oklch(0.7 0.20 80); border-radius: 12px; font-family: 'Space Grotesk', sans-serif; z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 28px oklch(0.7 0.20 80 / 0.4); cursor: pointer; max-width: 320px; display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 24px; color: oklch(0.85 0.18 80); line-height: 1;">{{ activeMilestone.icon }}</span>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.85 0.18 80); text-transform: uppercase; margin-bottom: 3px;">Milestone unlocked</div>
+        <div style="font-size: 13.5px; font-weight: 600; color: #fff; line-height: 1.3; text-wrap: pretty;">{{ activeMilestone.label }}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Copy feedback toast -->
+  <sc-if value="{{ copyFeedback }}" hint-placeholder-val="{{ false }}">
+    <div data-no-pan="1" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); padding: 10px 18px; background: rgba(20, 20, 36, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; font-size: 12px; font-weight: 600; color: #e8e8ef; z-index: 150; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">{{ copyFeedback }}</div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = (() => {
+    const w = (typeof window !== 'undefined' && window.innerWidth)  || 1200;
+    const h = (typeof window !== 'undefined' && window.innerHeight) || 700;
+    let myChecked = new Set();
+    let sharedChecked = null;
+    let viewMode = 'mine';
+    // Load saved progress
+    try {
+      const saved = localStorage.getItem('cali-tree-v1');
+      if (saved) {
+        const ids = JSON.parse(saved);
+        if (Array.isArray(ids)) myChecked = new Set(ids);
+      }
+    } catch (e) {}
+    // Load seen milestones (so we don't re-fire toasts for old achievements).
+    let milestonesSeen = new Set();
+    let milestonesFirstLoad = false;
+    try {
+      const savedM = localStorage.getItem('cali-milestones-v2');
+      if (savedM) {
+        const arr = JSON.parse(savedM);
+        if (Array.isArray(arr)) milestonesSeen = new Set(arr);
+      } else {
+        milestonesFirstLoad = true;
+      }
+    } catch (e) { milestonesFirstLoad = true; }
+    // URL hash → shared (read-only) mode
+    try {
+      const hash = (typeof location !== 'undefined' && location.hash) || '';
+      if (hash.indexOf('#p=') === 0) {
+        const b64 = hash.slice(3).replace(/-/g, '+').replace(/_/g, '/');
+        const padded = b64 + '==='.slice((b64.length + 3) % 4);
+        const ids = atob(padded).split(',').filter(Boolean);
+        if (ids.length) { sharedChecked = new Set(ids); viewMode = 'shared'; }
+      }
+    } catch (e) {}
+    const isMobile = w < 760;
+    const scale = isMobile ? 0.32 : 0.5;
+    // Tree spans roughly x=-2200 (OAP) to x=+3480 (mobility), visual center ~x=+640.
+    // screen_x = pan.x + world_x * scale, so to put world x=640 at viewport center:
+    return {
+      pan: { x: w / 2 - 640 * scale, y: h - (isMobile ? 100 : 150) },
+      scale,
+      expandedId: null,
+      myChecked,
+      sharedChecked,
+      viewMode,
+      copyFeedback: '',
+      sidebarOpen: !isMobile,
+      mathOpen: false,
+      milestonesSeen,
+      milestonesFirstLoad,
+      activeMilestone: null,
+      milestoneQueue: [],
+      _v: 0,
+    };
+  })();
+
+  toggleSidebar = () => this.setState({ sidebarOpen: !this.state.sidebarOpen });
+  toggleMath = () => this.setState({ mathOpen: !this.state.mathOpen });
+
+  // ─── lifecycle ────────────────────────────────────────────────────────────
+  componentDidMount() {
+    // Track whether we've successfully centered with real (non-zero) viewport
+    // dimensions. If the iframe is still 0×0 at mount, centerView uses its
+    // 1200×700 fallback — we'll re-center as soon as real dims arrive.
+    this._centeredWithRealDims = window.innerWidth > 0 && window.innerHeight > 0;
+    this.centerView();
+    // Wheel listener (need {passive: false} to preventDefault)
+    if (this.canvasEl) {
+      this.canvasEl.addEventListener('wheel', this.onWheel, { passive: false });
+      // ResizeObserver fires reliably when the iframe finishes sizing — more
+      // reliable than window.resize in nested iframes.
+      if (typeof ResizeObserver !== 'undefined') {
+        this._ro = new ResizeObserver(() => this.onResize());
+        this._ro.observe(this.canvasEl);
+      }
+    }
+    window.addEventListener('resize', this.onResize);
+    // First load after this feature shipped: silently seed milestonesSeen from
+    // existing progress so we don't spam toasts for everything already done.
+    if (this.state.milestonesFirstLoad) {
+      const data = window.CALI_DATA;
+      if (data) {
+        const checked = this.getActiveChecked();
+        const stats = this.computeStats(data, checked);
+        const fired = this.detectNewMilestones(data, stats, checked, new Set());
+        const seen = new Set(fired.map((m) => m.id));
+        try { localStorage.setItem('cali-milestones-v2', JSON.stringify([...seen])); } catch (e) {}
+        this.setState({ milestonesSeen: seen, milestonesFirstLoad: false });
+      } else {
+        this.setState({ milestonesFirstLoad: false });
+      }
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.canvasEl) this.canvasEl.removeEventListener('wheel', this.onWheel);
+    if (this._ro) { this._ro.disconnect(); this._ro = null; }
+    window.removeEventListener('resize', this.onResize);
+    document.removeEventListener('mousemove', this.onPanMove);
+    document.removeEventListener('mouseup', this.onPanEnd);
+  }
+
+  onResize = () => {
+    // If our initial centerView ran with fallback dims (iframe was 0×0 at
+    // mount), recenter exactly once now that real dims have arrived.
+    if (!this._centeredWithRealDims && window.innerWidth > 0 && window.innerHeight > 0) {
+      this._centeredWithRealDims = true;
+      this.centerView();
+      return;
+    }
+    this.forceUpdate();
+  };
+
+  // ─── data helpers ─────────────────────────────────────────────────────────
+  getActiveChecked = () => {
+    return this.state.viewMode === 'shared'
+      ? (this.state.sharedChecked || new Set())
+      : this.state.myChecked;
+  };
+
+  skillById = (id) => {
+    const d = window.CALI_DATA;
+    return d ? d.skills.find((s) => s.id === id) : null;
+  };
+
+  // ─── view controls ────────────────────────────────────────────────────────
+  centerView = () => {
+    const w = window.innerWidth  || 1200;
+    const h = window.innerHeight || 700;
+    const isMobile = w < 760;
+    const scale = isMobile ? 0.32 : 0.5;
+    // screen_x = pan.x + world_x * scale; tree visual center ~x=+640.
+    this.setState({ pan: { x: w / 2 - 640 * scale, y: h - (isMobile ? 100 : 150) }, scale });
+  };
+
+  zoomBy = (factor) => {
+    const w = window.innerWidth, h = window.innerHeight;
+    this.zoomAt(w / 2, h / 2, factor);
+  };
+
+  zoomAt = (cx, cy, factor) => {
+    const { pan, scale } = this.state;
+    const newScale = Math.max(0.25, Math.min(2.5, scale * factor));
+    const realFactor = newScale / scale;
+    const newPanX = cx - (cx - pan.x) * realFactor;
+    const newPanY = cy - (cy - pan.y) * realFactor;
+    this.setState({ scale: newScale, pan: { x: newPanX, y: newPanY } });
+  };
+
+  onWheel = (e) => {
+    e.preventDefault();
+    const delta = -e.deltaY * 0.0018;
+    const factor = Math.exp(delta);
+    this.zoomAt(e.clientX, e.clientY, factor);
+  };
+
+  onPanStart = (e) => {
+    // Don't pan if mousedown happened on a node or no-pan element
+    const t = e.target;
+    if (t && t.closest && (t.closest('[data-node]') || t.closest('[data-no-pan]'))) return;
+    if (e.button !== 0) return;
+    this.dragInfo = {
+      startMouseX: e.clientX, startMouseY: e.clientY,
+      startPanX: this.state.pan.x, startPanY: this.state.pan.y,
+      moved: false,
+    };
+    if (this.canvasEl) this.canvasEl.style.cursor = 'grabbing';
+    document.addEventListener('mousemove', this.onPanMove);
+    document.addEventListener('mouseup', this.onPanEnd);
+  };
+
+  onPanMove = (e) => {
+    if (!this.dragInfo) return;
+    const dx = e.clientX - this.dragInfo.startMouseX;
+    const dy = e.clientY - this.dragInfo.startMouseY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) this.dragInfo.moved = true;
+    this.setState({ pan: { x: this.dragInfo.startPanX + dx, y: this.dragInfo.startPanY + dy } });
+  };
+
+  onPanEnd = () => {
+    document.removeEventListener('mousemove', this.onPanMove);
+    document.removeEventListener('mouseup', this.onPanEnd);
+    if (this.canvasEl) this.canvasEl.style.cursor = 'grab';
+    this.dragInfo = null;
+  };
+
+  // ─── touch interactions (mobile) ──────────────────────────────────────────
+  onTouchStart = (e) => {
+    const t = e.target;
+    if (t && t.closest && (t.closest('[data-node]') || t.closest('[data-no-pan]'))) return;
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      this.touchInfo = {
+        mode: 'pan',
+        startX: touch.clientX, startY: touch.clientY,
+        startPanX: this.state.pan.x, startPanY: this.state.pan.y,
+        moved: false,
+      };
+    } else if (e.touches.length === 2) {
+      const [a, b] = e.touches;
+      this.touchInfo = {
+        mode: 'pinch',
+        startDist: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY),
+        startScale: this.state.scale,
+        startPanX: this.state.pan.x,
+        startPanY: this.state.pan.y,
+        cx: (a.clientX + b.clientX) / 2,
+        cy: (a.clientY + b.clientY) / 2,
+      };
+    }
+  };
+
+  onTouchMove = (e) => {
+    if (!this.touchInfo) return;
+    if (e.cancelable) e.preventDefault();
+    if (this.touchInfo.mode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - this.touchInfo.startX;
+      const dy = t.clientY - this.touchInfo.startY;
+      if (Math.abs(dx) + Math.abs(dy) > 5) this.touchInfo.moved = true;
+      this.setState({ pan: { x: this.touchInfo.startPanX + dx, y: this.touchInfo.startPanY + dy } });
+    } else if (this.touchInfo.mode === 'pinch' && e.touches.length === 2) {
+      const [a, b] = e.touches;
+      const dist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const factor = dist / this.touchInfo.startDist;
+      const newScale = Math.max(0.25, Math.min(2.5, this.touchInfo.startScale * factor));
+      const realFactor = newScale / this.touchInfo.startScale;
+      const cx = this.touchInfo.cx, cy = this.touchInfo.cy;
+      const newPanX = cx - (cx - this.touchInfo.startPanX) * realFactor;
+      const newPanY = cy - (cy - this.touchInfo.startPanY) * realFactor;
+      this.setState({ scale: newScale, pan: { x: newPanX, y: newPanY } });
+    }
+  };
+
+  onTouchEnd = (e) => {
+    if (e.touches.length === 0) {
+      this.touchInfo = null;
+    } else if (e.touches.length === 1 && this.touchInfo && this.touchInfo.mode === 'pinch') {
+      // pinch released to a single finger — restart as pan
+      const touch = e.touches[0];
+      this.touchInfo = {
+        mode: 'pan',
+        startX: touch.clientX, startY: touch.clientY,
+        startPanX: this.state.pan.x, startPanY: this.state.pan.y,
+        moved: true,
+      };
+    }
+  };
+
+  // ─── node interactions ────────────────────────────────────────────────────
+  onNodeClick = (id) => {
+    const s = this.skillById(id);
+    if (!s) return;
+    if (s.isStub) return; // stubs are inert
+    if (s.isRoot) {
+      // Root just centers view
+      this.centerView();
+      return;
+    }
+    // On mobile, close the sidebar when opening a detail panel — they
+    // both occupy the bottom-sheet slot.
+    const next = { expandedId: this.state.expandedId === id ? null : id };
+    if (window.innerWidth < 760 && this.state.sidebarOpen && next.expandedId) {
+      next.sidebarOpen = false;
+    }
+    this.setState(next);
+  };
+
+  toggleCheck = (id) => {
+    if (this.state.viewMode === 'shared') return;
+    const next = new Set(this.state.myChecked);
+    const wasChecked = next.has(id);
+    if (wasChecked) next.delete(id);
+    else next.add(id);
+    this.setState({ myChecked: next });
+    try {
+      localStorage.setItem('cali-tree-v1', JSON.stringify([...next]));
+    } catch (e) {}
+    // Detect newly-earned milestones — only on ADD (no toast on un-check).
+    if (!wasChecked) {
+      const data = window.CALI_DATA;
+      if (data) {
+        const stats = this.computeStats(data, next);
+        const fired = this.detectNewMilestones(data, stats, next, this.state.milestonesSeen || new Set());
+        if (fired.length) this.queueMilestones(fired);
+      }
+    }
+  };
+
+  navigateToSkill = (id) => {
+    const s = this.skillById(id);
+    if (!s) return;
+    const w = window.innerWidth, h = window.innerHeight;
+    const sc = this.state.scale;
+    this.setState({
+      expandedId: id,
+      pan: { x: w / 2 - s.x * sc, y: h / 2 - s.y * sc },
+    });
+  };
+
+  // ─── share / persistence ──────────────────────────────────────────────────
+  onExport = async () => {
+    const checked = this.getActiveChecked();
+    if (!checked.size) {
+      this.setState({ copyFeedback: 'Nothing checked yet — mark some skills first.' });
+      setTimeout(() => this.setState({ copyFeedback: '' }), 2500);
+      return;
+    }
+    const ids = [...checked].join(',');
+    const b64 = btoa(ids).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const url = `${location.origin}${location.pathname}#p=${b64}`;
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      ok = true;
+    } catch (e) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); ta.remove();
+        ok = true;
+      } catch (e2) {}
+    }
+    this.setState({ copyFeedback: ok ? `Share link copied — ${checked.size} skill${checked.size===1?'':'s'} in it` : 'Copy failed — link is in the URL bar' });
+    if (!ok) location.hash = `p=${b64}`;
+    setTimeout(() => this.setState({ copyFeedback: '' }), 2800);
+  };
+
+  onReset = () => {
+    if (this.state.viewMode === 'shared') return;
+    if (!confirm('Reset all your progress? This cannot be undone.')) return;
+    this.setState({ myChecked: new Set() });
+    try { localStorage.removeItem('cali-tree-v1'); } catch (e) {}
+  };
+
+  onMakeMine = () => {
+    const merged = new Set([...(this.state.myChecked || []), ...(this.state.sharedChecked || [])]);
+    this.setState({ myChecked: merged, viewMode: 'mine', sharedChecked: null });
+    try { localStorage.setItem('cali-tree-v1', JSON.stringify([...merged])); } catch (e) {}
+    history.replaceState(null, '', location.pathname + location.search);
+  };
+
+  onDiscardShared = () => {
+    this.setState({ viewMode: 'mine', sharedChecked: null });
+    history.replaceState(null, '', location.pathname + location.search);
+  };
+
+  // ─── render ────────────────────────────────────────────────────────────────
+  // ─── scoring engine ────────────────────────────────────────────────────────
+  // score = sum of (100 / rarity_percent) for each achieved skill.
+  // percentile = top-5 rarest, compounded with α=0.25 damping.
+  // tier = derived from the hardest difficulty achieved.
+  // ---------------------------------------------------------------------------
+  computeStats = (data, checked) => {
+    const cats = data.categories;
+    const catIds = Object.keys(cats);
+    const parseRarity = (str) => {
+      if (!str || typeof str !== 'string') return null;
+      const m = str.match(/([\d.]+)/);
+      if (!m) return null;
+      const n = parseFloat(m[1]);
+      return isFinite(n) && n > 0 ? n : null;
+    };
+    const scoreOf = (s) => { const r = parseRarity(s.rarity); return r == null ? 0 : 100 / r; };
+    const tierFromDiff = (d) => {
+      if (d >= 10) return { idx: 5, name: 'World-class',  color: 'oklch(0.78 0.20 305)' };
+      if (d >= 9)  return { idx: 4, name: 'Elite',        color: 'oklch(0.78 0.22 25)'  };
+      if (d >= 7)  return { idx: 3, name: 'Advanced',     color: 'oklch(0.78 0.20 50)'  };
+      if (d >= 5)  return { idx: 2, name: 'Intermediate', color: 'oklch(0.78 0.18 80)'  };
+      if (d >= 3)  return { idx: 1, name: 'Beginner',     color: 'oklch(0.75 0.18 145)' };
+      return         { idx: 0, name: 'Novice',        color: 'oklch(0.62 0.04 240)' };
+    };
+    const pctileFromSet = (skills) => {
+      const rs = skills.map((s) => parseRarity(s.rarity)).filter((r) => r != null).sort((a, b) => a - b);
+      if (!rs.length) return null;
+      const top = rs.slice(0, 5);
+      let p = top[0];
+      for (let i = 1; i < top.length; i++) p *= Math.pow(top[i], 0.25);
+      return Math.min(100, Math.max(1e-6, p));
+    };
+    const fmtPct = (p) => {
+      if (p == null) return '100%';
+      if (p >= 99.95) return '100%';
+      if (p >= 10)    return Math.round(p) + '%';
+      if (p >= 1)     return p.toFixed(1) + '%';
+      // sub-1%: spell out all the zeros (2 significant figures, capped at 20 decimals)
+      const digits = 2 - Math.floor(Math.log10(p)) - 1;
+      return p.toFixed(Math.max(2, Math.min(20, digits))) + '%';
+    };
+    const fmtScore = (s) => {
+      if (s >= 1000) return Math.round(s).toLocaleString();
+      if (s >= 100)  return Math.round(s).toString();
+      if (s >= 10)   return s.toFixed(0);
+      if (s > 0)     return s.toFixed(1);
+      return '0';
+    };
+
+    const achieved = data.skills.filter((s) => !s.isRoot && !s.isStub && checked.has(s.id));
+    const totalSkills = data.skills.filter((s) => !s.isStub && !s.isRoot).length;
+    const overallScore = achieved.reduce((sum, s) => sum + scoreOf(s), 0);
+    const overallMaxDiff = achieved.reduce((m, s) => Math.max(m, s.diff || 0), 0);
+    const overallTier = tierFromDiff(overallMaxDiff);
+    const overallPct = pctileFromSet(achieved);
+
+    const perCategory = catIds.map((catId) => {
+      const cat = cats[catId];
+      const allCat = data.skills.filter((s) => s.cat === catId && !s.isStub);
+      const stub = data.skills.find((s) => s.cat === catId && s.isStub);
+      const isStub = !!stub && allCat.length === 0;
+      const inCat = achieved.filter((s) => s.cat === catId);
+      const score = inCat.reduce((sum, s) => sum + scoreOf(s), 0);
+      const maxDiff = inCat.reduce((m, s) => Math.max(m, s.diff || 0), 0);
+      const tier = tierFromDiff(maxDiff);
+      const pct = pctileFromSet(inCat);
+      return {
+        id: catId, name: cat.name, hue: cat.hue, isStub,
+        done: inCat.length, total: allCat.length,
+        score, scoreStr: fmtScore(score),
+        maxDiff, tier,
+        percentile: pct, percentileStr: fmtPct(pct),
+        hasAchievements: inCat.length > 0,
+      };
+    });
+
+    // Curated path badges — defined in skills.js as window.CALI_BADGES.
+    const badgeDefs = window.CALI_BADGES || [];
+    const completedBadges = badgeDefs.filter((b) => b.skills.every((id) => checked.has(id)));
+
+    // Top-5 contributing skills (raw points)
+    const withPoints = achieved.map((s) => ({ id: s.id, name: s.name, rarity: parseRarity(s.rarity), points: scoreOf(s) }))
+                               .sort((a, b) => b.points - a.points);
+    const top5Points = withPoints.slice(0, 5);
+
+    // Top-5 rarest skills (drives the percentile calc)
+    const rarestSorted = achieved.map((s) => ({ id: s.id, name: s.name, rarity: parseRarity(s.rarity) }))
+                                 .filter((s) => s.rarity != null)
+                                 .sort((a, b) => a.rarity - b.rarity);
+    const top5Rarest = rarestSorted.slice(0, 5);
+
+    return {
+      overall: {
+        score: overallScore, scoreStr: fmtScore(overallScore),
+        maxDiff: overallMaxDiff, tier: overallTier,
+        percentile: overallPct, percentileStr: fmtPct(overallPct),
+        achieved: achieved.length, total: totalSkills,
+      },
+      perCategory, completedBadges, achieved,
+      top5Points, top5Rarest,
+      _fmtPct: fmtPct, _fmtScore: fmtScore,
+    };
+  };
+
+  detectNewMilestones = (data, stats, checked, seen) => {
+    const fired = [];
+    const have = seen instanceof Set ? seen : new Set();
+    const add = (id, label, icon) => {
+      if (!have.has(id) && !fired.find((m) => m.id === id)) fired.push({ id, label, icon: icon || '✦' });
+    };
+    const achieved = stats.achieved;
+    const total = achieved.length;
+    const maxDiff = stats.overall.maxDiff;
+
+    Object.keys(data.categories).forEach((catId) => {
+      if (achieved.some((s) => s.cat === catId)) {
+        add('first-' + catId, 'First ' + data.categories[catId].name + ' skill', '◉');
+      }
+    });
+    [10, 25, 50, 100].forEach((n) => {
+      if (total >= n) add('total-' + n, n + ' skills achieved', '★');
+    });
+    [7, 9, 10].forEach((d) => {
+      if (maxDiff >= d) add('first-diff-' + d, 'First difficulty-' + d + ' skill', '◆');
+    });
+    if (achieved.some((s) => s.isFingertip)) {
+      add('first-fingertip', 'First fingertip variant', '✋');
+    }
+    const cats = new Set(achieved.filter((s) => s.cat).map((s) => s.cat));
+    if (cats.size >= Object.keys(data.categories).length) {
+      add('renaissance', 'Renaissance — a skill in every category', '⬢');
+    }
+    if (achieved.length && stats.overall.tier.idx >= 1) {
+      add('tier-overall-' + stats.overall.tier.idx, 'Reached ' + stats.overall.tier.name, '▲');
+    }
+    stats.perCategory.forEach((c) => {
+      if (c.tier.idx >= 2) add('tier-' + c.id + '-' + c.tier.idx, c.name + ': ' + c.tier.name, '▲');
+    });
+    stats.completedBadges.forEach((b) => {
+      add('badge-' + b.key, 'Earned the ' + b.name + ' badge', '✤');
+    });
+    return fired;
+  };
+
+  queueMilestones = (newOnes) => {
+    if (!newOnes || !newOnes.length) return;
+    const seen = new Set(this.state.milestonesSeen || []);
+    newOnes.forEach((m) => seen.add(m.id));
+    try { localStorage.setItem('cali-milestones-v2', JSON.stringify([...seen])); } catch (e) {}
+    const queue = [...(this.state.milestoneQueue || []), ...newOnes];
+    if (!this.state.activeMilestone) {
+      this.setState({ milestonesSeen: seen, activeMilestone: queue[0], milestoneQueue: queue.slice(1) });
+      this.scheduleNextMilestone();
+    } else {
+      this.setState({ milestonesSeen: seen, milestoneQueue: queue });
+    }
+  };
+
+  scheduleNextMilestone = () => {
+    if (this._milestoneTimer) clearTimeout(this._milestoneTimer);
+    this._milestoneTimer = setTimeout(() => {
+      const queue = this.state.milestoneQueue || [];
+      if (queue.length) {
+        this.setState({ activeMilestone: queue[0], milestoneQueue: queue.slice(1) });
+        this.scheduleNextMilestone();
+      } else {
+        this.setState({ activeMilestone: null });
+      }
+    }, 3800);
+  };
+
+  dismissMilestone = () => {
+    if (this._milestoneTimer) clearTimeout(this._milestoneTimer);
+    const queue = this.state.milestoneQueue || [];
+    if (queue.length) {
+      this.setState({ activeMilestone: queue[0], milestoneQueue: queue.slice(1) });
+      this.scheduleNextMilestone();
+    } else {
+      this.setState({ activeMilestone: null });
+    }
+  };
+
+  renderVals() {
+    const data = window.CALI_DATA;
+    if (!data) {
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '' };
+    }
+
+    const checked = this.getActiveChecked();
+    const { pan, scale } = this.state;
+
+    // ─── Build nodes ────────────────────────────────────────────────────────
+    const nodes = data.skills.map((s) => {
+      const cat = s.cat ? data.categories[s.cat] : null;
+      const hue = cat ? cat.hue : null;
+      const isChecked = checked.has(s.id);
+      const isExpanded = s.id === this.state.expandedId;
+      const r = s.isRoot ? 40 : s.isStub ? 30 : 28;
+      const size = r * 2;
+
+      let color, fill, glowMain;
+      if (s.isRoot) {
+        color = '#f0f0f8';
+        fill = isChecked ? '#f8f8ff' : 'rgba(30, 30, 50, 0.85)';
+        glowMain = 'rgba(255, 255, 255, 0.4)';
+      } else if (s.isStub) {
+        color = `oklch(0.45 0.08 ${hue})`;
+        fill = 'rgba(15, 15, 28, 0.7)';
+        glowMain = `oklch(0.4 0.08 ${hue} / 0.2)`;
+      } else {
+        color = `oklch(0.72 0.20 ${hue})`;
+        fill = isChecked ? `oklch(0.55 0.22 ${hue})` : 'rgba(13, 13, 24, 0.92)';
+        glowMain = `oklch(0.7 0.22 ${hue} / 0.55)`;
+      }
+
+      let shadow;
+      if (s.isStub) {
+        shadow = `0 0 8px ${glowMain}, inset 0 0 6px rgba(0,0,0,0.4)`;
+      } else if (s.isRoot) {
+        shadow = isChecked
+          ? `0 0 24px ${glowMain}, 0 0 50px ${glowMain}, inset 0 0 16px rgba(255,255,255,0.3)`
+          : `0 0 18px ${glowMain}, 0 0 38px ${glowMain}, inset 0 0 10px rgba(255,255,255,0.15)`;
+      } else if (isChecked) {
+        shadow = `0 0 22px ${glowMain}, 0 0 48px ${glowMain}, inset 0 0 14px rgba(255,255,255,0.15)`;
+      } else {
+        shadow = `0 0 14px ${glowMain}, inset 0 0 8px rgba(0,0,0,0.5)`;
+      }
+
+      if (isExpanded) {
+        shadow += `, 0 0 0 3px rgba(255,255,255,0.15)`;
+      }
+
+      // Label
+      const labelTop = size + 6;
+      const isImportant = s.isRoot || s.isStub || isChecked || isExpanded || s.diff >= 9 || !!s.isFingertip;
+      const labelSize = s.isRoot ? 13 : s.isStub ? 12 : 11;
+      const labelWeight = s.isRoot ? 700 : isImportant ? 600 : 500;
+      const labelColor = s.isStub
+        ? `oklch(0.55 0.08 ${hue})`
+        : s.isRoot
+          ? '#f0f0f8'
+          : isChecked
+            ? `oklch(0.85 0.15 ${hue})`
+            : `oklch(0.75 0.05 ${hue || 240})`;
+
+      // Figure
+      const figDef = (s.fig && window.CALI_FIGURES) ? window.CALI_FIGURES[s.fig] : null;
+      const figStroke = s.isRoot
+        ? '#f0f0f8'
+        : isChecked
+          ? '#fff'
+          : `oklch(0.82 0.14 ${hue})`;
+      const figSize = Math.round(size * 0.66);
+
+      return {
+        id: s.id,
+        name: s.name,
+        lx: s.x - r,
+        ty: s.y - r,
+        size,
+        color,
+        fill,
+        shadow,
+        cursor: s.isStub ? 'default' : 'pointer',
+        z: isExpanded ? 40 : 10,
+        opacity: s.isStub ? 0.55 : 1,
+        isRoot: !!s.isRoot,
+        hasFig: !!figDef,
+        figSize,
+        figStroke,
+        figHx: figDef ? figDef.hx : 0,
+        figHy: figDef ? figDef.hy : 0,
+        figHr: figDef ? figDef.hr : 0,
+        figBody: figDef ? figDef.body : '',
+        showCheck: isChecked && !s.isStub && !s.isRoot,
+        showFingertip: !!s.isFingertip,
+        showDiff: !s.isRoot && !s.isStub && scale >= 0.45,
+        showLabel: isImportant || scale >= 0.55,
+        diff: s.diff,
+        labelTop,
+        labelSize,
+        labelWeight,
+        labelColor,
+        onClick: () => this.onNodeClick(s.id),
+      };
+    });
+
+    // ─── Build connections ──────────────────────────────────────────────────
+    // Trunk lines (root → first-of-category) light up as soon as ANY skill
+    // in that category is achieved — the root itself is never "checked".
+    const catHasAch = new Set();
+    data.skills.forEach((sk) => {
+      if (!sk.isRoot && !sk.isStub && sk.cat && checked.has(sk.id)) catHasAch.add(sk.cat);
+    });
+    const connections = [];
+    data.skills.forEach((s) => {
+      (s.pre || []).forEach((preId) => {
+        const pre = data.skills.find((x) => x.id === preId);
+        if (!pre) return;
+        const cat = s.cat ? data.categories[s.cat] : null;
+        const hue = cat ? cat.hue : 240;
+
+        const preR = pre.isRoot ? 40 : pre.isStub ? 30 : 28;
+        const sR = s.isRoot ? 40 : s.isStub ? 30 : 28;
+
+        // Root acts "checked" for category-trunk lighting if the category has any achievement.
+        const preLit = pre.isRoot ? (s.cat && catHasAch.has(s.cat)) : checked.has(preId);
+        const bothChecked = preLit && (pre.isRoot ? catHasAch.has(s.cat) : checked.has(s.id));
+        const isStubLine = s.isStub || pre.isStub;
+
+        let stroke, strokeWidth, dash = '';
+        if (isStubLine) {
+          stroke = `oklch(0.4 0.06 ${hue} / 0.25)`;
+          strokeWidth = 1.2;
+          dash = '4 4';
+        } else if (bothChecked) {
+          stroke = `oklch(0.72 0.22 ${hue} / 0.95)`;
+          strokeWidth = 2.5;
+        } else if (preLit) {
+          stroke = `oklch(0.6 0.18 ${hue} / 0.6)`;
+          strokeWidth = 1.8;
+        } else {
+          stroke = `oklch(0.5 0.12 ${hue} / 0.45)`;
+          strokeWidth = 1.4;
+        }
+
+        // Path
+        const dx = s.x - pre.x;
+        const startY = pre.y + preR;
+        const endY = s.y - sR;
+        let d;
+        if (Math.abs(dx) < 4) {
+          d = `M ${pre.x} ${startY} L ${s.x} ${endY}`;
+        } else {
+          const midY = (startY + endY) / 2;
+          d = `M ${pre.x} ${startY} C ${pre.x} ${midY}, ${s.x} ${midY}, ${s.x} ${endY}`;
+        }
+
+        connections.push({
+          d, stroke, strokeWidth, dash,
+        });
+      });
+    });
+
+    // ─── Category stats ─────────────────────────────────────────────────────
+    const stats = this.computeStats(data, checked);
+
+    const categoryStats = stats.perCategory.map((c) => {
+      const isStub = c.isStub;
+      const pct = c.total ? (c.done / c.total) * 100 : 0;
+      return {
+        id: c.id,
+        name: c.name,
+        isStub,
+        dotColor: isStub ? `oklch(0.45 0.08 ${c.hue})` : `oklch(0.7 0.22 ${c.hue})`,
+        dotGlow: isStub ? 'none' : `0 0 10px oklch(0.7 0.22 ${c.hue} / 0.6)`,
+        labelColor: isStub ? '#8a8aa0' : '#e0e0ec',
+        statText: isStub ? '—' : `${c.done}/${c.total}`,
+        statColor: isStub ? '#6a6a82' : (c.done === c.total && c.total > 0 ? `oklch(0.75 0.20 ${c.hue})` : '#a8a8c0'),
+        pct,
+        barColor: isStub ? 'transparent' : `oklch(0.65 0.22 ${c.hue})`,
+        barGlow: isStub || pct === 0 ? 'none' : `0 0 8px oklch(0.65 0.22 ${c.hue} / 0.7)`,
+        hasAchievements: c.hasAchievements && !isStub,
+        tierName: c.tier.name,
+        tierColor: c.tier.color,
+        percentileStr: c.percentileStr,
+        scoreStr: c.scoreStr,
+      };
+    });
+
+    // ─── Expanded panel ─────────────────────────────────────────────────────
+    let expandedPanel = null;
+    if (this.state.expandedId) {
+      const s = this.skillById(this.state.expandedId);
+      if (s && !s.isStub && !s.isRoot) {
+        const cat = s.cat ? data.categories[s.cat] : null;
+        const hue = cat ? cat.hue : 240;
+        const catColor = `oklch(0.72 0.20 ${hue})`;
+
+        // Position: screen-space, offset to the right of the node when possible
+        const screenX = s.x * scale + pan.x;
+        const screenY = s.y * scale + pan.y;
+        const r = s.isRoot ? 40 : 28;
+        const panelW = 360;
+        const panelH = 460; // approximate
+        const margin = 14;
+
+        let left = screenX + r * scale + margin;
+        let top = screenY - panelH / 2;
+
+        // If overflowing right, place to the left
+        if (left + panelW > window.innerWidth - 20) {
+          left = screenX - r * scale - margin - panelW;
+        }
+        // If overflowing top/bottom
+        if (top < 70) top = 70;
+        if (top + panelH > window.innerHeight - 20) top = window.innerHeight - panelH - 20;
+        // If still overflowing left, just clamp
+        if (left < 314) left = 314;
+
+        const isCheckedNow = checked.has(s.id);
+        const isShared = this.state.viewMode === 'shared';
+
+        const prereqs = (s.pre || [])
+          .map((pid) => data.skills.find((x) => x.id === pid))
+          .filter((x) => x && !x.isRoot && !x.isStub)
+          .map((p) => {
+            const pcat = p.cat ? data.categories[p.cat] : null;
+            const phue = pcat ? pcat.hue : 240;
+            return {
+              name: p.name,
+              dotColor: `oklch(0.7 0.22 ${phue})`,
+              borderColor: `oklch(0.5 0.15 ${phue} / 0.4)`,
+              onClick: () => this.navigateToSkill(p.id),
+            };
+          });
+
+        expandedPanel = {
+          name: s.name,
+          desc: s.desc || '',
+          std: s.std || '—',
+          time: s.time || '—',
+          cues: s.cues || [],
+          mist: s.mist || [],
+          prereqs,
+          hasCues: (s.cues || []).length > 0,
+          hasMist: (s.mist || []).length > 0,
+          hasPrereqs: prereqs.length > 0,
+          isFingertip: !!s.isFingertip,
+          isShared,
+          isChecked: isCheckedNow,
+          catLabel: cat ? cat.name : '—',
+          catColor,
+          diffLabel: s.diff ? String(s.diff) : '—',
+          diffBg: `oklch(0.4 0.16 ${hue} / 0.16)`,
+          rarity: s.rarity || '',
+          hasRarity: !!s.rarity,
+          borderColor: `oklch(0.55 0.18 ${hue} / 0.45)`,
+          glowColor: `oklch(0.6 0.18 ${hue} / 0.18)`,
+          left, top,
+          checkBg: isCheckedNow ? `oklch(0.4 0.22 ${hue} / 0.25)` : 'rgba(255,255,255,0.04)',
+          checkBorder: isCheckedNow ? `oklch(0.65 0.22 ${hue})` : 'rgba(255,255,255,0.15)',
+          checkColor: isCheckedNow ? `oklch(0.85 0.18 ${hue})` : '#d0d0dc',
+          checkBoxBg: isCheckedNow ? `oklch(0.6 0.22 ${hue})` : 'transparent',
+          checkLabel: isShared
+            ? (isCheckedNow ? 'Achieved (in shared view)' : 'Not achieved (in shared view)')
+            : (isCheckedNow ? '✓ Achieved — click to undo' : 'Mark as achieved'),
+          checkCursor: isShared ? 'not-allowed' : 'pointer',
+          checkOpacity: isShared ? 0.6 : 1,
+          onToggle: () => this.toggleCheck(s.id),
+          onClose: () => this.setState({ expandedId: null }),
+        };
+      }
+    }
+
+    // ─── Minimap ────────────────────────────────────────────────────────────
+    const minimap = this.buildMinimap(data, checked);
+
+    // ─── Misc ──────────────────────────────────────────────────────────────
+    const totalDone = data.skills.filter((s) => !s.isStub && !s.isRoot && checked.has(s.id)).length;
+    const totalSkills = data.skills.filter((s) => !s.isStub && !s.isRoot).length;
+    const totalCheckedLabel = `${totalDone} / ${totalSkills}`;
+    const zoomLabel = Math.round(scale * 100) + '%';
+    const exportLabel = this.state.viewMode === 'shared' ? 'Copy share link' : 'Share progress';
+
+    return {
+      // canvas
+      panX: pan.x,
+      panY: pan.y,
+      scale,
+      canvasRef: (el) => { this.canvasEl = el; if (el) this.attachWheel(el); },
+      onPanStart: this.onPanStart,
+
+      // nodes & connections
+      nodes,
+      connections,
+
+      // sidebar
+      categoryStats,
+      totalCheckedLabel,
+      zoomLabel,
+      exportLabel,
+
+      // overall scoring
+      hasAchievements: stats.overall.achieved > 0,
+      overallTierName: stats.overall.tier.name,
+      overallTierColor: stats.overall.tier.color,
+      overallScore: stats.overall.scoreStr,
+      overallPercentile: stats.overall.percentileStr,
+
+      // path badges (completed curated lines)
+      hasBadges: stats.completedBadges.length > 0,
+      badges: stats.completedBadges.map((b) => {
+        const lc = data.categories[b.cat];
+        const hue = lc ? lc.hue : 240;
+        return {
+          key: b.key,
+          name: b.name,
+          color: `oklch(0.85 0.18 ${hue})`,
+          bg: `oklch(0.35 0.20 ${hue} / 0.22)`,
+          border: `oklch(0.55 0.18 ${hue} / 0.5)`,
+        };
+      }),
+
+      // milestone toast
+      activeMilestone: this.state.activeMilestone,
+      onDismissMilestone: this.dismissMilestone,
+
+      // math dropdown
+      mathOpen: this.state.mathOpen,
+      mathClosed: !this.state.mathOpen,
+      onToggleMath: this.toggleMath,
+      top5Points: stats.top5Points.map((s) => ({ name: s.name, rarityStr: s.rarity != null ? stats._fmtPct(s.rarity) : '—', pointsStr: stats._fmtScore(s.points) })),
+      top5Rarest: stats.top5Rarest.map((s, i) => ({
+        name: s.name,
+        rarityStr: stats._fmtPct(s.rarity),
+        exponent: i === 0 ? '1' : '0.25',
+        prefix: i === 0 ? '' : ' × ',
+      })),
+      hasTop5Points: stats.top5Points.length > 0,
+      hasTop5Rarest: stats.top5Rarest.length > 0,
+
+      // buttons
+      sidebarOpen: this.state.sidebarOpen,
+      sidebarClosed: !this.state.sidebarOpen,
+      onToggleSidebar: this.toggleSidebar,
+      onZoomIn: () => this.zoomBy(1.25),
+      onZoomOut: () => this.zoomBy(0.8),
+      onResetView: this.centerView,
+      onExport: this.onExport,
+      onReset: this.onReset,
+
+      // share banner
+      isShared: this.state.viewMode === 'shared',
+      onMakeMine: this.onMakeMine,
+      onDiscardShared: this.onDiscardShared,
+
+      // panel
+      expandedPanel,
+
+      // minimap
+      minimap,
+
+      // toast
+      copyFeedback: this.state.copyFeedback,
+    };
+  }
+
+  attachWheel = (el) => {
+    if (el === this._wheelAttachedEl) return;
+    if (this._wheelAttachedEl) {
+      this._wheelAttachedEl.removeEventListener('wheel', this.onWheel);
+      this._wheelAttachedEl.removeEventListener('touchstart', this.onTouchStart);
+      this._wheelAttachedEl.removeEventListener('touchmove', this.onTouchMove);
+      this._wheelAttachedEl.removeEventListener('touchend', this.onTouchEnd);
+      this._wheelAttachedEl.removeEventListener('touchcancel', this.onTouchEnd);
+    }
+    el.addEventListener('wheel', this.onWheel, { passive: false });
+    el.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    el.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    el.addEventListener('touchend', this.onTouchEnd);
+    el.addEventListener('touchcancel', this.onTouchEnd);
+    this._wheelAttachedEl = el;
+  };
+
+  buildMinimap = (data, checked) => {
+    const W = 200, H = 140;
+    const pad = 60;
+
+    // Bounds — include stubs and root so the whole tree shows
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    data.skills.forEach((s) => {
+      if (s.x < minX) minX = s.x;
+      if (s.x > maxX) maxX = s.x;
+      if (s.y < minY) minY = s.y;
+      if (s.y > maxY) maxY = s.y;
+    });
+    minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+
+    const ww = maxX - minX, wh = maxY - minY;
+    const sx = W / ww, sy = H / wh;
+    const ms = Math.min(sx, sy);
+    const ox = (W - ww * ms) / 2;
+    const oy = (H - wh * ms) / 2;
+
+    const toMini = (wx, wy) => ({
+      x: (wx - minX) * ms + ox,
+      y: (wy - minY) * ms + oy,
+    });
+
+    const dots = data.skills.map((s) => {
+      const p = toMini(s.x, s.y);
+      const cat = s.cat ? data.categories[s.cat] : null;
+      const hue = cat ? cat.hue : null;
+      const isChecked = checked.has(s.id);
+      let color;
+      if (s.isRoot) color = '#f0f0f8';
+      else if (s.isStub) color = `oklch(0.4 0.08 ${hue} / 0.5)`;
+      else color = isChecked ? `oklch(0.72 0.22 ${hue})` : `oklch(0.45 0.10 ${hue} / 0.85)`;
+      const r = s.isRoot ? 3 : s.isStub ? 2 : isChecked ? 2.2 : 1.6;
+      return { x: p.x, y: p.y, r, color };
+    });
+
+    // Viewport in world
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const { pan, scale } = this.state;
+    const wTL = { x: -pan.x / scale, y: -pan.y / scale };
+    const wBR = { x: (vw - pan.x) / scale, y: (vh - pan.y) / scale };
+    const tl = toMini(wTL.x, wTL.y);
+    const br = toMini(wBR.x, wBR.y);
+
+    return {
+      width: W, height: H,
+      dots,
+      viewport: {
+        x: Math.max(0, tl.x), y: Math.max(0, tl.y),
+        w: Math.min(W, br.x) - Math.max(0, tl.x),
+        h: Math.min(H, br.y) - Math.max(0, tl.y),
+      },
+      onClick: (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const wx = (mx - ox) / ms + minX;
+        const wy = (my - oy) / ms + minY;
+        this.setState({ pan: { x: vw / 2 - wx * scale, y: vh / 2 - wy * scale } });
+      },
+    };
+  };
+}
+</script>
+</body>
+</html>
