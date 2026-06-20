@@ -463,8 +463,8 @@
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = (() => {
-    const w = (typeof window !== 'undefined') ? window.innerWidth : 1200;
-    const h = (typeof window !== 'undefined') ? window.innerHeight : 700;
+    const w = (typeof window !== 'undefined' && window.innerWidth)  || 1200;
+    const h = (typeof window !== 'undefined' && window.innerHeight) || 700;
     let myChecked = new Set();
     let sharedChecked = null;
     let viewMode = 'mine';
@@ -499,10 +499,12 @@ class Component extends DCLogic {
       }
     } catch (e) {}
     const isMobile = w < 760;
+    const scale = isMobile ? 0.32 : 0.5;
+    // Tree spans roughly x=-2200 (OAP) to x=+3480 (mobility), visual center ~x=+640.
+    // screen_x = pan.x + world_x * scale, so to put world x=640 at viewport center:
     return {
-      // Tree grows upward → anchor root near the bottom of the viewport.
-      pan: { x: w / 2, y: h - (isMobile ? 100 : 150) },
-      scale: isMobile ? 0.45 : 0.82,
+      pan: { x: w / 2 - 640 * scale, y: h - (isMobile ? 100 : 150) },
+      scale,
       expandedId: null,
       myChecked,
       sharedChecked,
@@ -523,11 +525,20 @@ class Component extends DCLogic {
 
   // ─── lifecycle ────────────────────────────────────────────────────────────
   componentDidMount() {
-    // Re-center now that real viewport dimensions are guaranteed.
+    // Track whether we've successfully centered with real (non-zero) viewport
+    // dimensions. If the iframe is still 0×0 at mount, centerView uses its
+    // 1200×700 fallback — we'll re-center as soon as real dims arrive.
+    this._centeredWithRealDims = window.innerWidth > 0 && window.innerHeight > 0;
     this.centerView();
     // Wheel listener (need {passive: false} to preventDefault)
     if (this.canvasEl) {
       this.canvasEl.addEventListener('wheel', this.onWheel, { passive: false });
+      // ResizeObserver fires reliably when the iframe finishes sizing — more
+      // reliable than window.resize in nested iframes.
+      if (typeof ResizeObserver !== 'undefined') {
+        this._ro = new ResizeObserver(() => this.onResize());
+        this._ro.observe(this.canvasEl);
+      }
     }
     window.addEventListener('resize', this.onResize);
     // First load after this feature shipped: silently seed milestonesSeen from
@@ -549,12 +560,22 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     if (this.canvasEl) this.canvasEl.removeEventListener('wheel', this.onWheel);
+    if (this._ro) { this._ro.disconnect(); this._ro = null; }
     window.removeEventListener('resize', this.onResize);
     document.removeEventListener('mousemove', this.onPanMove);
     document.removeEventListener('mouseup', this.onPanEnd);
   }
 
-  onResize = () => this.forceUpdate();
+  onResize = () => {
+    // If our initial centerView ran with fallback dims (iframe was 0×0 at
+    // mount), recenter exactly once now that real dims have arrived.
+    if (!this._centeredWithRealDims && window.innerWidth > 0 && window.innerHeight > 0) {
+      this._centeredWithRealDims = true;
+      this.centerView();
+      return;
+    }
+    this.forceUpdate();
+  };
 
   // ─── data helpers ─────────────────────────────────────────────────────────
   getActiveChecked = () => {
@@ -570,13 +591,12 @@ class Component extends DCLogic {
 
   // ─── view controls ────────────────────────────────────────────────────────
   centerView = () => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = window.innerWidth  || 1200;
+    const h = window.innerHeight || 700;
     const isMobile = w < 760;
-    const scale = isMobile ? 0.45 : 0.82;
-    // Tree grows UPWARD (negative y), so anchor the root near the bottom
-    // of the viewport and let the branches fill the space above it.
-    this.setState({ pan: { x: w / 2, y: h - (isMobile ? 100 : 150) }, scale });
+    const scale = isMobile ? 0.32 : 0.5;
+    // screen_x = pan.x + world_x * scale; tree visual center ~x=+640.
+    this.setState({ pan: { x: w / 2 - 640 * scale, y: h - (isMobile ? 100 : 150) }, scale });
   };
 
   zoomBy = (factor) => {
