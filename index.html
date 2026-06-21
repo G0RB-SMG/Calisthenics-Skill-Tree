@@ -731,12 +731,39 @@ class Component extends DCLogic {
     this.setState(next);
   };
 
+  // Walk the prereq DAG backwards from `id`, collecting every transitive
+  // ancestor (skipping the root and stubs — they're not achievable).
+  collectAncestors = (id) => {
+    const data = window.CALI_DATA;
+    const out = new Set();
+    if (!data) return out;
+    const byId = new Map(data.skills.map((s) => [s.id, s]));
+    const walk = (sid) => {
+      const s = byId.get(sid);
+      if (!s) return;
+      (s.pre || []).forEach((pid) => {
+        const p = byId.get(pid);
+        if (!p || p.isRoot || p.isStub) return;
+        if (out.has(pid)) return;
+        out.add(pid);
+        walk(pid);
+      });
+    };
+    walk(id);
+    return out;
+  };
+
   toggleCheck = (id) => {
     if (this.state.viewMode === 'shared') return;
     const next = new Set(this.state.myChecked);
     const wasChecked = next.has(id);
-    if (wasChecked) next.delete(id);
-    else next.add(id);
+    if (wasChecked) {
+      next.delete(id);
+    } else {
+      next.add(id);
+      // Auto-achieve every prereq up the chain.
+      this.collectAncestors(id).forEach((pid) => next.add(pid));
+    }
     this.setState({ myChecked: next });
     try {
       localStorage.setItem('cali-tree-v1', JSON.stringify([...next]));
