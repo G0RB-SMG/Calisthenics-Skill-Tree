@@ -556,7 +556,7 @@ window.CALI_DATA = {
       mist: ['Bent knees', 'Legs dropping'],
       std: 'Hold 20s', time: '6–12 months' },
     // ─── RS: RING SHOULDER STAND OFFSHOOT (x=-1700, pressing — branches from ring_l_sit) ──
-    { id: 'ring_shoulder_stand', name: 'Ring shoulder stand', x: -990, y: -1000, cat: 'pull', diff: 7, pre: ['ring_l_sit'], fig: 'ringShoulderStand', rarity: '~0.5%',
+    { id: 'ring_shoulder_stand', name: 'Ring shoulder stand', x: -990, y: -1080, cat: 'pull', diff: 7, pre: ['ring_l_sit'], fig: 'ringShoulderStand', rarity: '~0.5%',
       desc: 'Inverted support on rings — body vertical, balanced on locked arms. A pressing skill (effectively a handstand on rings), distinct from the cross family. Bridges to inverted cross.',
       cues: ['Press out fully — arms locked', 'Stack hips over shoulders, hips over hands', 'Rings turned out'],
       mist: ['Bent arms', 'Body collapsing forward'],
