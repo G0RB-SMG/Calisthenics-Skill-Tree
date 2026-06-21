@@ -555,12 +555,6 @@ window.CALI_DATA = {
       cues: ['Push the rings down hard', 'Legs locked, toes pointed', 'Rings turned out'],
       mist: ['Bent knees', 'Legs dropping'],
       std: 'Hold 20s', time: '6–12 months' },
-    // ─── RS: RING SHOULDER STAND OFFSHOOT (x=-1700, pressing — branches from ring_l_sit) ──
-    { id: 'ring_shoulder_stand', name: 'Ring shoulder stand', x: -990, y: -1080, cat: 'pull', diff: 7, pre: ['ring_l_sit'], fig: 'ringShoulderStand', rarity: '~0.5%',
-      desc: 'Inverted support on rings — body vertical, balanced on locked arms. A pressing skill (effectively a handstand on rings), distinct from the cross family. Bridges to inverted cross.',
-      cues: ['Press out fully — arms locked', 'Stack hips over shoulders, hips over hands', 'Rings turned out'],
-      mist: ['Bent arms', 'Body collapsing forward'],
-      std: 'Hold 10s', time: '1–2 years' },
     { id: 'assisted_iron_cross', name: 'Assisted iron cross', x: -1100, y: -1000, cat: 'pull', diff: 9, pre: ['ring_support', 'bar_mu_strict'], fig: 'ironCross', rarity: '~0.4%',
       desc: 'Iron cross held with a resistance band assisting the support. Standard build-up to the unassisted cross.',
       cues: ['Arms locked, rings outside shoulders', 'Hard scapular tension', 'Reduce band size over months'],
@@ -1101,7 +1095,6 @@ window.CALI_FIGURES = {
   muscleUp:         { hx: 30, hy: 4,  hr: 3, body: 'M2,12 L58,12 M22,12 L22,6 M38,12 L38,6 M30,7 L30,12 M30,12 L30,30 M30,30 L26,42 M30,30 L34,42' },
   ringSupport:      { hx: 30, hy: 10, hr: 3, body: 'M14,6 L14,18 M46,6 L46,18 M30,10 L30,18 M30,18 L26,30 L30,42 M30,18 L34,30 L30,42 M14,18 L24,18 M36,18 L46,18' },
   ringLSit:         { hx: 30, hy: 10, hr: 3, body: 'M14,6 L14,18 M46,6 L46,18 M30,10 L30,28 M30,28 L52,28 M14,18 L24,18 M36,18 L46,18 M30,18 L30,28' },
-  ringShoulderStand:{ hx: 30, hy: 48, hr: 3, body: 'M14,6 L14,36 M46,6 L46,36 M30,36 L30,46 M30,36 L30,16 M30,16 L24,8 M30,16 L36,8 M14,36 L24,36 M36,36 L46,36' },
   ironCross:        { hx: 30, hy: 10, hr: 3, body: 'M14,6 L14,18 M46,6 L46,18 M30,10 L30,18 M30,18 L14,18 M30,18 L46,18 M30,18 L30,42 M30,42 L26,52 M30,42 L34,52' },
   invertedCross:    { hx: 30, hy: 48, hr: 3, body: 'M14,30 L14,42 M46,30 L46,42 M30,48 L30,42 M30,42 L14,42 M30,42 L46,42 M30,42 L30,18 M30,18 L26,8 M30,18 L34,8' },
   victorian:        { hx: 30, hy: 22, hr: 3, body: 'M14,30 L14,42 M46,30 L46,42 M30,22 L30,42 M30,42 L4,42 M30,42 L56,42' },
@@ -1204,7 +1197,7 @@ window.CALI_BADGES = [
   { key: 'muscle_up_vet',   cat: 'pull', name: 'Muscle-up Vet',
     skills: ['explosive_pullup','bar_mu_kipping','bar_mu_strict','ring_mu_kipping','ring_mu_strict','l_sit_ring_mu','l_sit_bar_mu'] },
   { key: 'iron_cross',      cat: 'pull', name: 'Iron Cross',
-    skills: ['ring_support','ring_l_sit','ring_shoulder_stand','assisted_iron_cross','iron_cross','victorian'] },
+    skills: ['ring_support','ring_l_sit','assisted_iron_cross','iron_cross','victorian'] },
 
   // ─── CORE ────────────────────────────────────────────────────────────────
   { key: 'manna_master',    cat: 'core', name: 'Manna Master',
