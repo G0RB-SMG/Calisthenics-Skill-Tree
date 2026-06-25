@@ -59,6 +59,9 @@
     }
   </style>
   <script src="./skills.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script src="./auth.js"></script>
 </helmet>
 
 <div style="position: fixed; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 25%, #18182c 0%, #0a0a18 50%, #050509 100%); overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e8e8ef; user-select: none;">
@@ -132,6 +135,46 @@
     <span class="hb-sep-3" style="font-size: 11px; color: #3a3a52; font-family: 'JetBrains Mono', monospace;">·</span>
     <span class="hb-pct" style="font-size: 11px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">top {{ overallPercentile }}</span>
   </div>
+
+  <!-- Account chip (top-right) — hidden until Supabase is configured. -->
+  <sc-if value="{{ auth.showChip }}" hint-placeholder-val="{{ false }}">
+    <div id="account-chip" data-no-pan="1" style="position: absolute; top: 18px; right: 18px; z-index: 105; font-family: 'Space Grotesk', sans-serif;">
+
+      <sc-if value="{{ auth.signedOut }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ auth.onSignIn }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
+          <span style="font-size: 13px; line-height: 1;">⇒</span>
+          <span>Sign in</span>
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ auth.needsHandle }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ auth.onOpenHandle }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: oklch(0.3 0.18 145 / 0.55); backdrop-filter: blur(12px); border: 1px solid oklch(0.55 0.18 145 / 0.55); border-radius: 100px; color: oklch(0.88 0.16 145); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: oklch(0.35 0.20 145 / 0.7);">
+          <span style="font-size: 11px;">●</span>
+          <span>Pick a username</span>
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ auth.signedIn }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative;">
+          <button onClick="{{ auth.onToggleMenu }}" style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85);">
+            <span style="width: 30px; height: 30px; border-radius: 50%; background: {{ auth.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #fff; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace;">{{ auth.initials }}</span>
+            <span style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">@{{ auth.handle }}</span>
+            <span style="color: #6a6a82; font-size: 10px; line-height: 1;">▾</span>
+          </button>
+          <sc-if value="{{ auth.menuOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: 50px; right: 0; min-width: 220px; padding: 4px; background: rgba(15,15,28,0.97); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.6); z-index: 110;">
+              <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px;">
+                <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase; margin-bottom: 4px;">Signed in</div>
+                <div style="font-size: 12px; color: #e8e8ef; font-weight: 500; word-break: break-all; line-height: 1.4;">{{ auth.email }}</div>
+              </div>
+              <button onClick="{{ auth.onSignOut }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: oklch(0.72 0.16 25); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(220,60,60,0.1);">Sign out</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </sc-if>
 
   <!-- Sidebar -->
   <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
@@ -457,6 +500,26 @@
     <div data-no-pan="1" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); padding: 10px 18px; background: rgba(20, 20, 36, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; font-size: 12px; font-weight: 600; color: #e8e8ef; z-index: 150; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">{{ copyFeedback }}</div>
   </sc-if>
 
+  <!-- Username (handle) picker modal — shown after first sign-in, or when chip is clicked. -->
+  <sc-if value="{{ handleModal }}" hint-placeholder-val="{{ false }}">
+    <div data-no-pan="1" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div style="width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.7 0.18 145); text-transform: uppercase; margin-bottom: 10px;">Welcome — almost done</div>
+        <h2 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em;">Pick a username</h2>
+        <p style="margin: 0 0 18px 0; font-size: 13px; color: #a8a8c0; line-height: 1.55;">Your public handle — used for your profile URL and leaderboards. Lowercase letters, numbers, underscores. 3–24 chars.</p>
+        <div style="position: relative; margin-bottom: 8px;">
+          <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6a6a82; font-size: 14px; font-family: 'JetBrains Mono', monospace; pointer-events: none;">@</span>
+          <input value="{{ handleModal.value }}" onInput="{{ handleModal.onInput }}" placeholder="yourname" autoFocus="{{ true }}" autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck="{{ false }}" style="width: 100%; padding: 13px 14px 13px 32px; background: rgba(255,255,255,0.04); border: 1.5px solid {{ handleModal.borderColor }}; border-radius: 10px; color: #e8e8ef; font-size: 15px; font-family: 'JetBrains Mono', monospace; outline: none; box-sizing: border-box; transition: border-color 0.2s ease;"></input>
+        </div>
+        <div style="font-size: 11.5px; color: {{ handleModal.hintColor }}; min-height: 17px; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace;">{{ handleModal.hint }}</div>
+        <div style="display: flex; gap: 8px;">
+          <button onClick="{{ handleModal.onCancel }}" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #c0c0d0; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">Sign out</button>
+          <button onClick="{{ handleModal.onSubmit }}" disabled="{{ handleModal.submitDisabled }}" style="flex: 2; padding: 12px; background: {{ handleModal.submitBg }}; border: none; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: {{ handleModal.submitCursor }}; font-family: 'Space Grotesk', sans-serif; opacity: {{ handleModal.submitOpacity }};">{{ handleModal.submitLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
 </div>
 
 </x-dc>
@@ -515,6 +578,9 @@ class Component extends DCLogic {
       milestonesFirstLoad,
       activeMilestone: null,
       milestoneQueue: [],
+      auth: { status: 'loading', user: null, profile: null, email: null },
+      authMenuOpen: false,
+      handleModal: null,
       _v: 0,
     };
   })();
@@ -555,6 +621,7 @@ class Component extends DCLogic {
         this.setState({ milestonesFirstLoad: false });
       }
     }
+    this.initAuth();
   }
 
   componentWillUnmount() {
@@ -563,6 +630,9 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this.onResize);
     document.removeEventListener('mousemove', this.onPanMove);
     document.removeEventListener('mouseup', this.onPanEnd);
+    if (this._authUnsub) this._authUnsub();
+    if (this._pushTimer) clearTimeout(this._pushTimer);
+    if (this._handleCheckTimer) clearTimeout(this._handleCheckTimer);
   }
 
   onResize = () => {
@@ -777,6 +847,7 @@ class Component extends DCLogic {
         if (fired.length) this.queueMilestones(fired);
       }
     }
+    this.queueProgressPush();
   };
 
   navigateToSkill = (id) => {
@@ -823,6 +894,9 @@ class Component extends DCLogic {
     if (!confirm('Reset all your progress? This cannot be undone.')) return;
     this.setState({ myChecked: new Set() });
     try { localStorage.removeItem('cali-tree-v1'); } catch (e) {}
+    if (this.state.auth.status === 'signed-in' && window.CaliAuth) {
+      window.CaliAuth.saveMyProgress([]);
+    }
   };
 
   onMakeMine = () => {
@@ -836,6 +910,132 @@ class Component extends DCLogic {
     this.setState({ viewMode: 'mine', sharedChecked: null });
     history.replaceState(null, '', location.pathname + location.search);
   };
+
+  // ─── auth & cloud sync ─────────────────────────────────────────────────
+  initAuth = async () => {
+    if (!window.CaliAuth || !window.CaliAuth.ready) {
+      this.setState({ auth: { status: 'no-config', user: null, profile: null, email: null }});
+      return;
+    }
+    this._authUnsub = window.CaliAuth.onChange(this.onAuthChange);
+    const res = await window.CaliAuth.init();
+    if (res && res.ready) {
+      await this.applyAuthState(res.session || null, res.profile || null, false);
+    }
+  };
+
+  onAuthChange = ({ session, profile }) => {
+    const prevStatus = this.state.auth.status;
+    const wasSignedIn = prevStatus === 'signed-in' || prevStatus === 'needs-handle';
+    const justSignedIn = !!session && !wasSignedIn;
+    this.applyAuthState(session, profile, justSignedIn);
+  };
+
+  applyAuthState = async (session, profile, justSignedIn) => {
+    if (!session) {
+      this.setState({
+        auth: { status: 'signed-out', user: null, profile: null, email: null },
+        authMenuOpen: false,
+        handleModal: null,
+      });
+      return;
+    }
+    const user = session.user;
+    const email = user.email || '';
+    if (!profile) {
+      this.setState({
+        auth: { status: 'needs-handle', user, profile: null, email },
+        handleModal: this.makeHandleModal(''),
+      });
+      return;
+    }
+    this.setState({
+      auth: { status: 'signed-in', user, profile, email },
+      handleModal: null,
+    });
+    if (justSignedIn) await this.mergeAndSyncProgress();
+  };
+
+  mergeAndSyncProgress = async () => {
+    if (!window.CaliAuth) return;
+    const dbIds = (await window.CaliAuth.getMyProgress()) || [];
+    const localIds = [...this.state.myChecked];
+    const union = new Set([...localIds, ...dbIds]);
+    this.setState({ myChecked: union });
+    try { localStorage.setItem('cali-tree-v1', JSON.stringify([...union])); } catch (e) {}
+    if (union.size > dbIds.length) {
+      await window.CaliAuth.saveMyProgress([...union]);
+    }
+  };
+
+  queueProgressPush = () => {
+    if (this.state.auth.status !== 'signed-in') return;
+    if (this._pushTimer) clearTimeout(this._pushTimer);
+    this._pushTimer = setTimeout(() => {
+      this._pushTimer = null;
+      if (this.state.auth.status === 'signed-in' && window.CaliAuth) {
+        window.CaliAuth.saveMyProgress([...this.state.myChecked]);
+      }
+    }, 600);
+  };
+
+  onSignIn = () => {
+    if (window.CaliAuth && window.CaliAuth.ready) window.CaliAuth.signInWithGoogle();
+  };
+
+  onSignOut = async () => {
+    this.setState({ authMenuOpen: false });
+    if (window.CaliAuth) await window.CaliAuth.signOut();
+  };
+
+  toggleAuthMenu = () => this.setState({ authMenuOpen: !this.state.authMenuOpen });
+
+  makeHandleModal = (val) => ({
+    value: val,
+    status: 'idle',     // idle | invalid | checking | available | taken | submitting | error
+    errorMsg: '',
+  });
+
+  onHandleInput = (e) => {
+    const raw = (e.target.value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24);
+    const m = this.state.handleModal || this.makeHandleModal('');
+    let status = 'idle';
+    if (!raw) status = 'idle';
+    else if (raw.length < 3) status = 'invalid';
+    else status = 'checking';
+    this.setState({ handleModal: { ...m, value: raw, status, errorMsg: '' }});
+    if (status === 'checking') this.scheduleHandleCheck(raw);
+  };
+
+  scheduleHandleCheck = (handle) => {
+    if (this._handleCheckTimer) clearTimeout(this._handleCheckTimer);
+    this._handleCheckTimer = setTimeout(async () => {
+      const ok = await window.CaliAuth.checkHandleAvailable(handle);
+      const m = this.state.handleModal;
+      if (!m || m.value !== handle) return;
+      this.setState({ handleModal: { ...m, status: ok === null ? 'error' : ok ? 'available' : 'taken' }});
+    }, 350);
+  };
+
+  onHandleSubmit = async () => {
+    const m = this.state.handleModal;
+    if (!m || m.status !== 'available') return;
+    this.setState({ handleModal: { ...m, status: 'submitting' }});
+    const u = this.state.auth.user;
+    const meta = (u && u.user_metadata) || {};
+    const displayName = meta.full_name || meta.name || null;
+    const avatarUrl = meta.avatar_url || meta.picture || null;
+    const { error } = await window.CaliAuth.createProfile(m.value, displayName, avatarUrl);
+    if (error) {
+      const msg = (error.message || '').toLowerCase().includes('duplicate')
+        ? 'That handle was just taken — try another.'
+        : (error.message || 'Failed to save handle.');
+      this.setState({ handleModal: { ...this.state.handleModal, status: 'error', errorMsg: msg }});
+    }
+    // success → auth onChange listener flips us to 'signed-in' and merges progress.
+  };
+
+  onHandleCancel = () => { this.onSignOut(); };
 
   // ─── render ────────────────────────────────────────────────────────────────
   // ─── scoring engine ────────────────────────────────────────────────────────
@@ -1023,7 +1223,7 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '' };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null };
     }
 
     const checked = this.getActiveChecked();
@@ -1303,6 +1503,58 @@ class Component extends DCLogic {
     const zoomLabel = Math.round(scale * 100) + '%';
     const exportLabel = this.state.viewMode === 'shared' ? 'Copy share link' : 'Share progress';
 
+    // ─── auth chip values ───────────────────────────────────────────────
+    const a = this.state.auth || { status: 'loading' };
+    const aHandle = a.profile ? a.profile.handle : '';
+    const initialsSrc = aHandle || a.email || '';
+    const initials = initialsSrc ? initialsSrc.replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?' : '?';
+    let avatarHue = 200;
+    for (let i = 0; i < initialsSrc.length; i++) avatarHue = (avatarHue + initialsSrc.charCodeAt(i) * 7) % 360;
+    const authValues = {
+      showChip:    a.status === 'signed-out' || a.status === 'needs-handle' || a.status === 'signed-in',
+      signedOut:   a.status === 'signed-out',
+      needsHandle: a.status === 'needs-handle',
+      signedIn:    a.status === 'signed-in',
+      menuOpen:    !!this.state.authMenuOpen,
+      handle:      aHandle,
+      email:       a.email || '',
+      initials,
+      avatarBg:    `linear-gradient(135deg, oklch(0.6 0.22 ${avatarHue}), oklch(0.5 0.22 ${(avatarHue + 60) % 360}))`,
+      onSignIn:    this.onSignIn,
+      onSignOut:   this.onSignOut,
+      onToggleMenu: this.toggleAuthMenu,
+      onOpenHandle: () => this.setState({ handleModal: this.makeHandleModal('') }),
+    };
+
+    // ─── handle-picker modal values ──────────────────────────────────────────
+    let handleModalValues = null;
+    if (this.state.handleModal) {
+      const m = this.state.handleModal;
+      const v = m.value;
+      let hint = '3–24 chars · a-z, 0-9, _';
+      let hintColor = '#6a6a82';
+      let borderColor = 'rgba(255,255,255,0.1)';
+      if (m.status === 'invalid')       { hint = 'Too short — needs 3+ characters';      hintColor = 'oklch(0.7 0.18 25)';  borderColor = 'oklch(0.55 0.18 25 / 0.5)'; }
+      else if (m.status === 'checking') { hint = 'Checking availability…';                hintColor = '#8a8aa0'; }
+      else if (m.status === 'available'){ hint = `@${v} is available ✓`;                 hintColor = 'oklch(0.78 0.18 145)'; borderColor = 'oklch(0.55 0.18 145 / 0.6)'; }
+      else if (m.status === 'taken')    { hint = `@${v} is already taken`;                hintColor = 'oklch(0.7 0.18 25)';  borderColor = 'oklch(0.55 0.18 25 / 0.5)'; }
+      else if (m.status === 'submitting'){ hint = 'Saving…';                              hintColor = '#8a8aa0'; }
+      else if (m.status === 'error')    { hint = m.errorMsg || 'Something went wrong.';   hintColor = 'oklch(0.7 0.18 25)';  borderColor = 'oklch(0.55 0.18 25 / 0.5)'; }
+      const canSubmit = m.status === 'available';
+      handleModalValues = {
+        value: v,
+        hint, hintColor, borderColor,
+        submitLabel:    m.status === 'submitting' ? 'Saving…' : 'Save',
+        submitDisabled: !canSubmit,
+        submitBg:       canSubmit ? 'oklch(0.6 0.22 145)' : 'rgba(255,255,255,0.08)',
+        submitCursor:   canSubmit ? 'pointer' : 'not-allowed',
+        submitOpacity:  canSubmit ? 1 : 0.55,
+        onInput:  this.onHandleInput,
+        onSubmit: this.onHandleSubmit,
+        onCancel: this.onHandleCancel,
+      };
+    }
+
     return {
       // canvas
       panX: pan.x,
@@ -1383,6 +1635,10 @@ class Component extends DCLogic {
 
       // toast
       copyFeedback: this.state.copyFeedback,
+
+      // auth chip + username modal
+      auth:        authValues,
+      handleModal: handleModalValues,
     };
   }
 
