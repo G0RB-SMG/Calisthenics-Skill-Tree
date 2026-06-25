@@ -76,23 +76,29 @@
     return () => listeners.delete(cb);
   }
 
-  // Authoritative user lookup — hits the Supabase auth server with the stored
-  // JWT instead of trusting our cached `session` variable. Use this in any
-  // write path where we need a definitive user_id.
+  // Authoritative user lookup — reads the session from supabase-js' local
+  // storage (no network), so it's always live and instant. We don't trust the
+  // module-local `session` variable because INITIAL_SESSION events can clobber
+  // it; storage is the source of truth.
   async function getLiveUser() {
     if (!client) return null;
     try {
-      const { data, error } = await client.auth.getUser();
-      if (error || !data || !data.user) return null;
-      // Refresh cached session too, so subsequent reads are consistent.
-      try {
-        const sres = await client.auth.getSession();
-        if (sres && sres.data && sres.data.session) session = sres.data.session;
-      } catch (_) {}
-      return data.user;
+      const { data } = await client.auth.getSession();
+      const s = data && data.session;
+      if (!s || !s.user) return null;
+      session = s;
+      return s.user;
     } catch (e) {
       return null;
     }
+  }
+
+  // Wraps a promise so it rejects after `ms` instead of hanging forever.
+  function withTimeout(promise, ms, label) {
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error((label || 'request') + ' timed out after ' + ms + 'ms')), ms);
+      promise.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+    });
   }
 
   async function signInWithGoogle() {
@@ -129,21 +135,29 @@
     if (!client) return { error: { message: 'auth disabled' } };
     const user = await getLiveUser();
     if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
-    const { data, error } = await client
-      .from('profiles')
-      .insert({
-        id: user.id,
-        handle,
-        display_name: displayName || null,
-        avatar_url: avatarUrl || null,
-      })
-      .select(PROFILE_COLS)
-      .single();
-    if (!error) {
-      profile = data;
-      notify();
+    try {
+      const { data, error } = await withTimeout(
+        client
+          .from('profiles')
+          .insert({
+            id: user.id,
+            handle,
+            display_name: displayName || null,
+            avatar_url: avatarUrl || null,
+          })
+          .select(PROFILE_COLS)
+          .single(),
+        15000,
+        'profile insert'
+      );
+      if (!error) {
+        profile = data;
+        notify();
+      }
+      return { data, error };
+    } catch (e) {
+      return { error: { message: e.message || 'Network error while saving handle.' } };
     }
-    return { data, error };
   }
 
   // Pulls the signed-in user's cloud progress. Returns string[] or null.
