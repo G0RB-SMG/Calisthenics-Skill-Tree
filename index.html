@@ -56,6 +56,14 @@
 
       /* Shared banner: stack */
       #shared-banner { left: 10px !important; right: 10px !important; transform: none !important; top: 60px !important; flex-wrap: wrap !important; }
+
+      /* Account chip: compact — keep icon, hide labels */
+      #account-chip .ld-label { display: none !important; }
+      #account-chip { gap: 6px !important; right: 10px !important; top: 10px !important; }
+      #account-chip button { padding: 8px 12px !important; }
+
+      /* Profile / leaderboard pages: tighter padding */
+      #profile-page, #leaderboard-page { padding: 70px 16px 60px !important; }
     }
   </style>
   <script src="./skills.js"></script>
@@ -138,7 +146,13 @@
 
   <!-- Account chip (top-right) — hidden until Supabase is configured. -->
   <sc-if value="{{ auth.showChip }}" hint-placeholder-val="{{ false }}">
-    <div id="account-chip" data-no-pan="1" style="position: absolute; top: 18px; right: 18px; z-index: 105; font-family: 'Space Grotesk', sans-serif;">
+    <div id="account-chip" data-no-pan="1" style="position: absolute; top: 18px; right: 18px; z-index: 210; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 8px;">
+
+      <!-- Leaderboard nav pill (always visible) -->
+      <button onClick="{{ auth.onLeaderboard }}" title="Leaderboard" style="display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
+        <span style="font-size: 11px; line-height: 1;">▤</span>
+        <span class="ld-label" style="white-space: nowrap;">Leaderboard</span>
+      </button>
 
       <sc-if value="{{ auth.signedOut }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ auth.onSignIn }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
@@ -167,6 +181,9 @@
                 <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase; margin-bottom: 4px;">Signed in</div>
                 <div style="font-size: 12px; color: #e8e8ef; font-weight: 500; word-break: break-all; line-height: 1.4;">{{ auth.email }}</div>
               </div>
+              <button onClick="{{ auth.onMyProfile }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">○</span>My profile</button>
+              <button onClick="{{ auth.onLeaderboard }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">▤</span>Leaderboard</button>
+              <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0;"></div>
               <button onClick="{{ auth.onSignOut }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: oklch(0.72 0.16 25); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(220,60,60,0.1);">Sign out</button>
             </div>
           </sc-if>
@@ -520,6 +537,153 @@
     </div>
   </sc-if>
 
+  <!-- ===== PROFILE PAGE (route: /u/<handle>) =================================== -->
+  <sc-if value="{{ profileView.active }}" hint-placeholder-val="{{ false }}">
+    <div id="profile-page" data-no-pan="1" style="position: fixed; inset: 0; z-index: 160; background: radial-gradient(ellipse at top, oklch(0.18 0.05 280) 0%, #060610 60%); overflow-y: auto; padding: 28px 24px 60px; font-family: 'Space Grotesk', sans-serif;">
+      <div style="max-width: 760px; margin: 0 auto;">
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; gap: 12px; flex-wrap: wrap;">
+          <button onClick="{{ profileView.onBack }}" style="display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">
+            <span style="font-size: 14px; line-height: 1;">←</span>
+            <span>Back to tree</span>
+          </button>
+          <sc-if value="{{ profileView.show }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ profileView.onCopyLink }}" style="display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">
+              <span style="font-size: 12px; line-height: 1;">↗</span>
+              <span>Copy profile link</span>
+            </button>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ profileView.loading }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align: center; padding: 80px 0; color: #6a6a82;">
+            <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;">Loading profile…</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ profileView.notFound }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 80px 24px;">
+            <div style="font-size: 72px; color: rgba(255,255,255,0.05); font-weight: 700; line-height: 1; margin-bottom: 16px; font-family: 'JetBrains Mono', monospace;">@</div>
+            <h1 style="margin: 0 0 8px 0; font-size: 22px; color: #e8e8ef; font-weight: 600; font-family: 'JetBrains Mono', monospace;">@{{ profileView.handle }}</h1>
+            <p style="margin: 0; color: #8a8aa0; font-size: 13px;">No athlete with this handle yet.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ profileView.show }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 32px; flex-wrap: wrap;">
+            <div style="width: 84px; height: 84px; border-radius: 50%; background: {{ profileView.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 26px; color: #fff; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; box-shadow: 0 6px 22px rgba(0,0,0,0.4);">{{ profileView.initials }}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; margin-bottom: 4px;">@{{ profileView.handle }}</div>
+              <div style="font-size: 22px; color: #e8e8ef; font-weight: 600; letter-spacing: -0.005em; line-height: 1.15;">{{ profileView.displayName }}</div>
+              <div style="font-size: 11px; color: #6a6a82; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">Joined {{ profileView.joinedStr }}</div>
+            </div>
+          </div>
+
+          <div style="padding: 22px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 28px;">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 6px;">Overall tier</div>
+            <div style="font-size: 28px; font-weight: 700; color: {{ profileView.tierColor }}; letter-spacing: 0.005em; line-height: 1.1; margin-bottom: 14px;">{{ profileView.tierName }}</div>
+            <div style="display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex-wrap: wrap;">
+              <span style="color: #d8d8e4; font-weight: 600;">{{ profileView.scoreStr }} pts</span>
+              <span style="color: #3a3a52;">·</span>
+              <span style="color: #a8a8c0;">top {{ profileView.percentileStr }}</span>
+              <span style="color: #3a3a52;">·</span>
+              <span style="color: #a8a8c0;">{{ profileView.skillsLabel }}</span>
+            </div>
+          </div>
+
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 12px;">By category</div>
+          <div style="padding: 18px 20px; background: rgba(15,15,28,0.55); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 28px;">
+            <sc-for list="{{ profileView.categories }}" as="cat" hint-placeholder-count="5">
+              <div style="margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ cat.dotColor }}; box-shadow: {{ cat.dotGlow }};"></div>
+                    <span style="font-size: 13px; font-weight: 600; color: {{ cat.labelColor }};">{{ cat.name }}</span>
+                  </div>
+                  <span style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: {{ cat.statColor }};">{{ cat.statText }}</span>
+                </div>
+                <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
+                  <div style="height: 100%; width: {{ cat.pct }}%; background: {{ cat.barColor }}; box-shadow: {{ cat.barGlow }}; border-radius: 2px;"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ profileView.hasBadges }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 12px;">Path badges</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <sc-for list="{{ profileView.badges }}" as="b" hint-placeholder-count="2">
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; background: {{ b.bg }}; border: 1px solid {{ b.border }}; border-radius: 100px; font-family: 'Space Grotesk', sans-serif;">
+                  <span style="font-size: 11px; color: {{ b.color }}; line-height: 1;">✴</span>
+                  <span style="font-size: 11.5px; font-weight: 600; color: {{ b.color }};">{{ b.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <button onClick="{{ profileView.onViewTree }}" style="width: 100%; padding: 14px; background: oklch(0.5 0.22 280); border: none; border-radius: 10px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px;" style-hover="background: oklch(0.6 0.22 280);">
+            <span>View their tree</span>
+            <span style="font-size: 14px;">→</span>
+          </button>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== LEADERBOARD PAGE (route: /leaderboard) ============================== -->
+  <sc-if value="{{ leaderboardView.active }}" hint-placeholder-val="{{ false }}">
+    <div id="leaderboard-page" data-no-pan="1" style="position: fixed; inset: 0; z-index: 160; background: radial-gradient(ellipse at top, oklch(0.18 0.05 25) 0%, #060610 60%); overflow-y: auto; padding: 28px 24px 60px; font-family: 'Space Grotesk', sans-serif;">
+      <div style="max-width: 760px; margin: 0 auto;">
+
+        <div style="margin-bottom: 36px;">
+          <button onClick="{{ leaderboardView.onBack }}" style="display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">
+            <span style="font-size: 14px; line-height: 1;">←</span>
+            <span>Back to tree</span>
+          </button>
+        </div>
+
+        <h1 style="margin: 0 0 6px 0; font-size: 28px; font-weight: 600; color: #e8e8ef; letter-spacing: -0.005em;">Leaderboard</h1>
+        <p style="margin: 0 0 28px 0; color: #8a8aa0; font-size: 13px;">Top athletes ranked by total skills achieved.</p>
+
+        <sc-if value="{{ leaderboardView.loading }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align: center; padding: 60px 0; color: #6a6a82;">
+            <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;">Loading…</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ leaderboardView.empty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 60px 24px;">
+            <div style="font-size: 13px; color: #8a8aa0; max-width: 360px; margin: 0 auto; line-height: 1.55;">No athletes ranked yet. Sign in and mark some skills to claim your spot.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ leaderboardView.hasRows }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <sc-for list="{{ leaderboardView.rows }}" as="row" hint-placeholder-count="5">
+              <button onClick="{{ row.onClick }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; width: 100%; transition: background 0.15s ease, border-color 0.15s ease;" style-hover="background: rgba(25,25,42,0.85); border-color: rgba(255,255,255,0.12);">
+                <span style="width: 36px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: {{ row.rankColor }}; text-align: right; flex-shrink: 0;">#{{ row.rank }}</span>
+                <span style="width: 40px; height: 40px; border-radius: 50%; background: {{ row.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #fff; font-family: 'JetBrains Mono', monospace; flex-shrink: 0;">{{ row.initials }}</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; color: #e8e8ef; font-weight: 600; font-family: 'JetBrains Mono', monospace;">@{{ row.handle }}</div>
+                  <div style="font-size: 11px; color: #8a8aa0; margin-top: 3px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap;">
+                    <span style="color: {{ row.tierColor }}; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 9.5px;">{{ row.tierName }}</span>
+                    <span style="color: #3a3a52;">·</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">{{ row.totalSkills }} skills</span>
+                    <span style="color: #3a3a52;">·</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">{{ row.scoreStr }} pts</span>
+                  </div>
+                </div>
+                <span style="color: #6a6a82; font-size: 14px; line-height: 1; flex-shrink: 0;">›</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
 </div>
 
 </x-dc>
@@ -561,6 +725,14 @@ class Component extends DCLogic {
         if (ids.length) { sharedChecked = new Set(ids); viewMode = 'shared'; }
       }
     } catch (e) {}
+    // Initial route from URL pathname (/u/<handle> or /leaderboard)
+    let initialRoute = { name: 'tree' };
+    try {
+      const path = (typeof location !== 'undefined' && location.pathname) || '/';
+      const m = path.match(/^\/u\/([a-z0-9_]+)\/?$/i);
+      if (m) initialRoute = { name: 'profile', handle: m[1].toLowerCase() };
+      else if (/^\/leaderboard\/?$/.test(path)) initialRoute = { name: 'leaderboard' };
+    } catch (e) {}
     const isMobile = w < 760;
     const scale = isMobile ? 0.32 : 0.5;
     // Tree spans roughly x=-2200 (OAP) to x=+3450 (mobility), visual center ~x=+625.
@@ -581,6 +753,9 @@ class Component extends DCLogic {
       auth: { status: 'loading', user: null, profile: null, email: null },
       authMenuOpen: false,
       handleModal: null,
+      route: initialRoute,
+      profileView: null,
+      leaderboardView: null,
       _v: 0,
     };
   })();
@@ -622,6 +797,10 @@ class Component extends DCLogic {
       }
     }
     this.initAuth();
+    window.addEventListener('popstate', this.onPopState);
+    if (this.state.route && this.state.route.name !== 'tree') {
+      this.applyRoute(this.state.route);
+    }
   }
 
   componentWillUnmount() {
@@ -633,6 +812,7 @@ class Component extends DCLogic {
     if (this._authUnsub) this._authUnsub();
     if (this._pushTimer) clearTimeout(this._pushTimer);
     if (this._handleCheckTimer) clearTimeout(this._handleCheckTimer);
+    window.removeEventListener('popstate', this.onPopState);
   }
 
   onResize = () => {
@@ -1037,6 +1217,104 @@ class Component extends DCLogic {
 
   onHandleCancel = () => { this.onSignOut(); };
 
+  // ─── routing ─────────────────────────────────────────────────────────────────
+  parseRoute = () => {
+    const path = (window.location && window.location.pathname) || '/';
+    const m = path.match(/^\/u\/([a-z0-9_]+)\/?$/i);
+    if (m) return { name: 'profile', handle: m[1].toLowerCase() };
+    if (/^\/leaderboard\/?$/.test(path)) return { name: 'leaderboard' };
+    return { name: 'tree' };
+  };
+
+  applyRoute = (route) => {
+    this.setState({ route, authMenuOpen: false });
+    if (route.name === 'profile') this.loadProfile(route.handle);
+    else if (route.name === 'leaderboard') this.loadLeaderboard();
+  };
+
+  onPopState = () => { this.applyRoute(this.parseRoute()); };
+
+  navTo = (path) => {
+    if (window.location.pathname === path && !window.location.hash) {
+      this.applyRoute(this.parseRoute());
+      return;
+    }
+    history.pushState(null, '', path);
+    this.applyRoute(this.parseRoute());
+  };
+
+  onBackToTree      = () => { this.navTo('/'); };
+  onGoToLeaderboard = () => { this.setState({ authMenuOpen: false }); this.navTo('/leaderboard'); };
+  onGoToMyProfile   = () => {
+    this.setState({ authMenuOpen: false });
+    const p = this.state.auth && this.state.auth.profile;
+    if (p && p.handle) this.navTo('/u/' + p.handle);
+  };
+
+  loadProfile = async (handle) => {
+    this.setState({ profileView: { loading: true, notFound: false, handle, profile: null, progress: [] }});
+    if (!window.CaliAuth || !window.CaliAuth.ready) {
+      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [] }});
+      return;
+    }
+    const p = await window.CaliAuth.getProfileByHandle(handle);
+    if (!p) {
+      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [] }});
+      return;
+    }
+    const progress = (await window.CaliAuth.getProgressByUserId(p.id)) || [];
+    const cur = this.state.route;
+    if (cur && cur.name === 'profile' && cur.handle === handle) {
+      this.setState({ profileView: { loading: false, notFound: false, handle, profile: p, progress }});
+    }
+  };
+
+  loadLeaderboard = async () => {
+    this.setState({ leaderboardView: { loading: true, rows: [] }});
+    if (!window.CaliAuth || !window.CaliAuth.ready) {
+      this.setState({ leaderboardView: { loading: false, rows: [] }});
+      return;
+    }
+    const rows = await window.CaliAuth.getLeaderboard(50);
+    if (this.state.route && this.state.route.name === 'leaderboard') {
+      this.setState({ leaderboardView: { loading: false, rows }});
+    }
+  };
+
+  makeShareHash = (ids) => {
+    try {
+      const b64 = btoa((ids || []).join(','))
+        .replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+      return '#p=' + b64;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  copyToClipboard = async (text, successMsg) => {
+    let ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch (e) {}
+    this.setState({ copyFeedback: ok ? successMsg : 'Copy failed — copy from URL bar' });
+    setTimeout(() => this.setState({ copyFeedback: '' }), 2800);
+  };
+
+  enterSharedFromProfile = (progressArray) => {
+    const set = new Set(progressArray || []);
+    const hash = this.makeShareHash(progressArray);
+    history.pushState(null, '', '/' + hash);
+    this.setState({
+      route: { name: 'tree' },
+      viewMode: 'shared',
+      sharedChecked: set,
+      profileView: null,
+    });
+  };
+
   // ─── render ────────────────────────────────────────────────────────────────
   // ─── scoring engine ────────────────────────────────────────────────────────
   // score = sum of (100 / rarity_percent) for each achieved skill.
@@ -1223,7 +1501,7 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, profileView: null, leaderboardView: null };
     }
 
     const checked = this.getActiveChecked();
@@ -1524,6 +1802,8 @@ class Component extends DCLogic {
       onSignOut:   this.onSignOut,
       onToggleMenu: this.toggleAuthMenu,
       onOpenHandle: () => this.setState({ handleModal: this.makeHandleModal('') }),
+      onLeaderboard: this.onGoToLeaderboard,
+      onMyProfile:   this.onGoToMyProfile,
     };
 
     // ─── handle-picker modal values ──────────────────────────────────────────
@@ -1553,6 +1833,116 @@ class Component extends DCLogic {
         onSubmit: this.onHandleSubmit,
         onCancel: this.onHandleCancel,
       };
+    }
+
+    // ─── route / overlay view values ─────────────────────────────────────────────
+    const route = this.state.route || { name: 'tree' };
+    const isProfileRoute = route.name === 'profile';
+    const isLeaderboardRoute = route.name === 'leaderboard';
+
+    const catBarFor = (c) => {
+      const isStub = c.isStub;
+      const hueC = data.categories[c.id] ? data.categories[c.id].hue : 240;
+      const accent = `oklch(0.78 0.20 ${hueC})`;
+      const muted = `oklch(0.45 0.05 ${hueC})`;
+      return {
+        id: c.id, name: c.name, isStub,
+        dotColor: isStub ? muted : accent,
+        dotGlow: isStub ? 'none' : `0 0 8px ${accent}`,
+        labelColor: isStub ? '#6a6a82' : '#e8e8ef',
+        statText: isStub ? '—' : `${c.done}/${c.total}`,
+        statColor: isStub ? '#3a3a52' : '#a8a8c0',
+        pct: c.total ? (c.done / c.total) * 100 : 0,
+        barColor: isStub ? muted : accent,
+        barGlow: isStub ? 'none' : `0 0 8px ${accent}`,
+      };
+    };
+    const avatarHash = (str) => {
+      let h = 200;
+      for (let i = 0; i < (str || '').length; i++) h = (h + str.charCodeAt(i) * 7) % 360;
+      return h;
+    };
+    const avatarFor = (str) => {
+      const h = avatarHash(str);
+      return `linear-gradient(135deg, oklch(0.6 0.22 ${h}), oklch(0.5 0.22 ${(h + 60) % 360}))`;
+    };
+    const initialsFor = (str) => (str || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+
+    let profileViewValues = null;
+    if (isProfileRoute) {
+      const pv = this.state.profileView || { loading: true, notFound: false, handle: route.handle };
+      const handle = pv.handle || route.handle || '';
+      if (pv.loading) {
+        profileViewValues = { active: true, loading: true, notFound: false, show: false, handle, hasBadges: false, categories: [], badges: [], onBack: this.onBackToTree };
+      } else if (pv.notFound || !pv.profile) {
+        profileViewValues = { active: true, loading: false, notFound: true, show: false, handle, hasBadges: false, categories: [], badges: [], onBack: this.onBackToTree };
+      } else {
+        const p = pv.profile;
+        const checkedSet = new Set(pv.progress || []);
+        const ps = this.computeStats(data, checkedSet);
+        let joinedStr = '';
+        try {
+          const dt = new Date(p.created_at);
+          if (!isNaN(dt.getTime())) joinedStr = dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+        } catch (e) {}
+        const badges = ps.completedBadges.map((b) => {
+          const lc = data.categories[b.cat];
+          const hueB = lc ? lc.hue : 240;
+          return { key: b.key, name: b.name, color: `oklch(0.85 0.18 ${hueB})`, bg: `oklch(0.35 0.20 ${hueB} / 0.22)`, border: `oklch(0.55 0.18 ${hueB} / 0.5)` };
+        });
+        profileViewValues = {
+          active: true, loading: false, notFound: false, show: true,
+          handle,
+          displayName: p.display_name || ('@' + p.handle),
+          initials: initialsFor(p.handle),
+          avatarBg: avatarFor(p.handle),
+          joinedStr: joinedStr || '—',
+          tierName:  ps.overall.tier.name,
+          tierColor: ps.overall.tier.color,
+          scoreStr:  ps.overall.scoreStr,
+          percentileStr: ps.overall.percentileStr,
+          skillsLabel: `${ps.overall.achieved} / ${ps.overall.total} skills`,
+          categories: ps.perCategory.map(catBarFor),
+          hasBadges: badges.length > 0,
+          badges,
+          onBack: this.onBackToTree,
+          onCopyLink: () => this.copyToClipboard(location.origin + '/u/' + handle, 'Profile link copied'),
+          onViewTree: () => this.enterSharedFromProfile(pv.progress || []),
+        };
+      }
+    }
+
+    let leaderboardViewValues = null;
+    if (isLeaderboardRoute) {
+      const lv = this.state.leaderboardView || { loading: true, rows: [] };
+      if (lv.loading) {
+        leaderboardViewValues = { active: true, loading: true, empty: false, hasRows: false, rows: [], onBack: this.onBackToTree };
+      } else {
+        const rows = (lv.rows || []).map((r, i) => {
+          const checkedSet = new Set(r.checked || []);
+          const rs = this.computeStats(data, checkedSet);
+          const rank = i + 1;
+          const rankColor = rank === 1 ? 'oklch(0.85 0.18 80)' : rank === 2 ? 'oklch(0.78 0.04 240)' : rank === 3 ? 'oklch(0.7 0.18 40)' : '#8a8aa0';
+          return {
+            rank, rankColor,
+            handle: r.handle,
+            initials: initialsFor(r.handle),
+            avatarBg: avatarFor(r.handle),
+            totalSkills: r.total_skills,
+            scoreStr:  rs.overall.scoreStr,
+            tierName:  rs.overall.tier.name,
+            tierColor: rs.overall.tier.color,
+            onClick: () => this.navTo('/u/' + r.handle),
+          };
+        });
+        leaderboardViewValues = {
+          active: true, loading: false,
+          empty: rows.length === 0,
+          hasRows: rows.length > 0,
+          rows,
+          onBack: this.onBackToTree,
+        };
+      }
     }
 
     return {
@@ -1639,6 +2029,10 @@ class Component extends DCLogic {
       // auth chip + username modal
       auth:        authValues,
       handleModal: handleModalValues,
+
+      // route overlays (profile / leaderboard)
+      profileView:     profileViewValues,
+      leaderboardView: leaderboardViewValues,
     };
   }
 

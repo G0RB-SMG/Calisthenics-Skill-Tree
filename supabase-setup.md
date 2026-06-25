@@ -84,7 +84,40 @@ After saving the file, reload the app. The account chip appears in the top-right
 corner. Sign in with Google, pick a handle, and your progress will start syncing
 to Supabase.
 
-## 5. (Optional) Test it
+## 5. Phase 2 SQL — leaderboard RPC
+
+After you've got sign-in working (steps 1–4 above), run this additional block
+in the SQL editor to enable the public leaderboard at `/leaderboard`:
+
+```sql
+-- Returns the top N users by total achieved skills, joined with their profile.
+create or replace function public.leaderboard(lim int default 50)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  total_skills int,
+  checked      text[]
+)
+language sql stable as $$
+  select p.user_id, pr.handle, pr.display_name, pr.avatar_url,
+         coalesce(cardinality(p.checked), 0)::int as total_skills,
+         p.checked
+  from public.progress p
+  join public.profiles pr on pr.id = p.user_id
+  where coalesce(cardinality(p.checked), 0) > 0
+  order by total_skills desc, pr.handle asc
+  limit lim
+$$;
+
+grant execute on function public.leaderboard(int) to anon, authenticated;
+```
+
+The leaderboard page degrades gracefully if you don't run this — it'll just
+show “No athletes ranked yet.”
+
+## 6. (Optional) Test it
 
 1. Open the app, mark a few skills.
 2. Sign in with Google.
@@ -96,9 +129,7 @@ to Supabase.
 
 ## What's NOT built yet (next phases)
 
-- Public profile pages at `/u/<handle>`
-- Leaderboards
 - Follow/friend system
-- Friend comparison view
+- Friend comparison view (overlay another user's progress on the tree)
 
-Tell me when Supabase is live and I'll build those next.
+Tell me when you want me to build those.

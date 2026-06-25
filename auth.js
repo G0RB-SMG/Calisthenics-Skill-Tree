@@ -207,6 +207,19 @@
     return Array.isArray(data.checked) ? data.checked : null;
   }
 
+  // Top N users by total skills (RPC defined in supabase-setup.md, phase 2).
+  // Returns []
+  async function getLeaderboard(limit) {
+    if (!client) return [];
+    try {
+      const { data, error } = await client.rpc('leaderboard', { lim: limit || 50 });
+      if (error) return [];
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   window.CaliAuth = {
     ready,                  // boolean: true if Supabase is configured
     init,                   // call once at mount
@@ -226,5 +239,6 @@
     // For future phases (profile pages, leaderboards).
     getProfileByHandle,
     getProgressByUserId,
+    getLeaderboard,
   };
 })();

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/u/:handle", "destination": "/" },
+    { "source": "/leaderboard", "destination": "/" }
+  ]
+}
