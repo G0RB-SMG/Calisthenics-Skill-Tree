@@ -58,7 +58,12 @@
       // eslint-disable-next-line no-console
       console.warn('[CaliAuth] init error', e);
     }
-    client.auth.onAuthStateChange(async (_event, newSession) => {
+    client.auth.onAuthStateChange(async (event, newSession) => {
+      // INITIAL_SESSION fires right after subscribe with whatever's in storage
+      // at that instant. If the URL-hash exchange (post-OAuth redirect) hasn't
+      // completed yet, that value is null — don't let it clobber a real session
+      // we already have.
+      if (event === 'INITIAL_SESSION' && !newSession && session) return;
       session = newSession;
       profile = session ? await fetchProfile(session.user.id) : null;
       notify();
@@ -69,6 +74,25 @@
   function onChange(cb) {
     listeners.add(cb);
     return () => listeners.delete(cb);
+  }
+
+  // Authoritative user lookup — hits the Supabase auth server with the stored
+  // JWT instead of trusting our cached `session` variable. Use this in any
+  // write path where we need a definitive user_id.
+  async function getLiveUser() {
+    if (!client) return null;
+    try {
+      const { data, error } = await client.auth.getUser();
+      if (error || !data || !data.user) return null;
+      // Refresh cached session too, so subsequent reads are consistent.
+      try {
+        const sres = await client.auth.getSession();
+        if (sres && sres.data && sres.data.session) session = sres.data.session;
+      } catch (_) {}
+      return data.user;
+    } catch (e) {
+      return null;
+    }
   }
 
   async function signInWithGoogle() {
@@ -102,11 +126,13 @@
   }
 
   async function createProfile(handle, displayName, avatarUrl) {
-    if (!client || !session) return { error: { message: 'not signed in' } };
+    if (!client) return { error: { message: 'auth disabled' } };
+    const user = await getLiveUser();
+    if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
     const { data, error } = await client
       .from('profiles')
       .insert({
-        id: session.user.id,
+        id: user.id,
         handle,
         display_name: displayName || null,
         avatar_url: avatarUrl || null,
@@ -122,20 +148,24 @@
 
   // Pulls the signed-in user's cloud progress. Returns string[] or null.
   async function getMyProgress() {
-    if (!client || !session) return null;
+    if (!client) return null;
+    const user = await getLiveUser();
+    if (!user) return null;
     const { data, error } = await client
       .from('progress')
       .select('checked')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
     if (error || !data) return null;
     return Array.isArray(data.checked) ? data.checked : null;
   }
 
   async function saveMyProgress(checkedArray) {
-    if (!client || !session) return { error: { message: 'not signed in' } };
+    if (!client) return { error: { message: 'auth disabled' } };
+    const user = await getLiveUser();
+    if (!user) return { error: { message: 'not signed in' } };
     return client.from('progress').upsert({
-      user_id:    session.user.id,
+      user_id:    user.id,
       checked:    checkedArray,
       updated_at: new Date().toISOString(),
     });
