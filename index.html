@@ -3,6 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Vercel deploys index.html for /u/<handle> and /leaderboard. Without a base
+  // href, relative asset srcs ("./skills.js") would resolve against those
+  // deep paths and 404. Force resolution from the origin root on those routes
+  // only — leaves local dev preview (where the file is served from a project
+  // subpath) untouched.
+  (function () {
+    try {
+      var p = location.pathname;
+      if (/^\/(u\/|leaderboard($|\/))/.test(p)) {
+        document.write('<base href="/">');
+      }
+    } catch (e) {}
+  })();
+</script>
 <script src="./support.js"></script>
 </head>
 <body>
