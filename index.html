@@ -12,7 +12,7 @@
   (function () {
     try {
       var p = location.pathname;
-      if (/^\/(u\/|leaderboard($|\/))/.test(p)) {
+      if (/^\/(u\/|compare\/|leaderboard($|\/))/.test(p)) {
         document.write('<base href="/">');
       }
     } catch (e) {}
@@ -198,6 +198,28 @@
               </div>
               <button onClick="{{ auth.onMyProfile }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">○</span>My profile</button>
               <button onClick="{{ auth.onLeaderboard }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">▤</span>Leaderboard</button>
+              <button onClick="{{ auth.onToggleFollowing }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);">
+                <span style="color: #6a6a82; font-size: 11px;">→</span>
+                <span style="flex: 1;">Following</span>
+                <span style="color: #6a6a82; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">{{ auth.followingCountStr }}</span>
+                <span style="color: #6a6a82; font-size: 9px; line-height: 1; transform: {{ auth.followingChevronTransform }}; transition: transform 0.15s ease;">▾</span>
+              </button>
+              <sc-if value="{{ auth.followingExpanded }}" hint-placeholder-val="{{ false }}">
+                <div style="max-height: 220px; overflow-y: auto; margin: 2px 4px 6px; padding: 6px 4px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                  <sc-if value="{{ auth.hasFollowing }}" hint-placeholder-val="{{ false }}">
+                    <sc-for list="{{ auth.followingList }}" as="f" hint-placeholder-count="3">
+                      <button onClick="{{ f.onClick }}" style="width: 100%; padding: 6px 8px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 5px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.07);">
+                        <span style="width: 22px; height: 22px; border-radius: 50%; background: {{ f.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 9px; color: #fff; font-family: 'JetBrains Mono', monospace; flex-shrink: 0;">{{ f.initials }}</span>
+                        <span style="flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">@{{ f.handle }}</span>
+                        <span style="color: #6a6a82; font-family: 'JetBrains Mono', monospace; font-size: 10px;">{{ f.totalSkills }}</span>
+                      </button>
+                    </sc-for>
+                  </sc-if>
+                  <sc-if value="{{ auth.followingEmpty }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding: 10px 8px; color: #6a6a82; font-size: 11px; text-align: center;">Not following anyone yet.</div>
+                  </sc-if>
+                </div>
+              </sc-if>
               <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0;"></div>
               <button onClick="{{ auth.onSignOut }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: oklch(0.72 0.16 25); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(220,60,60,0.1);">Sign out</button>
             </div>
@@ -590,9 +612,22 @@
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; margin-bottom: 4px;">@{{ profileView.handle }}</div>
               <div style="font-size: 22px; color: #e8e8ef; font-weight: 600; letter-spacing: -0.005em; line-height: 1.15;">{{ profileView.displayName }}</div>
-              <div style="font-size: 11px; color: #6a6a82; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">Joined {{ profileView.joinedStr }}</div>
+              <div style="font-size: 11px; color: #6a6a82; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">Joined {{ profileView.joinedStr }} · {{ profileView.followCountsLabel }}</div>
             </div>
           </div>
+
+          <sc-if value="{{ profileView.showActions }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap;">
+              <button onClick="{{ profileView.onToggleFollow }}" disabled="{{ profileView.followDisabled }}" style="flex: 1; min-width: 140px; padding: 12px 16px; background: {{ profileView.followBg }}; border: 1.5px solid {{ profileView.followBorder }}; border-radius: 10px; color: {{ profileView.followColor }}; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: {{ profileView.followCursor }}; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 7px; opacity: {{ profileView.followOpacity }};" style-hover="filter: brightness(1.15);">
+                <span style="font-size: 12px; line-height: 1;">{{ profileView.followIcon }}</span>
+                <span>{{ profileView.followLabel }}</span>
+              </button>
+              <button onClick="{{ profileView.onCompare }}" style="flex: 1; min-width: 140px; padding: 12px 16px; background: oklch(0.55 0.18 145); border: none; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 7px;" style-hover="background: oklch(0.62 0.20 145);">
+                <span style="font-size: 12px; line-height: 1;">⧉</span>
+                <span>Compare with me</span>
+              </button>
+            </div>
+          </sc-if>
 
           <div style="padding: 22px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 28px;">
             <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 6px;">Overall tier</div>
@@ -636,10 +671,154 @@
             </div>
           </sc-if>
 
-          <button onClick="{{ profileView.onViewTree }}" style="width: 100%; padding: 14px; background: oklch(0.5 0.22 280); border: none; border-radius: 10px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px;" style-hover="background: oklch(0.6 0.22 280);">
-            <span>View their tree</span>
-            <span style="font-size: 14px;">→</span>
+          <sc-if value="{{ profileView.showViewTree }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ profileView.onViewTree }}" style="width: 100%; padding: 14px; background: oklch(0.5 0.22 280); border: none; border-radius: 10px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px;" style-hover="background: oklch(0.6 0.22 280);">
+              <span>View their tree</span>
+              <span style="font-size: 14px;">→</span>
+            </button>
+          </sc-if>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== COMPARE PAGE (route: /compare/<handle>) ============================ -->
+  <sc-if value="{{ compareView.active }}" hint-placeholder-val="{{ false }}">
+    <div id="compare-page" data-no-pan="1" style="position: fixed; inset: 0; z-index: 160; background: radial-gradient(ellipse at top, oklch(0.18 0.05 145) 0%, #060610 60%); overflow-y: auto; padding: 28px 24px 60px; font-family: 'Space Grotesk', sans-serif;">
+      <div style="max-width: 860px; margin: 0 auto;">
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 12px; flex-wrap: wrap;">
+          <button onClick="{{ compareView.onBack }}" style="display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; color: #d0d0dc; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">
+            <span style="font-size: 14px; line-height: 1;">←</span>
+            <span>Back to @{{ compareView.handle }}</span>
           </button>
+        </div>
+
+        <sc-if value="{{ compareView.loading }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align: center; padding: 80px 0; color: #6a6a82;">
+            <div style="font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;">Loading comparison…</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ compareView.notSignedIn }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 80px 24px; max-width: 420px; margin: 0 auto;">
+            <h2 style="margin: 0 0 10px 0; font-size: 22px; color: #e8e8ef; font-weight: 600;">Sign in to compare</h2>
+            <p style="margin: 0 0 24px 0; color: #8a8aa0; font-size: 13px; line-height: 1.55;">Compare your progress with @{{ compareView.handle }} side by side. Requires a signed-in account.</p>
+            <button onClick="{{ compareView.onSignIn }}" style="padding: 12px 24px; background: oklch(0.55 0.18 145); border: none; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: oklch(0.62 0.20 145);">Sign in with Google</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ compareView.notFound }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 80px 24px;">
+            <h1 style="margin: 0 0 8px 0; font-size: 22px; color: #e8e8ef; font-weight: 600; font-family: 'JetBrains Mono', monospace;">@{{ compareView.handle }}</h1>
+            <p style="margin: 0; color: #8a8aa0; font-size: 13px;">No athlete with this handle.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ compareView.show }}" hint-placeholder-val="{{ false }}">
+
+          <!-- Versus header -->
+          <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; margin-bottom: 32px;">
+            <div style="padding: 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; text-align: center;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: {{ compareView.me.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; font-family: 'JetBrains Mono', monospace; margin: 0 auto 10px;">{{ compareView.me.initials }}</div>
+              <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #a8a8c0; margin-bottom: 6px;">@{{ compareView.me.handle }} (you)</div>
+              <div style="font-size: 14px; font-weight: 700; color: {{ compareView.me.tierColor }}; line-height: 1.1; margin-bottom: 5px;">{{ compareView.me.tierName }}</div>
+              <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #c0c0d0;">{{ compareView.me.scoreStr }} pts</div>
+              <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; margin-top: 3px;">{{ compareView.me.skillsStr }}</div>
+            </div>
+            <div style="font-size: 14px; font-weight: 800; color: #6a6a82; letter-spacing: 0.18em; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif;">VS</div>
+            <div style="padding: 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; text-align: center;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: {{ compareView.them.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; font-family: 'JetBrains Mono', monospace; margin: 0 auto 10px;">{{ compareView.them.initials }}</div>
+              <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #a8a8c0; margin-bottom: 6px;">@{{ compareView.them.handle }}</div>
+              <div style="font-size: 14px; font-weight: 700; color: {{ compareView.them.tierColor }}; line-height: 1.1; margin-bottom: 5px;">{{ compareView.them.tierName }}</div>
+              <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #c0c0d0;">{{ compareView.them.scoreStr }} pts</div>
+              <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8a8aa0; margin-top: 3px;">{{ compareView.them.skillsStr }}</div>
+            </div>
+          </div>
+
+          <!-- Insights cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-bottom: 32px;">
+            <div style="padding: 14px 16px; background: oklch(0.3 0.20 145 / 0.25); border: 1px solid oklch(0.55 0.18 145 / 0.4); border-radius: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: oklch(0.85 0.18 145); text-transform: uppercase; margin-bottom: 6px;">You lead</div>
+              <div style="font-size: 22px; font-weight: 700; color: oklch(0.92 0.16 145); line-height: 1; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace;">{{ compareView.insights.youCount }}</div>
+              <div style="font-size: 11px; color: #a8a8c0; line-height: 1.4;">{{ compareView.insights.youText }}</div>
+            </div>
+            <div style="padding: 14px 16px; background: oklch(0.3 0.20 25 / 0.25); border: 1px solid oklch(0.55 0.18 25 / 0.4); border-radius: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: oklch(0.85 0.18 25); text-transform: uppercase; margin-bottom: 6px;">They lead</div>
+              <div style="font-size: 22px; font-weight: 700; color: oklch(0.92 0.16 25); line-height: 1; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace;">{{ compareView.insights.themCount }}</div>
+              <div style="font-size: 11px; color: #a8a8c0; line-height: 1.4;">{{ compareView.insights.themText }}</div>
+            </div>
+            <div style="padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: #a8a8c0; text-transform: uppercase; margin-bottom: 6px;">Tied</div>
+              <div style="font-size: 22px; font-weight: 700; color: #e8e8ef; line-height: 1; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace;">{{ compareView.insights.tiedCount }}</div>
+              <div style="font-size: 11px; color: #a8a8c0; line-height: 1.4;">{{ compareView.insights.tiedText }}</div>
+            </div>
+          </div>
+
+          <!-- Per-category comparison -->
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 12px;">By category</div>
+          <div style="padding: 18px 20px; background: rgba(15,15,28,0.55); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 32px;">
+            <sc-for list="{{ compareView.categories }}" as="cat" hint-placeholder-count="5">
+              <div style="margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ cat.accent }}; box-shadow: 0 0 8px {{ cat.accent }};"></div>
+                    <span style="font-size: 13px; font-weight: 600; color: #e8e8ef;">{{ cat.name }}</span>
+                  </div>
+                  <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: {{ cat.leaderColor }}; font-family: 'Space Grotesk', sans-serif;">{{ cat.leaderText }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8a8aa0; margin-bottom: 4px;"><span>YOU</span><span>{{ cat.myStat }}</span></div>
+                    <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: {{ cat.myPct }}%; background: {{ cat.accent }}; box-shadow: 0 0 8px {{ cat.accent }}; border-radius: 2px;"></div></div>
+                  </div>
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8a8aa0; margin-bottom: 4px;"><span>THEM</span><span>{{ cat.theirStat }}</span></div>
+                    <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: {{ cat.theirPct }}%; background: {{ cat.accent }}; box-shadow: 0 0 8px {{ cat.accent }}; border-radius: 2px; opacity: 0.7;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- Skill overlap chips -->
+          <sc-if value="{{ compareView.hasCommon }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.85 0.18 145); text-transform: uppercase;">Tied on skills</div>
+              <div style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">({{ compareView.commonCount }})</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 24px;">
+              <sc-for list="{{ compareView.commonSkills }}" as="s" hint-placeholder-count="6">
+                <div style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; background: oklch(0.3 0.18 145 / 0.18); border: 1px solid oklch(0.55 0.18 145 / 0.35); border-radius: 100px; font-size: 11px; color: oklch(0.92 0.16 145); font-family: 'Space Grotesk', sans-serif;">{{ s.name }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ compareView.hasOnlyThem }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.78 0.16 25); text-transform: uppercase;">Only they have</div>
+              <div style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">({{ compareView.onlyThemCount }})</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 24px;">
+              <sc-for list="{{ compareView.onlyThemSkills }}" as="s" hint-placeholder-count="4">
+                <div style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; background: {{ s.bg }}; border: 1px solid {{ s.border }}; border-radius: 100px; font-size: 11px; color: {{ s.color }}; font-family: 'Space Grotesk', sans-serif;">{{ s.name }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ compareView.hasOnlyYou }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #a8a8c0; text-transform: uppercase;">Only you have</div>
+              <div style="font-size: 11px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">({{ compareView.onlyYouCount }})</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 24px;">
+              <sc-for list="{{ compareView.onlyYouSkills }}" as="s" hint-placeholder-count="4">
+                <div style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; background: {{ s.bg }}; border: 1px solid {{ s.border }}; border-radius: 100px; font-size: 11px; color: {{ s.color }}; font-family: 'Space Grotesk', sans-serif;">{{ s.name }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
         </sc-if>
 
       </div>
@@ -747,6 +926,10 @@ class Component extends DCLogic {
       const m = path.match(/^\/u\/([a-z0-9_]+)\/?$/i);
       if (m) initialRoute = { name: 'profile', handle: m[1].toLowerCase() };
       else if (/^\/leaderboard\/?$/.test(path)) initialRoute = { name: 'leaderboard' };
+      else {
+        const cm = path.match(/^\/compare\/([a-z0-9_]+)\/?$/i);
+        if (cm) initialRoute = { name: 'compare', handle: cm[1].toLowerCase() };
+      }
     } catch (e) {}
     const isMobile = w < 760;
     const scale = isMobile ? 0.32 : 0.5;
@@ -771,6 +954,9 @@ class Component extends DCLogic {
       route: initialRoute,
       profileView: null,
       leaderboardView: null,
+      compareView: null,
+      following: [],
+      followingExpanded: false,
       _v: 0,
     };
   })();
@@ -1132,6 +1318,8 @@ class Component extends DCLogic {
         auth: { status: 'signed-out', user: null, profile: null, email: null },
         authMenuOpen: false,
         handleModal: null,
+        following: [],
+        followingExpanded: false,
       });
       return;
     }
@@ -1149,6 +1337,12 @@ class Component extends DCLogic {
       handleModal: null,
     });
     if (justSignedIn) await this.mergeAndSyncProgress();
+    this.loadMyFollowing();
+    // Re-apply current route once auth is settled (handles deep links to
+    // /compare/<handle> that need sign-in, plus refreshes /u/<handle> so the
+    // follow status updates after a sign-in/out without a page reload).
+    const r = this.state.route;
+    if (r && r.name !== 'tree') this.applyRoute(r);
   };
 
   mergeAndSyncProgress = async () => {
@@ -1235,8 +1429,10 @@ class Component extends DCLogic {
   // ─── routing ─────────────────────────────────────────────────────────────────
   parseRoute = () => {
     const path = (window.location && window.location.pathname) || '/';
-    const m = path.match(/^\/u\/([a-z0-9_]+)\/?$/i);
+    let m = path.match(/^\/u\/([a-z0-9_]+)\/?$/i);
     if (m) return { name: 'profile', handle: m[1].toLowerCase() };
+    m = path.match(/^\/compare\/([a-z0-9_]+)\/?$/i);
+    if (m) return { name: 'compare', handle: m[1].toLowerCase() };
     if (/^\/leaderboard\/?$/.test(path)) return { name: 'leaderboard' };
     return { name: 'tree' };
   };
@@ -1245,6 +1441,7 @@ class Component extends DCLogic {
     this.setState({ route, authMenuOpen: false });
     if (route.name === 'profile') this.loadProfile(route.handle);
     else if (route.name === 'leaderboard') this.loadLeaderboard();
+    else if (route.name === 'compare') this.loadCompare(route.handle);
   };
 
   onPopState = () => { this.applyRoute(this.parseRoute()); };
@@ -1265,23 +1462,109 @@ class Component extends DCLogic {
     const p = this.state.auth && this.state.auth.profile;
     if (p && p.handle) this.navTo('/u/' + p.handle);
   };
+  onGoToCompare = (handle) => { this.navTo('/compare/' + handle); };
+  toggleFollowingExpand = () => this.setState({ followingExpanded: !this.state.followingExpanded });
 
   loadProfile = async (handle) => {
-    this.setState({ profileView: { loading: true, notFound: false, handle, profile: null, progress: [] }});
+    const emptyCounts = { followers: 0, following: 0 };
+    this.setState({ profileView: { loading: true, notFound: false, handle, profile: null, progress: [], followCounts: emptyCounts, isFollowing: false, followLoading: false }});
     if (!window.CaliAuth || !window.CaliAuth.ready) {
-      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [] }});
+      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [], followCounts: emptyCounts, isFollowing: false, followLoading: false }});
       return;
     }
     const p = await window.CaliAuth.getProfileByHandle(handle);
     if (!p) {
-      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [] }});
+      this.setState({ profileView: { loading: false, notFound: true, handle, profile: null, progress: [], followCounts: emptyCounts, isFollowing: false, followLoading: false }});
       return;
     }
-    const progress = (await window.CaliAuth.getProgressByUserId(p.id)) || [];
+    const [progress, followCounts, isFollowing] = await Promise.all([
+      window.CaliAuth.getProgressByUserId(p.id).then((r) => r || []),
+      window.CaliAuth.getFollowCounts(p.id),
+      window.CaliAuth.isFollowing(p.id),
+    ]);
     const cur = this.state.route;
     if (cur && cur.name === 'profile' && cur.handle === handle) {
-      this.setState({ profileView: { loading: false, notFound: false, handle, profile: p, progress }});
+      this.setState({ profileView: { loading: false, notFound: false, handle, profile: p, progress, followCounts, isFollowing, followLoading: false }});
     }
+  };
+
+  loadCompare = async (handle) => {
+    this.setState({ compareView: { loading: true, handle }});
+    if (!window.CaliAuth || !window.CaliAuth.ready) {
+      this.setState({ compareView: { loading: false, notFound: true, handle }});
+      return;
+    }
+    const a = this.state.auth;
+    if (!a || (a.status !== 'signed-in' && a.status !== 'needs-handle')) {
+      // 'loading' or 'signed-out' — prompt for sign-in.
+      this.setState({ compareView: { loading: false, notSignedIn: true, handle }});
+      return;
+    }
+    if (a.status === 'needs-handle' || !a.profile) {
+      // Signed in but no profile yet — can't compare. Prompt to finish setup.
+      this.setState({ compareView: { loading: false, notSignedIn: true, handle }});
+      return;
+    }
+    const them = await window.CaliAuth.getProfileByHandle(handle);
+    if (!them) {
+      this.setState({ compareView: { loading: false, notFound: true, handle }});
+      return;
+    }
+    const theirProgress = (await window.CaliAuth.getProgressByUserId(them.id)) || [];
+    const cur = this.state.route;
+    if (cur && cur.name === 'compare' && cur.handle === handle) {
+      this.setState({
+        compareView: {
+          loading: false, handle,
+          me:   { profile: a.profile, progress: [...this.state.myChecked] },
+          them: { profile: them,      progress: theirProgress },
+        },
+      });
+    }
+  };
+
+  loadMyFollowing = async () => {
+    const u = this.state.auth && this.state.auth.user;
+    if (!u || !window.CaliAuth) { this.setState({ following: [] }); return; }
+    const list = await window.CaliAuth.getFollowing(u.id);
+    this.setState({ following: Array.isArray(list) ? list : [] });
+  };
+
+  onToggleFollow = async () => {
+    const pv = this.state.profileView;
+    if (!pv || !pv.profile || pv.followLoading || !window.CaliAuth) return;
+    const a = this.state.auth;
+    if (!a || a.status !== 'signed-in') { this.onSignIn(); return; }
+    const wasFollowing = pv.isFollowing;
+    // Optimistic update.
+    this.setState({
+      profileView: {
+        ...pv,
+        isFollowing: !wasFollowing,
+        followLoading: true,
+        followCounts: {
+          ...pv.followCounts,
+          followers: Math.max(0, (pv.followCounts.followers || 0) + (wasFollowing ? -1 : 1)),
+        },
+      },
+    });
+    const res = wasFollowing
+      ? await window.CaliAuth.unfollow(pv.profile.id)
+      : await window.CaliAuth.follow(pv.profile.id);
+    const errored = !!(res && res.error);
+    const counts = await window.CaliAuth.getFollowCounts(pv.profile.id);
+    const cur = this.state.profileView;
+    if (cur && cur.profile && cur.profile.id === pv.profile.id) {
+      this.setState({
+        profileView: {
+          ...cur,
+          isFollowing: errored ? wasFollowing : !wasFollowing,
+          followLoading: false,
+          followCounts: counts,
+        },
+      });
+    }
+    this.loadMyFollowing();
   };
 
   loadLeaderboard = async () => {
@@ -1516,7 +1799,7 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, profileView: null, leaderboardView: null };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, profileView: null, leaderboardView: null, compareView: null };
     }
 
     const checked = this.getActiveChecked();
@@ -1819,6 +2102,20 @@ class Component extends DCLogic {
       onOpenHandle: () => this.setState({ handleModal: this.makeHandleModal('') }),
       onLeaderboard: this.onGoToLeaderboard,
       onMyProfile:   this.onGoToMyProfile,
+      // Following sub-section (in dropdown):
+      followingExpanded:        !!this.state.followingExpanded,
+      followingChevronTransform: this.state.followingExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+      followingCountStr: (this.state.following && this.state.following.length) ? String(this.state.following.length) : '',
+      hasFollowing:    (this.state.following || []).length > 0,
+      followingEmpty:  this.state.followingExpanded && (this.state.following || []).length === 0,
+      followingList:   (this.state.following || []).map((f) => ({
+        handle:      f.handle,
+        initials:    initialsFor(f.handle),
+        avatarBg:    avatarFor(f.handle),
+        totalSkills: f.total_skills,
+        onClick:     () => this.navTo('/u/' + f.handle),
+      })),
+      onToggleFollowing: this.toggleFollowingExpand,
     };
 
     // ─── handle-picker modal values ──────────────────────────────────────────
@@ -1854,6 +2151,7 @@ class Component extends DCLogic {
     const route = this.state.route || { name: 'tree' };
     const isProfileRoute = route.name === 'profile';
     const isLeaderboardRoute = route.name === 'leaderboard';
+    const isCompareRoute = route.name === 'compare';
 
     const catBarFor = (c) => {
       const isStub = c.isStub;
@@ -1882,15 +2180,29 @@ class Component extends DCLogic {
       return `linear-gradient(135deg, oklch(0.6 0.22 ${h}), oklch(0.5 0.22 ${(h + 60) % 360}))`;
     };
     const initialsFor = (str) => (str || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+    const chipFor = (s) => {
+      const c = data.categories[s.cat];
+      const hue = c ? c.hue : 240;
+      return {
+        id: s.id,
+        name: s.name,
+        color: `oklch(0.92 0.10 ${hue})`,
+        bg: `oklch(0.32 0.16 ${hue} / 0.18)`,
+        border: `oklch(0.55 0.18 ${hue} / 0.4)`,
+      };
+    };
 
     let profileViewValues = null;
     if (isProfileRoute) {
       const pv = this.state.profileView || { loading: true, notFound: false, handle: route.handle };
       const handle = pv.handle || route.handle || '';
+      const meId = (this.state.auth && this.state.auth.user && this.state.auth.user.id) || null;
+      const isOwnProfile = !!(pv.profile && meId && pv.profile.id === meId);
+      const isSignedIn = (this.state.auth && this.state.auth.status === 'signed-in');
       if (pv.loading) {
-        profileViewValues = { active: true, loading: true, notFound: false, show: false, handle, hasBadges: false, categories: [], badges: [], onBack: this.onBackToTree };
+        profileViewValues = { active: true, loading: true, notFound: false, show: false, handle, hasBadges: false, categories: [], badges: [], showActions: false, showViewTree: false, onBack: this.onBackToTree };
       } else if (pv.notFound || !pv.profile) {
-        profileViewValues = { active: true, loading: false, notFound: true, show: false, handle, hasBadges: false, categories: [], badges: [], onBack: this.onBackToTree };
+        profileViewValues = { active: true, loading: false, notFound: true, show: false, handle, hasBadges: false, categories: [], badges: [], showActions: false, showViewTree: false, onBack: this.onBackToTree };
       } else {
         const p = pv.profile;
         const checkedSet = new Set(pv.progress || []);
@@ -1905,6 +2217,11 @@ class Component extends DCLogic {
           const hueB = lc ? lc.hue : 240;
           return { key: b.key, name: b.name, color: `oklch(0.85 0.18 ${hueB})`, bg: `oklch(0.35 0.20 ${hueB} / 0.22)`, border: `oklch(0.55 0.18 ${hueB} / 0.5)` };
         });
+        const fc = pv.followCounts || { followers: 0, following: 0 };
+        const followCountsLabel = `${fc.followers} follower${fc.followers === 1 ? '' : 's'} · ${fc.following} following`;
+        const showActions = isSignedIn && !isOwnProfile;
+        const isFollowing = !!pv.isFollowing;
+        const followLoading = !!pv.followLoading;
         profileViewValues = {
           active: true, loading: false, notFound: false, show: true,
           handle,
@@ -1912,6 +2229,7 @@ class Component extends DCLogic {
           initials: initialsFor(p.handle),
           avatarBg: avatarFor(p.handle),
           joinedStr: joinedStr || '—',
+          followCountsLabel,
           tierName:  ps.overall.tier.name,
           tierColor: ps.overall.tier.color,
           scoreStr:  ps.overall.scoreStr,
@@ -1920,6 +2238,20 @@ class Component extends DCLogic {
           categories: ps.perCategory.map(catBarFor),
           hasBadges: badges.length > 0,
           badges,
+          // Action row (signed-in & not own profile):
+          showActions,
+          followLabel:    isFollowing ? 'Following' : 'Follow',
+          followIcon:     isFollowing ? '✓' : '+',
+          followBg:       isFollowing ? 'oklch(0.55 0.18 145 / 0.18)' : 'transparent',
+          followBorder:   isFollowing ? 'oklch(0.62 0.18 145 / 0.55)' : 'rgba(255,255,255,0.18)',
+          followColor:    isFollowing ? 'oklch(0.88 0.16 145)' : '#e8e8ef',
+          followCursor:   followLoading ? 'wait' : 'pointer',
+          followOpacity:  followLoading ? 0.7 : 1,
+          followDisabled: followLoading,
+          onToggleFollow: this.onToggleFollow,
+          onCompare:      () => this.onGoToCompare(handle),
+          // Existing actions:
+          showViewTree: !isOwnProfile,
           onBack: this.onBackToTree,
           onCopyLink: () => this.copyToClipboard(location.origin + '/u/' + handle, 'Profile link copied'),
           onViewTree: () => this.enterSharedFromProfile(pv.progress || []),
@@ -1957,6 +2289,103 @@ class Component extends DCLogic {
           rows,
           onBack: this.onBackToTree,
         };
+      }
+    }
+
+    // ─── compare view values ────────────────────────────────────────
+    let compareViewValues = null;
+    if (isCompareRoute) {
+      const cv = this.state.compareView || { loading: true, handle: route.handle };
+      const handle = cv.handle || route.handle || '';
+      if (cv.loading) {
+        compareViewValues = { active: true, loading: true, show: false, handle, onBack: () => this.navTo('/u/' + handle) };
+      } else if (cv.notSignedIn) {
+        compareViewValues = { active: true, loading: false, notSignedIn: true, show: false, handle, onSignIn: this.onSignIn, onBack: () => this.navTo('/u/' + handle) };
+      } else if (cv.notFound) {
+        compareViewValues = { active: true, loading: false, notFound: true, show: false, handle, onBack: this.onBackToTree };
+      } else if (cv.me && cv.them) {
+        const mySet = new Set(cv.me.progress || []);
+        const themSet = new Set(cv.them.progress || []);
+        const myStats = this.computeStats(data, mySet);
+        const themStats = this.computeStats(data, themSet);
+
+        const cats = myStats.perCategory.map((mc, idx) => {
+          const tc = themStats.perCategory[idx] || { done: 0, total: mc.total };
+          const hue = data.categories[mc.id] ? data.categories[mc.id].hue : 240;
+          const accent = `oklch(0.78 0.20 ${hue})`;
+          const myPct = mc.total ? (mc.done / mc.total) * 100 : 0;
+          const theirPct = tc.total ? (tc.done / tc.total) * 100 : 0;
+          const diff = mc.done - tc.done;
+          let leaderText, leaderColor;
+          if (mc.isStub) { leaderText = 'Soon'; leaderColor = '#6a6a82'; }
+          else if (diff > 0) { leaderText = `You +${diff}`; leaderColor = 'oklch(0.85 0.18 145)'; }
+          else if (diff < 0) { leaderText = `Them +${-diff}`; leaderColor = 'oklch(0.80 0.16 25)'; }
+          else { leaderText = 'Tied'; leaderColor = '#a8a8c0'; }
+          return {
+            id: mc.id, name: mc.name, accent, isStub: mc.isStub,
+            myStat: `${mc.done}/${mc.total}`, myPct,
+            theirStat: `${tc.done}/${tc.total}`, theirPct,
+            leaderText, leaderColor,
+          };
+        }).filter((c) => !c.isStub);
+
+        const youCats  = cats.filter((c) => c.leaderText.startsWith('You'));
+        const themCats = cats.filter((c) => c.leaderText.startsWith('Them'));
+        const tiedCats = cats.filter((c) => c.leaderText === 'Tied');
+        const namesOf = (arr) => arr.map((c) => c.name).join(', ') || '—';
+
+        const allSkills = data.skills.filter((s) => !s.isStub && !s.isRoot);
+        const commonSkillsArr  = allSkills.filter((s) => mySet.has(s.id) && themSet.has(s.id));
+        const onlyMeSkillsArr  = allSkills.filter((s) => mySet.has(s.id) && !themSet.has(s.id));
+        const onlyThemSkillsArr = allSkills.filter((s) => !mySet.has(s.id) && themSet.has(s.id));
+
+        const meVals = {
+          handle:     cv.me.profile.handle,
+          initials:   initialsFor(cv.me.profile.handle),
+          avatarBg:   avatarFor(cv.me.profile.handle),
+          tierName:   myStats.overall.tier.name,
+          tierColor:  myStats.overall.tier.color,
+          scoreStr:   myStats.overall.scoreStr,
+          skillsStr:  `${myStats.overall.achieved}/${myStats.overall.total} skills`,
+        };
+        const themVals = {
+          handle:     cv.them.profile.handle,
+          initials:   initialsFor(cv.them.profile.handle),
+          avatarBg:   avatarFor(cv.them.profile.handle),
+          tierName:   themStats.overall.tier.name,
+          tierColor:  themStats.overall.tier.color,
+          scoreStr:   themStats.overall.scoreStr,
+          skillsStr:  `${themStats.overall.achieved}/${themStats.overall.total} skills`,
+        };
+
+        compareViewValues = {
+          active: true, loading: false, show: true,
+          handle,
+          me: meVals,
+          them: themVals,
+          insights: {
+            youCount:  youCats.length,
+            themCount: themCats.length,
+            tiedCount: tiedCats.length,
+            youText:   `Categories: ${namesOf(youCats)}`,
+            themText:  `Categories: ${namesOf(themCats)}`,
+            tiedText:  tiedCats.length ? `Categories: ${namesOf(tiedCats)}` : 'No tied categories',
+          },
+          categories: cats,
+          hasCommon: commonSkillsArr.length > 0,
+          commonCount: commonSkillsArr.length,
+          commonSkills: commonSkillsArr.map(chipFor),
+          hasOnlyThem: onlyThemSkillsArr.length > 0,
+          onlyThemCount: onlyThemSkillsArr.length,
+          onlyThemSkills: onlyThemSkillsArr.map(chipFor),
+          hasOnlyYou: onlyMeSkillsArr.length > 0,
+          onlyYouCount: onlyMeSkillsArr.length,
+          onlyYouSkills: onlyMeSkillsArr.map(chipFor),
+          onBack: () => this.navTo('/u/' + handle),
+        };
+      } else {
+        // Defensive — unexpected shape; fall through to back.
+        compareViewValues = { active: true, loading: true, show: false, handle, onBack: () => this.navTo('/u/' + handle) };
       }
     }
 
@@ -2045,9 +2474,10 @@ class Component extends DCLogic {
       auth:        authValues,
       handleModal: handleModalValues,
 
-      // route overlays (profile / leaderboard)
+      // route overlays (profile / leaderboard / compare)
       profileView:     profileViewValues,
       leaderboardView: leaderboardViewValues,
+      compareView:     compareViewValues,
     };
   }
 

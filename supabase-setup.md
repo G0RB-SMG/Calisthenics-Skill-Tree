@@ -117,7 +117,63 @@ grant execute on function public.leaderboard(int) to anon, authenticated;
 The leaderboard page degrades gracefully if you don't run this — it'll just
 show “No athletes ranked yet.”
 
-## 6. (Optional) Test it
+## 6. Phase 3 SQL — follows + compare
+
+After phase 2, run this block to enable follow/unfollow and the compare view:
+
+```sql
+-- ─── follows table ───────────────────────────────────────────────────
+create table public.follows (
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  followee_id uuid not null references auth.users(id) on delete cascade,
+  created_at  timestamptz default now(),
+  primary key (follower_id, followee_id),
+  check (follower_id <> followee_id)
+);
+
+alter table public.follows enable row level security;
+
+create policy "follows_read_all"   on public.follows for select using (true);
+create policy "follows_insert_own" on public.follows for insert with check (auth.uid() = follower_id);
+create policy "follows_delete_own" on public.follows for delete using (auth.uid() = follower_id);
+
+-- ─── following list: users that `uid` follows, with profile + total skills ─
+create or replace function public.following_for(uid uuid)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  total_skills int
+)
+language sql stable as $$
+  select pr.id, pr.handle, pr.display_name, pr.avatar_url,
+         coalesce(cardinality(p.checked), 0)::int
+  from public.follows f
+  join public.profiles pr on pr.id = f.followee_id
+  left join public.progress p on p.user_id = pr.id
+  where f.follower_id = uid
+  order by pr.handle asc
+$$;
+
+grant execute on function public.following_for(uuid) to anon, authenticated;
+
+-- ─── follower + following counts for any user ────────────────────────
+create or replace function public.follow_counts(uid uuid)
+returns table(followers int, following int)
+language sql stable as $$
+  select
+    (select count(*)::int from public.follows where followee_id = uid),
+    (select count(*)::int from public.follows where follower_id = uid)
+$$;
+
+grant execute on function public.follow_counts(uuid) to anon, authenticated;
+```
+
+If you don't run this, the Follow button and Compare view stay hidden and the
+rest of the app works fine.
+
+## 7. (Optional) Test it
 
 1. Open the app, mark a few skills.
 2. Sign in with Google.

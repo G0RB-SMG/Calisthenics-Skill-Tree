@@ -220,6 +220,60 @@
     }
   }
 
+  // ─── follows (phase 3) ─────────────────────────────────────────────────────
+  async function follow(targetUserId) {
+    if (!client) return { error: { message: 'auth disabled' } };
+    const user = await getLiveUser();
+    if (!user) return { error: { message: 'not signed in' } };
+    if (user.id === targetUserId) return { error: { message: 'cannot follow self' } };
+    return client.from('follows').insert({ follower_id: user.id, followee_id: targetUserId });
+  }
+
+  async function unfollow(targetUserId) {
+    if (!client) return { error: { message: 'auth disabled' } };
+    const user = await getLiveUser();
+    if (!user) return { error: { message: 'not signed in' } };
+    return client
+      .from('follows')
+      .delete()
+      .eq('follower_id', user.id)
+      .eq('followee_id', targetUserId);
+  }
+
+  async function isFollowing(targetUserId) {
+    if (!client || !targetUserId) return false;
+    const user = await getLiveUser();
+    if (!user || user.id === targetUserId) return false;
+    const { data } = await client
+      .from('follows')
+      .select('follower_id')
+      .eq('follower_id', user.id)
+      .eq('followee_id', targetUserId)
+      .maybeSingle();
+    return !!data;
+  }
+
+  async function getFollowCounts(userId) {
+    if (!client || !userId) return { followers: 0, following: 0 };
+    try {
+      const { data } = await client.rpc('follow_counts', { uid: userId });
+      if (Array.isArray(data) && data.length) {
+        const row = data[0];
+        return { followers: row.followers || 0, following: row.following || 0 };
+      }
+    } catch (e) {}
+    return { followers: 0, following: 0 };
+  }
+
+  async function getFollowing(userId) {
+    if (!client || !userId) return [];
+    try {
+      const { data } = await client.rpc('following_for', { uid: userId });
+      return Array.isArray(data) ? data : [];
+    } catch (e) {}
+    return [];
+  }
+
   window.CaliAuth = {
     ready,                  // boolean: true if Supabase is configured
     init,                   // call once at mount
@@ -240,5 +294,12 @@
     getProfileByHandle,
     getProgressByUserId,
     getLeaderboard,
+
+    // Phase 3 — follows + compare.
+    follow,
+    unfollow,
+    isFollowing,
+    getFollowCounts,
+    getFollowing,
   };
 })();
