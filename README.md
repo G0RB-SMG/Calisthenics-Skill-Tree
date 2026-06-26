@@ -1,4 +1,4 @@
-# Calisthenics Skill Tree
+# Calisthenics Skill Tree V0.1.0
 
 Interactive skill tree planner. Pure static site — no build step.
 
