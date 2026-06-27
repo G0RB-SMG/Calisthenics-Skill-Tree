@@ -101,6 +101,17 @@
     });
   }
 
+  async function signInWithEmail(email, password) {
+    if (!client) return { error: { message: 'auth disabled' } };
+    return client.auth.signInWithPassword({ email, password });
+  }
+
+  async function signUpWithEmail(email, password) {
+    if (!client) return { error: { message: 'auth disabled' } };
+    const redirectTo = window.location.origin + window.location.pathname;
+    return client.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
+  }
+
   async function signInWithGoogle() {
     if (!client) return { error: { message: 'auth disabled' } };
     // Redirect back to the current page (no hash) so we don't collide with
@@ -282,6 +293,8 @@
     getProfile: () => profile,
 
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
 
     checkHandleAvailable,
