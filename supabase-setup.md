@@ -189,6 +189,73 @@ grant execute on function public.follow_counts(uuid) to anon, authenticated;
 If you don't run this, the Follow button and Compare view stay hidden and the
 rest of the app works fine.
 
+## 6b. Phase 4 SQL — activity feed
+
+To enable the activity feed at `/feed` and the "Recent activity" block on
+profile pages, run this:
+
+```sql
+-- ─── achievements (granular, per-skill, with timestamps) ─────────────
+create table public.achievements (
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  skill_id    text not null,
+  achieved_at timestamptz default now(),
+  primary key (user_id, skill_id)
+);
+
+create index achievements_recent_idx on public.achievements (achieved_at desc);
+create index achievements_user_recent_idx on public.achievements (user_id, achieved_at desc);
+
+alter table public.achievements enable row level security;
+
+create policy "achievements_read_all"   on public.achievements for select using (true);
+create policy "achievements_insert_own" on public.achievements for insert with check (auth.uid() = user_id);
+create policy "achievements_delete_own" on public.achievements for delete using (auth.uid() = user_id);
+
+-- ─── feed: recent achievements from users that `uid` follows ─────────
+create or replace function public.feed_for(uid uuid, lim int default 50)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  skill_id     text,
+  achieved_at  timestamptz
+)
+language sql stable as $$
+  select a.user_id, pr.handle, pr.display_name, pr.avatar_url,
+         a.skill_id, a.achieved_at
+  from public.follows f
+  join public.achievements a on a.user_id = f.followee_id
+  join public.profiles pr on pr.id = a.user_id
+  where f.follower_id = uid
+  order by a.achieved_at desc
+  limit lim
+$$;
+
+grant execute on function public.feed_for(uuid, int) to anon, authenticated;
+
+-- ─── recent achievements for a single user (profile page) ────────────
+create or replace function public.recent_achievements(uid uuid, lim int default 10)
+returns table(skill_id text, achieved_at timestamptz)
+language sql stable as $$
+  select skill_id, achieved_at
+  from public.achievements
+  where user_id = uid
+  order by achieved_at desc
+  limit lim
+$$;
+
+grant execute on function public.recent_achievements(uuid, int) to anon, authenticated;
+```
+
+The `achievements` table only stores the **explicitly clicked** skills — when
+you click Front Lever, only Front Lever gets a row (its prereqs cascade into
+`progress.checked[]` but not into the feed, so it stays clean).
+
+Without this step, the Feed page and Recent activity block stay empty —
+existing features keep working.
+
 ## 7. (Optional) Test it
 
 1. Open the app, mark a few skills.

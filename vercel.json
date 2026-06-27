@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/u/:handle([a-z0-9_]+)", "destination": "/" },
     { "source": "/compare/:handle([a-z0-9_]+)", "destination": "/" },
-    { "source": "/leaderboard", "destination": "/" }
+    { "source": "/leaderboard", "destination": "/" },
+    { "source": "/feed", "destination": "/" }
   ]
 }

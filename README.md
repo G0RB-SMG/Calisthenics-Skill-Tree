@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-26 — Onboarding + Activity Feed
+- **First-visit onboarding**: 3-step intro overlay (what the tree is → click to achieve → sign in to save), shown only to new users with no progress; "Skip" dismisses it; saved as `cali-onboarded-v1` in localStorage
+- **Activity feed at `/feed`**: shows recent achievements from athletes you follow; accessible from the account dropdown
+- **Recent activity block on profiles**: last 8 achievements with relative timestamps and a category-colored dot
+- New `achievements` table (with timestamps) — only stores the *explicitly clicked* skill, not the auto-cascaded prereqs, so the feed stays clean
+- Three new RPCs (`feed_for`, `recent_achievements`, plus the supporting table) — see `supabase-setup.md` section 6b
+- New `vercel.json` rewrite for `/feed`
+
 ### 2026-06-26 — Bug fix: `/u/<handle>` crash
 - Fixed `Cannot access 'initialsFor' before initialization` ReferenceError that left the profile page stuck on a red error banner
 - Cause: the auth chip's Following dropdown referenced helper fns declared further down in `renderVals`; hoisted them above the auth chip block

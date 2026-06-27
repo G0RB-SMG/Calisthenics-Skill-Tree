@@ -285,6 +285,50 @@
     return [];
   }
 
+  // ─── achievements + feed (phase 4) ──────────────────────────────────────────
+  async function addAchievement(skillId) {
+    if (!client || !skillId) return null;
+    const user = await getLiveUser();
+    if (!user) return null;
+    // Upsert by primary key so re-toggling without a network round-trip still works.
+    return client.from('achievements').upsert({
+      user_id: user.id,
+      skill_id: skillId,
+      achieved_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,skill_id', ignoreDuplicates: true });
+  }
+
+  async function removeAchievement(skillId) {
+    if (!client || !skillId) return null;
+    const user = await getLiveUser();
+    if (!user) return null;
+    return client
+      .from('achievements')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('skill_id', skillId);
+  }
+
+  async function getFeed(limit) {
+    if (!client) return [];
+    const user = await getLiveUser();
+    if (!user) return [];
+    try {
+      const { data } = await client.rpc('feed_for', { uid: user.id, lim: limit || 50 });
+      return Array.isArray(data) ? data : [];
+    } catch (e) {}
+    return [];
+  }
+
+  async function getRecentAchievements(userId, limit) {
+    if (!client || !userId) return [];
+    try {
+      const { data } = await client.rpc('recent_achievements', { uid: userId, lim: limit || 10 });
+      return Array.isArray(data) ? data : [];
+    } catch (e) {}
+    return [];
+  }
+
   window.CaliAuth = {
     ready,                  // boolean: true if Supabase is configured
     init,                   // call once at mount
@@ -314,5 +358,11 @@
     isFollowing,
     getFollowCounts,
     getFollowing,
+
+    // Phase 4 — achievements + feed.
+    addAchievement,
+    removeAchievement,
+    getFeed,
+    getRecentAchievements,
   };
 })();
