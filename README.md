@@ -16,6 +16,24 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-27 — Mobile view redesigned as a linear path
+- Mobile view now shows a **single committed path** from "Start" up to your current leaf, one card per row
+- At every fork (parent with multiple children), the row becomes a horizontal swipe — **tap any sibling to switch your branch**; the path auto-extends upward through the most-advanced unlocked branch from there
+- "Pick the next skill" picker appears above your current leaf — tap one to push further up the tree
+- "Swipe to pick a different branch" label appears on every fork row so the affordance is obvious
+- Chosen path cards get a thicker glow + full opacity; siblings dim slightly so the current branch reads clearly
+- Per-category chosen paths persist in state during the session — switching tabs preserves where you left off
+
+### 2026-06-27 — Mobile-traversal view (new default on phones)
+- Brand-new mobile UI: tap a **category tab** (push/pull/core/legs/mobility), scroll vertically through depth-rows (elite at top → "Start" at bottom), swipe horizontally at forks to pick a branch
+- Auto-centers on your current progress on entry (your first available "ready" skill, or your highest-achieved one)
+- Each card shows category, difficulty, figure SVG, name, and live status (ACHIEVED / READY / LOCKED) with colored borders + glow
+- Tapping a card opens the existing detail panel as a **bottom sheet**
+- Floating bottom-right: **⚙ Settings** sheet ("Switch to canvas view", "Share progress", "Reset progress")
+- Default: mobile view on phones (<760px), canvas view on desktop — overridable in the settings sheet, persisted in localStorage as `cali-ui-mode`
+- Desktop sidebar gained a **"Try mobile view"** button so you can preview the new UX on big screens
+- The data-cali-mode attribute on the outer wrapper toggles the entire chrome via CSS — canvas chrome is hidden in mobile mode, mobile view is hidden in canvas mode
+
 ### 2026-06-26 — Less annoying milestone toast on mobile
 - Toast now docks to the **bottom** on mobile so it can't cover the skill-panel close button
 - Added a visible **×** indicator so it's obvious you can tap to dismiss
