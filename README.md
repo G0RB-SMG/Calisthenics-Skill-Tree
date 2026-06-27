@@ -16,6 +16,11 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-26 — Less annoying milestone toast on mobile
+- Toast now docks to the **bottom** on mobile so it can't cover the skill-panel close button
+- Added a visible **×** indicator so it's obvious you can tap to dismiss
+- Auto-dismiss shortened from 3.8s → 2.2s
+
 ### 2026-06-26 — Onboarding + Activity Feed
 - **First-visit onboarding**: 3-step intro overlay (what the tree is → click to achieve → sign in to save), shown only to new users with no progress; "Skip" dismisses it; saved as `cali-onboarded-v1` in localStorage
 - **Activity feed at `/feed`**: shows recent achievements from athletes you follow; accessible from the account dropdown
