@@ -554,6 +554,57 @@
     <div data-no-pan="1" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); padding: 10px 18px; background: rgba(20, 20, 36, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; font-size: 12px; font-weight: 600; color: #e8e8ef; z-index: 150; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">{{ copyFeedback }}</div>
   </sc-if>
 
+  <!-- Sign-in / sign-up modal (Google + email) — opened from the "Sign in" chip. -->
+  <sc-if value="{{ signInModal.active }}" hint-placeholder-val="{{ false }}">
+    <div data-no-pan="1" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div style="width: 100%; max-width: 420px; position: relative; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
+
+        <button onClick="{{ signInModal.onClose }}" title="Close" style="position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #a8a8c0; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace;" style-hover="background: rgba(255,255,255,0.1); color: #e8e8ef;">×</button>
+
+        <sc-if value="{{ signInModal.checkEmail }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align: center; padding: 12px 0 6px;">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.7 0.18 145); text-transform: uppercase; margin-bottom: 12px;">Check your email</div>
+            <h2 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 600;">Almost there</h2>
+            <p style="margin: 0 0 24px 0; color: #a8a8c0; font-size: 13px; line-height: 1.55;">We sent a confirmation link to <span style="color:#e8e8ef; font-family:'JetBrains Mono',monospace;">{{ signInModal.email }}</span>. Click it, then come back here.</p>
+            <button onClick="{{ signInModal.onClose }}" style="padding: 12px 24px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;">OK</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ signInModal.main }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: oklch(0.7 0.18 145); text-transform: uppercase; margin-bottom: 10px;">Welcome</div>
+          <h2 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em;">{{ signInModal.title }}</h2>
+          <p style="margin: 0 0 22px 0; font-size: 13px; color: #a8a8c0; line-height: 1.55;">{{ signInModal.subtitle }}</p>
+
+          <button onClick="{{ signInModal.onGoogle }}" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 14px; background: #fff; border: none; border-radius: 10px; color: #333; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; margin-bottom: 18px;" style-hover="background: #f5f5fa;">
+            <svg viewBox="0 0 18 18" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.12-.84 2.06-1.79 2.7v2.24h2.89c1.69-1.56 2.7-3.86 2.7-6.58z"></path><path fill="#34A853" d="M9 18c2.43 0 4.46-.8 5.94-2.18l-2.89-2.24c-.8.54-1.83.86-3.05.86-2.34 0-4.33-1.58-5.04-3.7H.96v2.32C2.44 15.98 5.48 18 9 18z"></path><path fill="#FBBC05" d="M3.96 10.74A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.28-1.74V4.94H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.06l3-2.32z"></path><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.34l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.94l3 2.32C4.67 5.16 6.66 3.58 9 3.58z"></path></svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin: 0 0 18px;">
+            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.16em; color: #6a6a82;">OR</div>
+            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+          </div>
+
+          <input value="{{ signInModal.email }}" onInput="{{ signInModal.onEmail }}" type="email" placeholder="Email" autoComplete="email" autoCapitalize="off" autoCorrect="off" spellCheck="{{ false }}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e8e8ef; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none; box-sizing: border-box; margin-bottom: 10px;"></input>
+          <input value="{{ signInModal.password }}" onInput="{{ signInModal.onPassword }}" type="password" placeholder="Password" autoComplete="{{ signInModal.passwordAutocomplete }}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e8e8ef; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none; box-sizing: border-box; margin-bottom: 12px;"></input>
+
+          <sc-if value="{{ signInModal.hasError }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 11.5px; color: oklch(0.74 0.16 25); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.4;">{{ signInModal.errorMsg }}</div>
+          </sc-if>
+
+          <button onClick="{{ signInModal.onSubmit }}" disabled="{{ signInModal.submitDisabled }}" style="width: 100%; padding: 12px; background: oklch(0.55 0.18 145); border: none; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: {{ signInModal.submitCursor }}; font-family: 'Space Grotesk', sans-serif; opacity: {{ signInModal.submitOpacity }}; margin-bottom: 14px;" style-hover="background: oklch(0.62 0.20 145);">{{ signInModal.submitLabel }}</button>
+
+          <div style="text-align: center; font-size: 12px; color: #8a8aa0;">
+            <span>{{ signInModal.toggleHint }} </span>
+            <button onClick="{{ signInModal.onToggleMode }}" style="background: none; border: none; padding: 0; color: oklch(0.78 0.16 145); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="color: oklch(0.85 0.16 145);">{{ signInModal.toggleLabel }}</button>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
   <!-- Username (handle) picker modal — shown after first sign-in, or when chip is clicked. -->
   <sc-if value="{{ handleModal }}" hint-placeholder-val="{{ false }}">
     <div data-no-pan="1" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;">
@@ -955,6 +1006,7 @@ class Component extends DCLogic {
       profileView: null,
       leaderboardView: null,
       compareView: null,
+      signInModal: null,
       following: [],
       followingExpanded: false,
       _v: 0,
@@ -1318,6 +1370,7 @@ class Component extends DCLogic {
         auth: { status: 'signed-out', user: null, profile: null, email: null },
         authMenuOpen: false,
         handleModal: null,
+        signInModal: null,
         following: [],
         followingExpanded: false,
       });
@@ -1328,12 +1381,14 @@ class Component extends DCLogic {
     if (!profile) {
       this.setState({
         auth: { status: 'needs-handle', user, profile: null, email },
+        signInModal: null,
         handleModal: this.makeHandleModal(''),
       });
       return;
     }
     this.setState({
       auth: { status: 'signed-in', user, profile, email },
+      signInModal: null,
       handleModal: null,
     });
     if (justSignedIn) await this.mergeAndSyncProgress();
@@ -1369,7 +1424,76 @@ class Component extends DCLogic {
   };
 
   onSignIn = () => {
+    if (!window.CaliAuth || !window.CaliAuth.ready) return;
+    this.openSignIn();
+  };
+
+  // ─── sign-in modal (Google + email/password) ───────────────────────────────────────────
+  openSignIn = () => this.setState({
+    signInModal: { mode: 'signin', email: '', password: '', status: 'idle', errorMsg: '' },
+  });
+
+  closeSignIn = () => this.setState({ signInModal: null });
+
+  toggleSignInMode = () => {
+    const m = this.state.signInModal;
+    if (!m) return;
+    this.setState({
+      signInModal: { ...m, mode: m.mode === 'signin' ? 'signup' : 'signin', status: 'idle', errorMsg: '' },
+    });
+  };
+
+  onSignInEmail = (e) => {
+    const m = this.state.signInModal;
+    if (!m) return;
+    this.setState({ signInModal: { ...m, email: e.target.value, errorMsg: '' }});
+  };
+
+  onSignInPassword = (e) => {
+    const m = this.state.signInModal;
+    if (!m) return;
+    this.setState({ signInModal: { ...m, password: e.target.value, errorMsg: '' }});
+  };
+
+  onGoogleSignInFromModal = () => {
+    // Don't close the modal first — the OAuth redirect leaves the page anyway.
     if (window.CaliAuth && window.CaliAuth.ready) window.CaliAuth.signInWithGoogle();
+  };
+
+  formatAuthError = (msg) => {
+    const lower = (msg || '').toLowerCase();
+    if (lower.includes('invalid login') || lower.includes('invalid credentials')) return 'Wrong email or password.';
+    if (lower.includes('email not confirmed')) return 'Email not confirmed yet — check your inbox.';
+    if (lower.includes('already registered') || lower.includes('user already')) return 'That email is already registered — try signing in.';
+    if (lower.includes('weak') || lower.includes('password should')) return 'Password too weak — try 8+ characters.';
+    return msg || 'Something went wrong.';
+  };
+
+  onSignInSubmit = async () => {
+    const m = this.state.signInModal;
+    if (!m || m.status === 'submitting') return;
+    const email = (m.email || '').trim();
+    const password = m.password || '';
+    if (!email || !password) {
+      this.setState({ signInModal: { ...m, errorMsg: 'Email and password are required.' }});
+      return;
+    }
+    this.setState({ signInModal: { ...m, status: 'submitting', errorMsg: '' }});
+    const res = m.mode === 'signin'
+      ? await window.CaliAuth.signInWithEmail(email, password)
+      : await window.CaliAuth.signUpWithEmail(email, password);
+    const cur = this.state.signInModal;
+    if (!cur) return;
+    if (res && res.error) {
+      this.setState({ signInModal: { ...cur, status: 'idle', errorMsg: this.formatAuthError(res.error.message) }});
+      return;
+    }
+    // Signup with email-confirmation enabled returns no session.
+    if (m.mode === 'signup' && res && res.data && !res.data.session) {
+      this.setState({ signInModal: { ...cur, status: 'check-email' }});
+      return;
+    }
+    // Otherwise onAuthStateChange will close the modal via applyAuthState.
   };
 
   onSignOut = async () => {
@@ -1799,7 +1923,7 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, profileView: null, leaderboardView: null, compareView: null };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, signInModal: null, profileView: null, leaderboardView: null, compareView: null };
     }
 
     const checked = this.getActiveChecked();
@@ -2079,6 +2203,20 @@ class Component extends DCLogic {
     const zoomLabel = Math.round(scale * 100) + '%';
     const exportLabel = this.state.viewMode === 'shared' ? 'Copy share link' : 'Share progress';
 
+    // Helpers reused by auth-chip + profile + leaderboard + compare. Declared
+    // up here so `authValues` (which uses initialsFor / avatarFor for the
+    // Following dropdown) doesn't hit a temporal-dead-zone error.
+    const initialsFor = (str) => (str || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+    const avatarHashFn = (str) => {
+      let h = 200;
+      for (let i = 0; i < (str || '').length; i++) h = (h + str.charCodeAt(i) * 7) % 360;
+      return h;
+    };
+    const avatarFor = (str) => {
+      const h = avatarHashFn(str);
+      return `linear-gradient(135deg, oklch(0.6 0.22 ${h}), oklch(0.5 0.22 ${(h + 60) % 360}))`;
+    };
+
     // ─── auth chip values ───────────────────────────────────────────────
     const a = this.state.auth || { status: 'loading' };
     const aHandle = a.profile ? a.profile.handle : '';
@@ -2147,6 +2285,39 @@ class Component extends DCLogic {
       };
     }
 
+    // ─── sign-in modal values ─────────────────────────────────────────────────────
+    let signInModalValues = null;
+    if (this.state.signInModal) {
+      const m = this.state.signInModal;
+      const isSignUp = m.mode === 'signup';
+      const isCheckEmail = m.status === 'check-email';
+      const isSubmitting = m.status === 'submitting';
+      signInModalValues = {
+        active: true,
+        main: !isCheckEmail,
+        checkEmail: isCheckEmail,
+        title:        isSignUp ? 'Create account' : 'Sign in',
+        subtitle:     isSignUp ? 'Save your progress and compare with friends.' : 'Welcome back.',
+        email:        m.email || '',
+        password:     m.password || '',
+        passwordAutocomplete: isSignUp ? 'new-password' : 'current-password',
+        submitLabel:    isSubmitting ? 'Loading…' : (isSignUp ? 'Create account' : 'Sign in'),
+        submitDisabled: isSubmitting,
+        submitCursor:   isSubmitting ? 'wait' : 'pointer',
+        submitOpacity:  isSubmitting ? 0.6 : 1,
+        hasError:       !!m.errorMsg,
+        errorMsg:       m.errorMsg || '',
+        toggleHint:     isSignUp ? 'Already have an account?' : 'No account yet?',
+        toggleLabel:    isSignUp ? 'Sign in' : 'Create one',
+        onClose:        this.closeSignIn,
+        onGoogle:       this.onGoogleSignInFromModal,
+        onEmail:        this.onSignInEmail,
+        onPassword:     this.onSignInPassword,
+        onSubmit:       this.onSignInSubmit,
+        onToggleMode:   this.toggleSignInMode,
+      };
+    }
+
     // ─── route / overlay view values ─────────────────────────────────────────────
     const route = this.state.route || { name: 'tree' };
     const isProfileRoute = route.name === 'profile';
@@ -2170,16 +2341,6 @@ class Component extends DCLogic {
         barGlow: isStub ? 'none' : `0 0 8px ${accent}`,
       };
     };
-    const avatarHash = (str) => {
-      let h = 200;
-      for (let i = 0; i < (str || '').length; i++) h = (h + str.charCodeAt(i) * 7) % 360;
-      return h;
-    };
-    const avatarFor = (str) => {
-      const h = avatarHash(str);
-      return `linear-gradient(135deg, oklch(0.6 0.22 ${h}), oklch(0.5 0.22 ${(h + 60) % 360}))`;
-    };
-    const initialsFor = (str) => (str || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
     const chipFor = (s) => {
       const c = data.categories[s.cat];
       const hue = c ? c.hue : 240;
@@ -2473,6 +2634,7 @@ class Component extends DCLogic {
       // auth chip + username modal
       auth:        authValues,
       handleModal: handleModalValues,
+      signInModal: signInModalValues,
 
       // route overlays (profile / leaderboard / compare)
       profileView:     profileViewValues,

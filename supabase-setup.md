@@ -65,6 +65,22 @@ In Supabase dashboard → **Authentication → Providers → Google**:
    - **Additional redirect URLs**: add `http://localhost:*` if you want local dev
      to work, and any preview URLs (Vercel deploy previews) you'll use.
 
+## 3b. Enable email/password sign-up
+
+In Supabase dashboard → **Authentication → Providers → Email**:
+
+1. **Email provider** is on by default — confirm it's enabled.
+2. (Recommended for a hobby setup) **Authentication → Sign In / Up →
+   "Confirm email"** → toggle **off**. With it on, new email users have to click
+   a link before they can sign in, and Supabase's free SMTP is rate-limited.
+   With it off, sign-up immediately logs them in.
+3. (Optional) Adjust the password minimum length under
+   **Authentication → Sign In / Up** if you want stricter passwords.
+
+If you keep email confirmation on, the app handles it gracefully — sign-up
+shows a "Check your email" screen and the user comes back signed in after
+clicking the link.
+
 ## 4. Paste credentials into the app
 
 Open `config.js` in this project and fill in:
