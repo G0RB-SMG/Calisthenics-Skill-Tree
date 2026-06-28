@@ -16,6 +16,15 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Mobile: scroll through chains, only pause at real forks
+- Initial path build + post-commit auto-extension now follow **single-child chains automatically**, so the path only "stops" at points where you genuinely have a choice — no more tapping each intermediate skill just to advance
+- Branch picker cards now show the **whole branch's destination** instead of just the first node:
+  - The card's figure + name reflect the end of the chain (the next decision point or terminal skill)
+  - DIFF badge shows the end skill's difficulty
+  - A footer reads "N steps → / starts: [first skill]" so you still see what you're immediately committing to
+- Committing a branch auto-walks past all single-child intermediates, plus any sub-forks you've already achieved at — lands you at the next real decision point or the top of the line
+- Single-step branches (no further chain) still render as the simple "first skill" card with no footer
+
 ### 2026-06-28 — Mobile floating buttons no longer cut off + bigger BACK button
 - All three floating buttons now use `env(safe-area-inset-bottom)` + 18px clearance so iOS Safari's bottom toolbar can't clip them
 - **Back button is now a labelled pill** (↶ BACK) on the bottom-LEFT with a green gradient and glow — much more obvious than the tiny circle it used to be

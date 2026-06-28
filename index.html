@@ -180,7 +180,7 @@
                 <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a82; margin-bottom: 14px;">{{ row.label }}</div>
                 <div style="display: grid; grid-template-columns: {{ row.gridCols }}; gap: 10px; width: 100%; max-width: 460px;">
                   <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
-                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" style="background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;" style-hover="transform: translateY(-2px);">
+                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" style="background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;" style-hover="transform: translateY(-2px);">
                       <div style="width: 46px; height: 46px; border-radius: 50%; background: {{ b.figBg }}; border: 1.5px solid {{ b.borderColor }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <sc-if value="{{ b.hasFig }}" hint-placeholder-val="{{ false }}">
                           <svg width="34" height="34" viewBox="0 0 60 60" fill="none" stroke="{{ b.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -189,8 +189,13 @@
                           </svg>
                         </sc-if>
                       </div>
-                      <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty;">{{ b.name }}</div>
-                      <div style="font-size: 9.5px; color: {{ b.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-top: auto;">DIFF {{ b.diff }}</div>
+                      <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty; flex: 1; display: flex; align-items: center;">{{ b.name }}</div>
+                      <div style="font-size: 9.5px; color: {{ b.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">DIFF {{ b.diff }}</div>
+                      <sc-if value="{{ b.isMultiStep }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size: 8.5px; color: #8a8aa0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-align: center; line-height: 1.35; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.08); width: 100%;">
+                          {{ b.stepsLabel }}<br>{{ b.viaLabel }}
+                        </div>
+                      </sc-if>
                     </button>
                   </sc-for>
                 </div>
@@ -1993,22 +1998,49 @@ class Component extends DCLogic {
     return pick;
   };
 
-  // Walk from `path`'s tail through children, but ONLY through achievements.
-  // Stops as soon as we'd commit to anything the user hasn't actually done.
-  // Use case: initial path build — "show me where I am in the tree".
+  // Walk from `path`'s tail through children. Two cases handled:
+  //   • single-child chains — auto-follow (no real "decision" to make)
+  //   • forks where the user has already achieved one branch — follow that
+  // Stops at the first unachieved fork or at the end of the line. This is
+  // what makes scrolling feel free: you only pause at points where you
+  // genuinely have a choice to make.
   _extendPath = (path, category, checkedSet) => {
     const childrenMap = this.computeChildrenMap(category);
     let cur = path.length ? path[path.length - 1] : 'root';
-    let safety = 50;
+    let safety = 100;
     while (safety-- > 0) {
       const kids = childrenMap.get(cur) || [];
       if (!kids.length) break;
+      if (kids.length === 1) {
+        path.push(kids[0]);
+        cur = kids[0];
+        continue;
+      }
       const pick = this._pickAchievedChild(kids, checkedSet);
       if (!pick) break;
       path.push(pick);
       cur = pick;
     }
     return path;
+  };
+
+  // Given a fork's child, find where that branch's auto-extension lands —
+  // used by the picker UI to show the destination, not just the first node.
+  _computeBranchInfo = (firstSkillId, category, checkedSet) => {
+    const childrenMap = this.computeChildrenMap(category);
+    let cur = firstSkillId;
+    let steps = 1;
+    let safety = 100;
+    while (safety-- > 0) {
+      const kids = childrenMap.get(cur) || [];
+      if (!kids.length) break;
+      if (kids.length === 1) { cur = kids[0]; steps++; continue; }
+      const pick = this._pickAchievedChild(kids, checkedSet);
+      if (!pick) break;
+      cur = pick;
+      steps++;
+    }
+    return { endId: cur, steps };
   };
 
   // The current linear path for a category. Stored value wins (even if empty
@@ -2020,17 +2052,20 @@ class Component extends DCLogic {
     return this._extendPath([], category, checkedSet);
   };
 
-  // User tapped a branch above the current leaf — commit it as the new leaf.
-  // No auto-extension after manual choice; each step is deliberate.
+  // User tapped a branch above the current leaf — commit it as the new leaf,
+  // then auto-extend through any single-child chain or already-achieved
+  // sub-forks so they land at the next *real* decision point.
   commitMobileBranch = (category, skillId) => {
     const cur = this.getMobilePath(category, this.state.myChecked);
     if (cur.length && cur[cur.length - 1] === skillId) return;
     const newPath = [...cur, skillId];
+    this._extendPath(newPath, category, this.state.myChecked);
     this.setState({
       mobilePaths: { ...this.state.mobilePaths, [category]: newPath },
     });
     setTimeout(() => {
-      const el = document.querySelector(`[data-mobile-card="${skillId}"]`);
+      const last = newPath[newPath.length - 1];
+      const el = document.querySelector(`[data-mobile-card="${last}"]`);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 80);
   };
@@ -3320,6 +3355,64 @@ class Component extends DCLogic {
         };
       };
 
+      // Branch picker cards — each represents a *whole* path (the destination
+      // reached after auto-extending through single-child chains + achieved
+      // sub-forks), not just the immediate next node. The user picks based on
+      // where the branch ends up.
+      const buildBranchCard = (firstSkillId) => {
+        const first = byId.get(firstSkillId);
+        if (!first) return null;
+        const { endId, steps } = this._computeBranchInfo(firstSkillId, activeCat, myCheckedSet);
+        const end = byId.get(endId);
+        const useEnd = steps > 1 && !!end;
+        const display = useEnd ? end : first;
+        const isFirstChecked = myCheckedSet.has(firstSkillId);
+        const isAvailable = !isFirstChecked && first.pre.every((pid) => pid === 'root' || myCheckedSet.has(pid));
+        const figDef = display.fig ? figs[display.fig] : null;
+        const hue = catMeta.hue;
+
+        let bg, borderColor, opacity, shadow, figStroke, figBg;
+        if (isFirstChecked) {
+          bg = `linear-gradient(135deg, oklch(0.34 0.16 ${hue} / 0.5), oklch(0.22 0.12 ${hue} / 0.8))`;
+          borderColor = `oklch(0.7 0.20 ${hue} / 0.7)`;
+          opacity = 0.85;
+          shadow = `0 4px 18px rgba(0,0,0,0.4)`;
+          figStroke = `oklch(0.92 0.10 ${hue})`;
+          figBg = `oklch(0.28 0.18 ${hue} / 0.5)`;
+        } else if (isAvailable) {
+          bg = 'rgba(20,20,36,0.92)';
+          borderColor = `oklch(0.6 0.18 ${hue} / 0.55)`;
+          opacity = 1;
+          shadow = `0 4px 18px rgba(0,0,0,0.4)`;
+          figStroke = `oklch(0.88 0.14 ${hue})`;
+          figBg = `oklch(0.22 0.10 ${hue} / 0.35)`;
+        } else {
+          bg = 'rgba(15,15,26,0.75)';
+          borderColor = 'rgba(255,255,255,0.08)';
+          opacity = 0.5;
+          shadow = '0 2px 10px rgba(0,0,0,0.3)';
+          figStroke = '#6a6a82';
+          figBg = 'rgba(255,255,255,0.04)';
+        }
+        return {
+          id: firstSkillId,
+          name: display.name,
+          catColor: `oklch(0.85 0.18 ${hue})`,
+          diff: display.diff,
+          isMultiStep: useEnd,
+          viaLabel: useEnd ? `starts: ${first.name}` : '',
+          stepsLabel: useEnd ? `${steps} steps →` : '',
+          bg, borderColor, opacity, shadow,
+          figBg, figStroke,
+          hasFig: !!figDef,
+          figHx: figDef ? figDef.hx : 0,
+          figHy: figDef ? figDef.hy : 0,
+          figHr: figDef ? figDef.hr : 0,
+          figBody: figDef ? figDef.body : '',
+          onClick: () => this.mobileCardTap(activeCat, firstSkillId, false),
+        };
+      };
+
       // Build rows TOP → BOTTOM (fork at top, path leaf below, root at bottom).
       const rows = [];
 
@@ -3327,7 +3420,7 @@ class Component extends DCLogic {
       const leafId = path.length ? path[path.length - 1] : 'root';
       const leafChildren = childrenMap.get(leafId) || [];
       const branches = leafChildren
-        .map((cid) => buildCard(cid, path.length, false))
+        .map((cid) => buildBranchCard(cid))
         .filter(Boolean);
       if (branches.length) {
         const n = branches.length;
