@@ -1741,7 +1741,10 @@ class Component extends DCLogic {
       this.setState({
         auth: { status: 'needs-handle', user, profile: null, email },
         signInModal: null,
-        handleModal: this.makeHandleModal(''),
+        // Preserve an in-progress submit: if the user has typed a handle and
+        // is mid-save, an unrelated auth event (token refresh, etc.) firing
+        // here would otherwise reset the input and pull them out of 'Saving…'.
+        handleModal: this.state.handleModal || this.makeHandleModal(''),
       });
       return;
     }

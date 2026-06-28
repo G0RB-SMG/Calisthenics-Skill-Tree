@@ -146,27 +146,52 @@
     if (!client) return { error: { message: 'auth disabled' } };
     const user = await getLiveUser();
     if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
+
+    // Fast path: a previous attempt may have succeeded server-side but lost
+    // its response on the way back (resulting in a "stuck on Saving…" UI on
+    // the last try). Check for an existing profile before re-inserting.
+    const existing = await fetchProfile(user.id);
+    if (existing) {
+      profile = existing;
+      notify();
+      return { data: existing, error: null };
+    }
+
+    // Plain INSERT — no chained .select().single(). The chained form has been
+    // observed to either hang or return null data on some networks/RLS combos,
+    // leaving the handle-picker modal stuck in 'Saving…'. We already know every
+    // column we'd get back, so we construct the profile object locally instead.
     try {
-      const { data, error } = await withTimeout(
-        client
-          .from('profiles')
-          .insert({
-            id: user.id,
-            handle,
-            display_name: displayName || null,
-            avatar_url: avatarUrl || null,
-          })
-          .select(PROFILE_COLS)
-          .single(),
-        15000,
+      const { error } = await withTimeout(
+        client.from('profiles').insert({
+          id: user.id,
+          handle,
+          display_name: displayName || null,
+          avatar_url: avatarUrl || null,
+        }),
+        10000,
         'profile insert'
       );
       if (!error) {
-        profile = data;
+        profile = {
+          id: user.id,
+          handle,
+          display_name: displayName || null,
+          avatar_url: avatarUrl || null,
+          created_at: new Date().toISOString(),
+        };
         notify();
       }
-      return { data, error };
+      return { data: profile, error };
     } catch (e) {
+      // Timeout / network blip. The INSERT may have actually landed — re-fetch
+      // before giving up so we don't strand the user on a successful save.
+      const fallback = await fetchProfile(user.id);
+      if (fallback) {
+        profile = fallback;
+        notify();
+        return { data: fallback, error: null };
+      }
       return { error: { message: e.message || 'Network error while saving handle.' } };
     }
   }

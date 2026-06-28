@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Bug fix: stuck on "Saving…" after picking a username
+- `createProfile` no longer uses the chained `.insert().select().single()` form — that pattern was returning `data=null` in some networks, which made the auth handler think the user had no profile and re-open the empty handle modal (looked like "stuck on Saving forever")
+- Now does a plain INSERT and constructs the profile locally (we already know all the fields)
+- Added a fast-path **pre-check** for an existing profile — handles the case where a previous attempt's request reached the server but the response was lost
+- Added a **post-timeout fallback fetch** — if the INSERT call times out but the server actually processed it, we still land in 'signed-in' instead of erroring
+- Reduced INSERT timeout from 15s → 10s
+- Safeguarded `applyAuthState`: an unrelated auth event firing mid-submit no longer resets the typed handle / pulls the user out of "Saving…"
+
 ### 2026-06-28 — Mobile forks are literal forks now
 - Forks render as a **grid of branch cards with diverging Y-lines** below them converging into your current leaf — visually a real tree fork instead of a horizontal swipe row
 - Tapping a branch **commits** it as your new leaf; the fork moves up to show its children (or stops if it's the end of the line)
