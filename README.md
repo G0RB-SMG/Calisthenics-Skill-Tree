@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Mobile forks are literal forks now
+- Forks render as a **grid of branch cards with diverging Y-lines** below them converging into your current leaf — visually a real tree fork instead of a horizontal swipe row
+- Tapping a branch **commits** it as your new leaf; the fork moves up to show its children (or stops if it's the end of the line)
+- New **↶ Back button** in the bottom-right (alongside ↗ Share and ⚙ Settings) — pops the most recent commitment, re-exposing the fork so you can pick a different branch
+- Past path entries now show as single cards (no sibling swipe); to re-choose, hit ↶ Back until you reach the fork point
+- Auto-built initial path now only walks through **achieved** skills, so the entry view always ends on what you've actually completed with the fork sitting one step above
+- Layout: 2 branches side-by-side, 3 in a row, 4+ in a 2-column grid
+
 ### 2026-06-27 — Mobile view redesigned as a linear path
 - Mobile view now shows a **single committed path** from "Start" up to your current leaf, one card per row
 - At every fork (parent with multiple children), the row becomes a horizontal swipe — **tap any sibling to switch your branch**; the path auto-extends upward through the most-advanced unlocked branch from there

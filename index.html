@@ -172,37 +172,66 @@
         </div>
 
         <sc-for list="{{ mobile.rows }}" as="row" hint-placeholder-count="6">
-          <div class="mobile-row" style="min-height: 28vh; padding: 6px 0; display: flex; flex-direction: column; justify-content: center;">
-            <sc-if value="{{ row.label }}" hint-placeholder-val="{{ false }}">
-              <div style="text-align: center; margin-bottom: 8px; font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a82;">{{ row.label }}</div>
+          <div class="mobile-row" style="padding: 6px 0;">
+
+            <sc-if value="{{ row.isFork }}" hint-placeholder-val="{{ false }}">
+              <!-- Fork: branches in a grid, diverging Y-lines below converging to path leaf -->
+              <div style="padding: 18px 14px 6px; display: flex; flex-direction: column; align-items: center;">
+                <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a82; margin-bottom: 14px;">{{ row.label }}</div>
+                <div style="display: grid; grid-template-columns: {{ row.gridCols }}; gap: 10px; width: 100%; max-width: 460px;">
+                  <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
+                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" style="background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;" style-hover="transform: translateY(-2px);">
+                      <div style="width: 46px; height: 46px; border-radius: 50%; background: {{ b.figBg }}; border: 1.5px solid {{ b.borderColor }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <sc-if value="{{ b.hasFig }}" hint-placeholder-val="{{ false }}">
+                          <svg width="34" height="34" viewBox="0 0 60 60" fill="none" stroke="{{ b.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="{{ b.figHx }}" cy="{{ b.figHy }}" r="{{ b.figHr }}"></circle>
+                            <path d="{{ b.figBody }}"></path>
+                          </svg>
+                        </sc-if>
+                      </div>
+                      <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty;">{{ b.name }}</div>
+                      <div style="font-size: 9.5px; color: {{ b.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-top: auto;">DIFF {{ b.diff }}</div>
+                    </button>
+                  </sc-for>
+                </div>
+                <!-- Diverging Y-lines: branches above converging to a trunk below -->
+                <svg viewBox="0 0 100 24" preserveAspectRatio="none" style="display: block; width: 85%; max-width: 380px; height: 22px; margin-top: 6px;">
+                  <sc-for list="{{ row.branchLines }}" as="ln" hint-placeholder-count="2">
+                    <path d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1.8" fill="none"></path>
+                  </sc-for>
+                </svg>
+              </div>
             </sc-if>
-            <div class="mobile-row-cards" style="display: flex; gap: 14px; overflow-x: auto; width: 100%; padding: 6px 12.5vw 6px 12.5vw;">
-              <sc-for list="{{ row.skills }}" as="card" hint-placeholder-count="2">
-                <button onClick="{{ card.onClick }}" class="mobile-card" data-mobile-card="{{ card.id }}" style="flex-shrink: 0; width: 75vw; max-width: 320px; background: {{ card.bg }}; border: 1.5px solid {{ card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ card.shadow }}; opacity: {{ card.opacity }}; transition: transform 0.2s ease;">
+
+            <sc-if value="{{ row.isPath }}" hint-placeholder-val="{{ true }}">
+              <!-- Chosen-path entry: single card centered, no siblings -->
+              <div style="min-height: 22vh; padding: 4px 14px; display: flex; align-items: center; justify-content: center;">
+                <button onClick="{{ row.card.onClick }}" class="mobile-card" data-mobile-card="{{ row.card.id }}" style="width: 100%; max-width: 360px; background: {{ row.card.bg }}; border: 1.5px solid {{ row.card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ row.card.shadow }}; opacity: {{ row.card.opacity }};">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: {{ card.catColor }}; text-transform: uppercase;">{{ card.catLabel }}</span>
-                    <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 100px; background: {{ card.diffBg }}; border: 1px solid {{ card.diffBorder }};">
+                    <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: {{ row.card.catColor }}; text-transform: uppercase;">{{ row.card.catLabel }}</span>
+                    <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 100px; background: {{ row.card.diffBg }}; border: 1px solid {{ row.card.diffBorder }};">
                       <span style="font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: #9a9ab0;">DIFF</span>
-                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: {{ card.catColor }};">{{ card.diff }}</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: {{ row.card.catColor }};">{{ row.card.diff }}</span>
                     </span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 14px;">
-                    <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; background: {{ card.figBg }}; border: 1.5px solid {{ card.borderColor }}; display: flex; align-items: center; justify-content: center;">
-                      <sc-if value="{{ card.hasFig }}" hint-placeholder-val="{{ false }}">
-                        <svg width="42" height="42" viewBox="0 0 60 60" fill="none" stroke="{{ card.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                          <circle cx="{{ card.figHx }}" cy="{{ card.figHy }}" r="{{ card.figHr }}"></circle>
-                          <path d="{{ card.figBody }}"></path>
+                    <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; background: {{ row.card.figBg }}; border: 1.5px solid {{ row.card.borderColor }}; display: flex; align-items: center; justify-content: center;">
+                      <sc-if value="{{ row.card.hasFig }}" hint-placeholder-val="{{ false }}">
+                        <svg width="42" height="42" viewBox="0 0 60 60" fill="none" stroke="{{ row.card.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="{{ row.card.figHx }}" cy="{{ row.card.figHy }}" r="{{ row.card.figHr }}"></circle>
+                          <path d="{{ row.card.figBody }}"></path>
                         </svg>
                       </sc-if>
                     </div>
                     <div style="flex: 1; min-width: 0;">
-                      <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #f0f0f8; line-height: 1.22; text-wrap: pretty;">{{ card.name }}</h3>
-                      <div style="margin-top: 6px; font-size: 10.5px; color: #9a9ab0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;">{{ card.statusLabel }}</div>
+                      <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #f0f0f8; line-height: 1.22; text-wrap: pretty;">{{ row.card.name }}</h3>
+                      <div style="margin-top: 6px; font-size: 10.5px; color: #9a9ab0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;">{{ row.card.statusLabel }}</div>
                     </div>
                   </div>
                 </button>
-              </sc-for>
-            </div>
+              </div>
+            </sc-if>
+
           </div>
         </sc-for>
 
@@ -218,8 +247,11 @@
 
       </div>
 
-      <!-- Floating: share + settings -->
+      <!-- Floating: back + share + settings -->
       <div data-no-pan="1" style="position: fixed; bottom: 16px; right: 14px; z-index: 60; display: flex; gap: 8px;">
+        <sc-if value="{{ mobile.canBacktrack }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ mobile.onBacktrack }}" title="Go back a step" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(15,15,28,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.18); color: oklch(0.85 0.14 145); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0,0,0,0.5); font-family: 'JetBrains Mono', monospace;">↶</button>
+        </sc-if>
         <button onClick="{{ mobile.onShare }}" title="Share progress" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(15,15,28,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); color: #e8e8ef; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0,0,0,0.5); font-family: 'JetBrains Mono', monospace;">↗</button>
         <button onClick="{{ mobile.onSettings }}" title="Settings" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(15,15,28,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); color: #e8e8ef; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0,0,0,0.5);">⚙</button>
       </div>
@@ -1938,24 +1970,25 @@ class Component extends DCLogic {
     return map;
   };
 
-  // Auto-pick the "best" next child: prefer the highest-difficulty achieved,
-  // else the easiest unachieved. Tie-break on rarity is not worth the cost —
-  // diff is good enough.
-  _pickBestChild = (childrenIds, checkedSet) => {
+  // Auto-pick the highest-difficulty ACHIEVED child. Returns null if none
+  // of the children are achieved — the user has to choose at this fork.
+  _pickAchievedChild = (childrenIds, checkedSet) => {
     const data = window.CALI_DATA;
     if (!data) return null;
     const byId = new Map(data.skills.map((s) => [s.id, s]));
     let pick = null, best = -Infinity;
     for (const cid of childrenIds) {
+      if (!checkedSet.has(cid)) continue;
       const s = byId.get(cid);
       if (!s) continue;
-      const score = checkedSet.has(cid) ? (1000 + s.diff) : -s.diff;
-      if (score > best) { best = score; pick = cid; }
+      if (s.diff > best) { best = s.diff; pick = cid; }
     }
     return pick;
   };
 
-  // Walk from `path`'s tail through children, extending until no more.
+  // Walk from `path`'s tail through children, but ONLY through achievements.
+  // Stops as soon as we'd commit to anything the user hasn't actually done.
+  // Use case: initial path build — "show me where I am in the tree".
   _extendPath = (path, category, checkedSet) => {
     const childrenMap = this.computeChildrenMap(category);
     let cur = path.length ? path[path.length - 1] : 'root';
@@ -1963,7 +1996,7 @@ class Component extends DCLogic {
     while (safety-- > 0) {
       const kids = childrenMap.get(cur) || [];
       if (!kids.length) break;
-      const pick = this._pickBestChild(kids, checkedSet);
+      const pick = this._pickAchievedChild(kids, checkedSet);
       if (!pick) break;
       path.push(pick);
       cur = pick;
@@ -1971,57 +2004,54 @@ class Component extends DCLogic {
     return path;
   };
 
-  // The current linear path for a category. Reads state first; falls back to
-  // an auto-picked initial path based on the user's progress.
+  // The current linear path for a category. Stored value wins (even if empty
+  // — means the user explicitly popped back to root). Falls back to an auto-
+  // built initial path that follows the user's achievements upward.
   getMobilePath = (category, checkedSet) => {
     const stored = this.state.mobilePaths && this.state.mobilePaths[category];
-    if (Array.isArray(stored) && stored.length) return stored;
+    if (Array.isArray(stored)) return stored;
     return this._extendPath([], category, checkedSet);
   };
 
-  // User tapped a sibling at path[atIndex]: truncate above that index, splice
-  // in `newSkillId`, then auto-extend toward elite from there. The chosen path
-  // is committed to state (sticky until the user picks a different branch).
-  switchMobilePathAt = (category, atIndex, newSkillId) => {
-    const checkedSet = this.state.myChecked;
-    const cur = this.getMobilePath(category, checkedSet);
-    const newPath = cur.slice(0, atIndex);
-    newPath.push(newSkillId);
-    this._extendPath(newPath, category, checkedSet);
+  // User tapped a branch above the current leaf — commit it as the new leaf.
+  // No auto-extension after manual choice; each step is deliberate.
+  commitMobileBranch = (category, skillId) => {
+    const cur = this.getMobilePath(category, this.state.myChecked);
+    if (cur.length && cur[cur.length - 1] === skillId) return;
+    const newPath = [...cur, skillId];
     this.setState({
       mobilePaths: { ...this.state.mobilePaths, [category]: newPath },
     });
     setTimeout(() => {
-      // Re-center on the freshly-picked card after the new path renders.
-      const el = document.querySelector(`[data-mobile-card="${newSkillId}"]`);
+      const el = document.querySelector(`[data-mobile-card="${skillId}"]`);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 80);
   };
 
-  // Card tap handler: if the card is already the chosen path entry, just open
-  // detail. Otherwise switch the path here AND open detail.
-  mobileCardTap = (category, skillId, atIndex, isChosen) => {
-    if (!isChosen) this.switchMobilePathAt(category, atIndex, skillId);
+  // User tapped the back button — pop the current leaf to re-expose the fork.
+  popMobilePath = (category) => {
+    const cur = this.getMobilePath(category, this.state.myChecked);
+    if (!cur.length) return;
+    const newPath = cur.slice(0, -1);
+    this.setState({
+      mobilePaths: { ...this.state.mobilePaths, [category]: newPath },
+    });
+    setTimeout(() => this.scrollMobileFocusIntoView(true), 80);
+  };
+
+  // Card tap handler: chosen path cards open the detail panel; branch cards
+  // commit the branch (and also open the detail panel so the user can mark
+  // achieved in one go).
+  mobileCardTap = (category, skillId, isChosen) => {
+    if (!isChosen) this.commitMobileBranch(category, skillId);
     this.onNodeClick(skillId);
   };
 
-  // Focus = the user's furthest-achieved skill ON the current path. If they
-  // have nothing yet, the first available.
+  // Focus = the leaf of the path (= where the fork hangs above). Used to
+  // center-scroll on entry. Null when path is empty (no leaf yet).
   computeMobilePathFocusId = (category, checkedSet) => {
     const path = this.getMobilePath(category, checkedSet);
-    if (!path.length) return null;
-    for (let i = path.length - 1; i >= 0; i--) {
-      if (checkedSet.has(path[i])) return path[i];
-    }
-    const data = window.CALI_DATA;
-    const byId = data ? new Map(data.skills.map((s) => [s.id, s])) : new Map();
-    for (const sid of path) {
-      const s = byId.get(sid);
-      if (!s) continue;
-      const ok = s.pre.every((pid) => pid === 'root' || checkedSet.has(pid));
-      if (!checkedSet.has(s.id) && ok) return s.id;
-    }
-    return path[0];
+    return path.length ? path[path.length - 1] : null;
   };
 
   scrollMobileFocusIntoView = (smooth) => {
@@ -3279,39 +3309,50 @@ class Component extends DCLogic {
           figHy: figDef ? figDef.hy : 0,
           figHr: figDef ? figDef.hr : 0,
           figBody: figDef ? figDef.body : '',
-          onClick: () => this.mobileCardTap(activeCat, s.id, atIndex, isChosen),
+          onClick: () => this.mobileCardTap(activeCat, s.id, isChosen),
         };
       };
 
-      // Build rows TOP → BOTTOM (elite at top, root at bottom).
+      // Build rows TOP → BOTTOM (fork at top, path leaf below, root at bottom).
       const rows = [];
 
-      // "What's next" picker row above the leaf, if leaf has children.
-      const leafId = path[path.length - 1];
-      const leafChildren = leafId ? (childrenMap.get(leafId) || []) : [];
-      if (leafChildren.length) {
+      // Fork above the leaf — branches the user can pick to extend the path.
+      const leafId = path.length ? path[path.length - 1] : 'root';
+      const leafChildren = childrenMap.get(leafId) || [];
+      const branches = leafChildren
+        .map((cid) => buildCard(cid, path.length, false))
+        .filter(Boolean);
+      if (branches.length) {
+        const n = branches.length;
+        const gridCols = n <= 3 ? `repeat(${n}, 1fr)` : 'repeat(2, 1fr)';
+        const branchLines = branches.map((_, i) => {
+          // Branch x in viewBox 0–100: column center for n<=3, 2-col grid for n>=4.
+          let x;
+          if (n <= 3) {
+            x = ((i + 0.5) / n) * 100;
+          } else {
+            const col = i % 2;
+            x = ((col + 0.5) / 2) * 100;
+          }
+          return { d: `M${x.toFixed(1)},0 Q${x.toFixed(1)},14 50,24` };
+        });
         rows.push({
-          kind: 'picker',
-          label: leafChildren.length > 1 ? 'Pick the next skill' : "What's next",
-          skills: leafChildren.map((cid) => buildCard(cid, path.length, false)).filter(Boolean),
+          kind: 'fork',
+          isFork: true,
+          isPath: false,
+          label: n > 1 ? `Pick a branch — ${n} choices` : 'Next up',
+          branches,
+          gridCols,
+          branchLines,
+          lineColor: `oklch(0.65 0.16 ${catMeta.hue} / 0.65)`,
         });
       }
 
-      // Path entries from leaf → root.
+      // Chosen-path entries (leaf → root). One card per row, no siblings.
       for (let i = path.length - 1; i >= 0; i--) {
-        const sid = path[i];
-        const parentId = i === 0 ? 'root' : path[i - 1];
-        const siblings = (childrenMap.get(parentId) || []).filter((c) => c !== sid);
-        const isFork = siblings.length > 0;
-        // Chosen card FIRST (so default scroll-snap centers it).
-        const skills = [buildCard(sid, i, true)];
-        for (const sib of siblings) skills.push(buildCard(sib, i, false));
-        rows.push({
-          kind: 'path',
-          label: isFork ? 'Swipe to pick a different branch' : null,
-          isFork,
-          skills: skills.filter(Boolean),
-        });
+        const card = buildCard(path[i], i, true);
+        if (!card) continue;
+        rows.push({ kind: 'path', isFork: false, isPath: true, card });
       }
 
       const totalDone = data.skills.filter((s) => !s.isStub && !s.isRoot && myCheckedSet.has(s.id)).length;
@@ -3322,7 +3363,9 @@ class Component extends DCLogic {
         tabs,
         rows,
         focusId,
+        canBacktrack: path.length > 0,
         sheetOpen: !!this.state.mobileSheetOpen,
+        onBacktrack:    () => this.popMobilePath(activeCat),
         onSettings:     this.toggleMobileSheet,
         onCloseSheet:   this.closeMobileSheet,
         onSwitchCanvas: () => { this.closeMobileSheet(); this.setUiMode('canvas'); },
