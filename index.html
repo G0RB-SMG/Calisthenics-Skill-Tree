@@ -1998,6 +1998,82 @@ class Component extends DCLogic {
     return pick;
   };
 
+  // Human-readable short labels for each badge/branch. These are used to
+  // label fork cards by concept ("Hamstrings", "Splits", "Shoulders") instead
+  // of by the destination skill name. Keyed by badge.key.
+  _BRANCH_SHORT_NAMES = {
+    // Push
+    push_up_vet:      'Push-ups',
+    iron_dipper:      'Dips',
+    handstand_vet:    'Handstand',
+    hspu_master:      'HSPU',
+    press_master:     'Press to HS',
+    planche_vet:      'Planche',
+    planche_presser:  'Planche presses',
+    maltese_master:   'Maltese',
+    fingertip_god:    'Fingertip',
+    // Pull
+    pull_up_vet:      'Pull-ups',
+    front_lever_vet:  'Front lever',
+    fl_pullup_master: 'FL pull-ups',
+    back_lever_vet:   'Back lever',
+    muscle_up_vet:    'Muscle-up',
+    iron_cross:       'Iron cross',
+    // Core
+    manna_master:     'L-sit / Manna',
+    human_flag_vet:   'Human flag',
+    hanging_core:     'Hanging core',
+    dragon_slayer:    'Dragon flag',
+    // Legs
+    pistol_vet:       'Pistols',
+    jump_power:       'Jumps',
+    quad_crusher:     'Shrimps',
+    nordic_hammies:   'Hamstrings',
+    // Mobility
+    compressor:       'Compression',
+    hamstring_hero:   'Hamstrings',
+    iron_split:       'Splits',
+    knee_bender:      'Knees',
+    lotus_master:     'Hips',
+    steel_shoulders:  'Shoulders',
+  };
+
+  // Skill ID → short branch label, derived from the badges data. Cached.
+  _branchLabelCache = null;
+  _getBranchLabel = (skillId) => {
+    if (!this._branchLabelCache) {
+      const map = new Map();
+      const badges = (window.CALI_BADGES) || [];
+      for (const b of badges) {
+        const label = this._BRANCH_SHORT_NAMES[b.key];
+        if (!label) continue;
+        for (const sid of (b.skills || [])) {
+          // First mapping wins — earlier badges in the array take priority
+          // for skills that happen to appear in multiple badge lists.
+          if (!map.has(sid)) map.set(sid, label);
+        }
+      }
+      this._branchLabelCache = map;
+    }
+    return this._branchLabelCache.get(skillId) || null;
+  };
+
+  // Walk from `path`'s tail through single-child chains only. Stops at any
+  // fork, regardless of what's achieved. Used after manual navigation
+  // (commit/pop) where the user should always get the choice at forks.
+  _extendChainOnly = (path, category) => {
+    const childrenMap = this.computeChildrenMap(category);
+    let cur = path.length ? path[path.length - 1] : 'root';
+    let safety = 100;
+    while (safety-- > 0) {
+      const kids = childrenMap.get(cur) || [];
+      if (kids.length !== 1) break;
+      path.push(kids[0]);
+      cur = kids[0];
+    }
+    return path;
+  };
+
   // Walk from `path`'s tail through children. Two cases handled:
   //   • single-child chains — auto-follow (no real "decision" to make)
   //   • forks where the user has already achieved one branch — follow that
@@ -2024,20 +2100,18 @@ class Component extends DCLogic {
     return path;
   };
 
-  // Given a fork's child, find where that branch's auto-extension lands —
-  // used by the picker UI to show the destination, not just the first node.
-  _computeBranchInfo = (firstSkillId, category, checkedSet) => {
+  // Same idea but for the branch picker's preview: walk only through
+  // single-child chains starting at firstSkillId, so the card shows the
+  // destination at the end of the chain (not a future fork choice).
+  _computeBranchInfo = (firstSkillId, category) => {
     const childrenMap = this.computeChildrenMap(category);
     let cur = firstSkillId;
     let steps = 1;
     let safety = 100;
     while (safety-- > 0) {
       const kids = childrenMap.get(cur) || [];
-      if (!kids.length) break;
-      if (kids.length === 1) { cur = kids[0]; steps++; continue; }
-      const pick = this._pickAchievedChild(kids, checkedSet);
-      if (!pick) break;
-      cur = pick;
+      if (kids.length !== 1) break;
+      cur = kids[0];
       steps++;
     }
     return { endId: cur, steps };
@@ -2053,13 +2127,15 @@ class Component extends DCLogic {
   };
 
   // User tapped a branch above the current leaf — commit it as the new leaf,
-  // then auto-extend through any single-child chain or already-achieved
-  // sub-forks so they land at the next *real* decision point.
+  // then auto-extend through any single-child chain so they land at the top
+  // of that linear segment (or the next real fork). We DO NOT auto-pick at
+  // sub-forks even if one is achieved — the user just made a deliberate
+  // choice, the next fork is theirs to make too.
   commitMobileBranch = (category, skillId) => {
     const cur = this.getMobilePath(category, this.state.myChecked);
     if (cur.length && cur[cur.length - 1] === skillId) return;
     const newPath = [...cur, skillId];
-    this._extendPath(newPath, category, this.state.myChecked);
+    this._extendChainOnly(newPath, category);
     this.setState({
       mobilePaths: { ...this.state.mobilePaths, [category]: newPath },
     });
@@ -2070,11 +2146,27 @@ class Component extends DCLogic {
     }, 80);
   };
 
-  // User tapped the back button — pop the current leaf to re-expose the fork.
+  // User tapped the back button — pop back to the previous fork (skipping
+  // any single-child intermediates), so they always land on a real decision
+  // point. Chain-only so they don't get auto-pushed to a forward fork.
   popMobilePath = (category) => {
     const cur = this.getMobilePath(category, this.state.myChecked);
     if (!cur.length) return;
-    const newPath = cur.slice(0, -1);
+    const childrenMap = this.computeChildrenMap(category);
+    let newPath = cur.slice(0, -1);
+    // Keep popping while the new leaf has only one child (mid-chain).
+    let safety = 100;
+    while (safety-- > 0 && newPath.length) {
+      const leaf = newPath[newPath.length - 1];
+      const kids = childrenMap.get(leaf) || [];
+      if (kids.length !== 1) break;
+      newPath.pop();
+    }
+    // If we popped everything, re-extend through chains from root so the
+    // user lands at the first real fork (not the empty/start state).
+    if (newPath.length === 0) {
+      this._extendChainOnly(newPath, category);
+    }
     this.setState({
       mobilePaths: { ...this.state.mobilePaths, [category]: newPath },
     });
@@ -3357,15 +3449,23 @@ class Component extends DCLogic {
 
       // Branch picker cards — each represents a *whole* path (the destination
       // reached after auto-extending through single-child chains + achieved
-      // sub-forks), not just the immediate next node. The user picks based on
-      // where the branch ends up.
+      // sub-forks). Label is the branch's CONCEPT ("Hamstrings", "Splits",
+      // "Shoulders") pulled from the badge groupings; destination + step
+      // count move to the footer so users still know what they're committing
+      // to. Falls back to destination-skill name if no badge matches.
       const buildBranchCard = (firstSkillId) => {
         const first = byId.get(firstSkillId);
         if (!first) return null;
-        const { endId, steps } = this._computeBranchInfo(firstSkillId, activeCat, myCheckedSet);
+        const { endId, steps } = this._computeBranchInfo(firstSkillId, activeCat);
         const end = byId.get(endId);
         const useEnd = steps > 1 && !!end;
+        // The skill whose figure/diff we display: end-of-branch when there's
+        // a chain, otherwise the only node.
         const display = useEnd ? end : first;
+        // Branch concept label — prefer this when available, else use the
+        // destination skill's name.
+        const branchLabel = this._getBranchLabel(firstSkillId);
+        const cardName = branchLabel || display.name;
         const isFirstChecked = myCheckedSet.has(firstSkillId);
         const isAvailable = !isFirstChecked && first.pre.every((pid) => pid === 'root' || myCheckedSet.has(pid));
         const figDef = display.fig ? figs[display.fig] : null;
@@ -3394,14 +3494,23 @@ class Component extends DCLogic {
           figStroke = '#6a6a82';
           figBg = 'rgba(255,255,255,0.04)';
         }
+        // Footer wording — when we have a branch label, lead with the
+        // destination so the user knows where they'd end up; otherwise keep
+        // the old "starts: X" wording (since the card name already shows the
+        // destination in that case).
+        const hasFooter = useEnd;
+        const viaLabel = useEnd
+          ? (branchLabel ? `ends at: ${end.name}` : `starts: ${first.name}`)
+          : '';
+        const stepsLabel = useEnd ? `${steps} steps →` : '';
         return {
           id: firstSkillId,
-          name: display.name,
+          name: cardName,
           catColor: `oklch(0.85 0.18 ${hue})`,
           diff: display.diff,
-          isMultiStep: useEnd,
-          viaLabel: useEnd ? `starts: ${first.name}` : '',
-          stepsLabel: useEnd ? `${steps} steps →` : '',
+          isMultiStep: hasFooter,
+          viaLabel,
+          stepsLabel,
           bg, borderColor, opacity, shadow,
           figBg, figStroke,
           hasFig: !!figDef,

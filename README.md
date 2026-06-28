@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Mobile: branch cards labeled by concept, not destination
+- Branch picker cards now show the **branch concept** ("Hips", "Splits", "Hamstrings", "Knees", "Shoulders", "Compression", "Push-ups", "Planche", etc.) instead of the destination skill name
+- Labels are pulled from the existing badge groupings — every branch's first skill maps to its badge → human-readable short name
+- Card footer now reads "N steps → / ends at: [destination skill]" so you still see exactly where the branch lands
+- Falls back to destination-skill name for the rare branch that doesn't map to a badge (e.g. the root entry node)
+- Manual navigation now stops at every fork: `commitMobileBranch` and `popMobilePath` only auto-walk through single-child chains, never auto-pick at sub-forks. Initial path still uses achieved-pick so you land at the top of your current progress on first load.
+- `popMobilePath` re-extends through chains if you back all the way out — so back→back→back lands you at the first real fork, never at an empty/start state
+
 ### 2026-06-28 — Mobile: scroll through chains, only pause at real forks
 - Initial path build + post-commit auto-extension now follow **single-child chains automatically**, so the path only "stops" at points where you genuinely have a choice — no more tapping each intermediate skill just to advance
 - Branch picker cards now show the **whole branch's destination** instead of just the first node:
