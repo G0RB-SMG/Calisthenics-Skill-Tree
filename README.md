@@ -16,6 +16,12 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Mobile floating buttons no longer cut off + bigger BACK button
+- All three floating buttons now use `env(safe-area-inset-bottom)` + 18px clearance so iOS Safari's bottom toolbar can't clip them
+- **Back button is now a labelled pill** (↶ BACK) on the bottom-LEFT with a green gradient and glow — much more obvious than the tiny circle it used to be
+- Share + Settings stay as 50px circles (up from 44) on the bottom-right
+- Mobile-scroll bottom padding bumped to ~110px so the path's "Start" anchor never sits under the floating buttons
+
 ### 2026-06-28 — Bug fix: stuck on "Saving…" after picking a username
 - `createProfile` no longer uses the chained `.insert().select().single()` form — that pattern was returning `data=null` in some networks, which made the auth handler think the user had no profile and re-open the empty handle modal (looked like "stuck on Saving forever")
 - Now does a plain INSERT and constructs the profile locally (we already know all the fields)
