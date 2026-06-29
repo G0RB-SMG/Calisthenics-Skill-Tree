@@ -16,6 +16,15 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Profile polish: streaks, sparkline, hardest-next, achievement dates, skeletons
+- **Streak stat** — current consecutive-day streak shown on profile (next to the sparkline) and in the sidebar tier card. Skipping today doesn't break the streak immediately — only an empty *yesterday* does.
+- **30-day sparkline** on profile page — small SVG bar chart of achievements per day, accent color tied to the user's tier.
+- **"Hardest you could attempt"** callout on your own profile — finds the highest-diff skill where every prereq is checked but the skill itself isn't. Tap to jump to it.
+- **Achievement dates in detail panel** — clicking an already-achieved skill now shows when it was achieved (when the timestamp is known; older achievements logged before the table existed won't have one).
+- **Loading skeletons** on profile / leaderboard / feed / compare pages — replaced the plain "Loading…" text with shimmer blocks that match each page's layout.
+- All driven by a new `myAchievements` state slot (up to 500 rows loaded on sign-in). Toggling a skill updates it optimistically — no extra round-trip needed.
+- No new SQL required — uses the existing `recent_achievements` RPC.
+
 ### 2026-06-28 — Pull tree shifted right (closer to the rest of the trees)
 - All pull skills shifted +600 in x. Pull tree now spans -3200 (iron cross) to -1100 (FL pullups). Dead hang at -1600. Closer to core/push without overlapping anything.
 
