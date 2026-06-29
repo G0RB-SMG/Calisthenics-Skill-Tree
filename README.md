@@ -16,6 +16,9 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Pull tree shifted right (closer to the rest of the trees)
+- All pull skills shifted +600 in x. Pull tree now spans -3200 (iron cross) to -1100 (FL pullups). Dead hang at -1600. Closer to core/push without overlapping anything.
+
 ### 2026-06-28 — Push tree restructure + canvas cleanup
 - **Push tree restructured to match pull's pattern**: trunk extends to first strict push-up, then forks into 6 branches
   - **Trunk**: plank → knee_pu → incline_pu → pushup (no forks below pushup)
