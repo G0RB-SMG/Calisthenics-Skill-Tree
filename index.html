@@ -145,8 +145,9 @@
 
       <!-- Top bar: title + progress -->
       <div style="padding: 14px 16px 6px; flex-shrink: 0;">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #6a6a82;">Skill tree</span>
+          <button onClick="{{ mobile.onSearch }}" title="Search skills" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #d8d8e4; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; padding: 0;">⌕</button>
         </div>
         <h1 style="margin: 4px 0 0 0; font-size: 17px; font-weight: 600; color: #e8e8ef; letter-spacing: -0.005em;">{{ mobile.title }}</h1>
       </div>
@@ -375,6 +376,12 @@
   <sc-if value="{{ auth.showChip }}" hint-placeholder-val="{{ false }}">
     <div id="account-chip" data-no-pan="1" style="position: absolute; top: 18px; right: 18px; z-index: 210; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 8px;">
 
+      <!-- Search pill (always visible) -->
+      <button onClick="{{ auth.onSearch }}" title="Search skills" style="display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
+        <span style="font-size: 13px; line-height: 1; font-family: 'JetBrains Mono', monospace;">⌕</span>
+        <span class="ld-label" style="white-space: nowrap;">Search</span>
+      </button>
+
       <!-- Leaderboard nav pill (always visible) -->
       <button onClick="{{ auth.onLeaderboard }}" title="Leaderboard" style="display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
         <span style="font-size: 11px; line-height: 1;">▤</span>
@@ -398,7 +405,7 @@
       <sc-if value="{{ auth.signedIn }}" hint-placeholder-val="{{ false }}">
         <div style="position: relative;">
           <button onClick="{{ auth.onToggleMenu }}" style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85);">
-            <span style="width: 30px; height: 30px; border-radius: 50%; background: {{ auth.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #fff; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace;">{{ auth.initials }}</span>
+            <span style="width: 30px; height: 30px; border-radius: 50%; background: {{ auth.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ auth.iconFontSize }}; color: #fff; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace;">{{ auth.initials }}</span>
             <span style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">@{{ auth.handle }}</span>
             <span style="color: #6a6a82; font-size: 10px; line-height: 1;">▾</span>
           </button>
@@ -411,6 +418,7 @@
               <button onClick="{{ auth.onMyProfile }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">○</span>My profile</button>
               <button onClick="{{ auth.onLeaderboard }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">▤</span>Leaderboard</button>
               <button onClick="{{ auth.onFeed }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">◎</span>Feed</button>
+              <button onClick="{{ auth.onSettings }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);"><span style="color: #6a6a82; font-size: 11px;">⚙</span>Settings</button>
               <button onClick="{{ auth.onToggleFollowing }}" style="width: 100%; padding: 9px 12px; background: transparent; border: none; color: #d8d8e4; font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 9px;" style-hover="background: rgba(255,255,255,0.06);">
                 <span style="color: #6a6a82; font-size: 11px;">→</span>
                 <span style="flex: 1;">Following</span>
@@ -843,7 +851,112 @@
     </div>
   </sc-if>
 
-  <!-- ===== PROFILE PAGE (route: /u/<handle>) =================================== -->
+  <!-- ===== SEARCH MODAL ======================================================== -->
+  <sc-if value="{{ searchModal }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ searchModal.onBackdrop }}" data-no-pan="1" style="position: fixed; inset: 0; z-index: 320; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: flex-start; justify-content: center; padding: 60px 16px 16px;">
+      <div onClick="{{ searchModal.stopPropagation }}" style="width: 100%; max-width: 540px; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; max-height: 75vh; overflow: hidden;">
+        <div style="padding: 16px 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <div style="position: relative;">
+            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6a6a82; font-size: 16px; pointer-events: none; font-family: 'JetBrains Mono', monospace;">⌕</span>
+            <input value="{{ searchModal.query }}" onInput="{{ searchModal.onInput }}" placeholder="Search skills…" autoFocus="{{ true }}" autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck="{{ false }}" style="width: 100%; padding: 12px 70px 12px 40px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; font-size: 15px; outline: none; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif;"></input>
+            <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #6a6a82; font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 3px 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; pointer-events: none;">ESC</span>
+          </div>
+        </div>
+        <div style="flex: 1; overflow-y: auto; padding: 6px 8px 12px;">
+          <sc-if value="{{ searchModal.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 30px 16px; text-align: center; color: #6a6a82; font-size: 13px;">{{ searchModal.emptyMsg }}</div>
+          </sc-if>
+          <sc-for list="{{ searchModal.results }}" as="r" hint-placeholder-count="6">
+            <button onClick="{{ r.onClick }}" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: transparent; border: none; border-radius: 8px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; transition: background 0.1s;" style-hover="background: rgba(255,255,255,0.04);">
+              <span style="width: 32px; height: 32px; border-radius: 50%; background: {{ r.figBg }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid {{ r.figBorder }};">
+                <sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}">
+                  <svg width="22" height="22" viewBox="0 0 60 60" fill="none" stroke="{{ r.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="{{ r.figHx }}" cy="{{ r.figHy }}" r="{{ r.figHr }}"></circle>
+                    <path d="{{ r.figBody }}"></path>
+                  </svg>
+                </sc-if>
+              </span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 13.5px; font-weight: 600; color: #e8e8ef; line-height: 1.3;">{{ r.name }}</div>
+                <div style="font-size: 10.5px; color: {{ r.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-top: 2px;">{{ r.catLabel }} · DIFF {{ r.diff }} · {{ r.statusLabel }}</div>
+              </div>
+              <span style="color: #6a6a82; font-size: 12px; flex-shrink: 0;">›</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== SETTINGS MODAL ====================================================== -->
+  <sc-if value="{{ settingsModal }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ settingsModal.onBackdrop }}" data-no-pan="1" style="position: fixed; inset: 0; z-index: 320; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 16px;">
+      <div onClick="{{ settingsModal.stopPropagation }}" style="width: 100%; max-width: 480px; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 22px 24px 20px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto;">
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Settings</h2>
+          <button onClick="{{ settingsModal.onClose }}" style="background: none; border: none; color: #8a8aa0; font-size: 18px; cursor: pointer; padding: 4px 8px; font-family: 'JetBrains Mono', monospace;">×</button>
+        </div>
+
+        <!-- Avatar preview -->
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 18px;">
+          <span style="width: 56px; height: 56px; border-radius: 50%; background: {{ settingsModal.previewBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ settingsModal.previewFontSize }}; color: #fff; flex-shrink: 0; font-family: 'JetBrains Mono', monospace;">{{ settingsModal.previewText }}</span>
+          <div>
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">Preview</div>
+            <div style="font-size: 14px; font-weight: 600; color: #e8e8ef; margin-top: 3px;">{{ settingsModal.previewName }}</div>
+            <div style="font-size: 10.5px; color: #8a8aa0; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">@{{ settingsModal.handle }}</div>
+          </div>
+        </div>
+
+        <!-- Icon picker -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 8px;">Avatar icon</div>
+          <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;">
+            <button onClick="{{ settingsModal.onClearIcon }}" title="Use initials" style="aspect-ratio: 1; background: {{ settingsModal.initialsTileBg }}; border: 1.5px solid {{ settingsModal.initialsTileBorder }}; border-radius: 8px; color: #c0c0d0; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; cursor: pointer;" style-hover="background: rgba(255,255,255,0.08);">A_</button>
+            <sc-for list="{{ settingsModal.iconChoices }}" as="ic" hint-placeholder-count="16">
+              <button onClick="{{ ic.onClick }}" title="{{ ic.title }}" style="aspect-ratio: 1; background: {{ ic.bg }}; border: 1.5px solid {{ ic.borderColor }}; border-radius: 8px; color: #e8e8ef; font-size: 19px; line-height: 1; cursor: pointer; padding: 0;" style-hover="background: rgba(255,255,255,0.08);">{{ ic.char }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Color picker -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 8px;">Background color</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onClick="{{ settingsModal.onClearColor }}" title="Use auto color (based on handle)" style="width: 36px; height: 36px; border-radius: 50%; background: {{ settingsModal.autoColorBg }}; border: 2px solid {{ settingsModal.autoColorBorder }}; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace;">A</button>
+            <sc-for list="{{ settingsModal.colorChoices }}" as="cc" hint-placeholder-count="8">
+              <button onClick="{{ cc.onClick }}" title="{{ cc.title }}" style="width: 36px; height: 36px; border-radius: 50%; background: {{ cc.bg }}; border: 2px solid {{ cc.borderColor }}; cursor: pointer; padding: 0;" style-hover="transform: scale(1.08);"></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Display name -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 8px;">Display name</div>
+          <input value="{{ settingsModal.displayName }}" onInput="{{ settingsModal.onDisplayNameInput }}" placeholder="Your name" maxLength="40" style="width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; font-size: 14px; outline: none; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif;"></input>
+        </div>
+
+        <!-- Bio -->
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">Bio</span>
+            <span style="font-size: 10px; color: #6a6a82; font-family: 'JetBrains Mono', monospace;">{{ settingsModal.bioCount }}/200</span>
+          </div>
+          <textarea value="{{ settingsModal.bio }}" onInput="{{ settingsModal.onBioInput }}" placeholder="One sentence about your training, goals, anything…" maxLength="200" rows="3" style="width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; font-size: 13.5px; outline: none; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; resize: none; line-height: 1.45;"></textarea>
+        </div>
+
+        <sc-if value="{{ settingsModal.hasError }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 11.5px; color: oklch(0.74 0.16 25); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.4;">{{ settingsModal.errorMsg }}</div>
+        </sc-if>
+
+        <div style="display: flex; gap: 8px;">
+          <button onClick="{{ settingsModal.onClose }}" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #c0c0d0; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">Cancel</button>
+          <button onClick="{{ settingsModal.onSave }}" disabled="{{ settingsModal.saveDisabled }}" style="flex: 2; padding: 12px; background: {{ settingsModal.saveBg }}; border: none; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: {{ settingsModal.saveCursor }}; font-family: 'Space Grotesk', sans-serif; opacity: {{ settingsModal.saveOpacity }};">{{ settingsModal.saveLabel }}</button>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
   <sc-if value="{{ profileView.active }}" hint-placeholder-val="{{ false }}">
     <div id="profile-page" data-no-pan="1" style="position: fixed; inset: 0; z-index: 160; background: radial-gradient(ellipse at top, oklch(0.18 0.05 280) 0%, #060610 60%); overflow-y: auto; padding: 28px 24px 60px; font-family: 'Space Grotesk', sans-serif;">
       <div style="max-width: 760px; margin: 0 auto;">
@@ -1345,6 +1458,8 @@ class Component extends DCLogic {
       auth: { status: 'loading', user: null, profile: null, email: null },
       authMenuOpen: false,
       handleModal: null,
+      searchModal: null,
+      settingsModal: null,
       route: initialRoute,
       profileView: null,
       leaderboardView: null,
@@ -1806,6 +1921,114 @@ class Component extends DCLogic {
 
   closeSignIn = () => this.setState({ signInModal: null });
 
+  // ─── search modal ──────────────────────────────────────────────────────────
+  // Search across every non-stub skill by name. Click a result → navigate to it
+  // (canvas: pan/zoom to its position; mobile: switch category + put it on path).
+  openSearch = () => this.setState({
+    searchModal: { query: '', authMenuOpen: false },
+    authMenuOpen: false,
+  });
+  closeSearch = () => this.setState({ searchModal: null });
+  onSearchInput = (e) => {
+    const sm = this.state.searchModal;
+    if (!sm) return;
+    this.setState({ searchModal: { ...sm, query: e.target.value }});
+  };
+  goToSkill = (skillId) => {
+    const data = window.CALI_DATA;
+    if (!data) return;
+    const sk = data.skills.find((s) => s.id === skillId);
+    if (!sk) return;
+    this.setState({ searchModal: null });
+    // Canvas mode: pan + zoom so the node is centered on screen.
+    if (this.state.uiMode === 'canvas') {
+      const w = window.innerWidth || 1200;
+      const h = window.innerHeight || 700;
+      const newScale = Math.max(this.state.scale, 0.75);
+      this.setState({
+        pan: { x: w / 2 - sk.x * newScale, y: h / 2 - sk.y * newScale },
+        scale: newScale,
+        expandedId: sk.id,
+      });
+      return;
+    }
+    // Mobile mode: switch to the skill's category, build a path that ends at it,
+    // then open the detail panel.
+    if (this.state.uiMode === 'mobile' && sk.cat) {
+      const childrenMap = this.computeChildrenMap(sk.cat);
+      // Find ancestor chain by walking the prereqs upward (assuming each step
+      // has at most one parent within the same category).
+      const byId = new Map(data.skills.map((s) => [s.id, s]));
+      const path = [];
+      let cur = sk.id;
+      const guard = new Set();
+      while (cur && !guard.has(cur)) {
+        guard.add(cur);
+        path.unshift(cur);
+        const s = byId.get(cur);
+        if (!s || !s.pre || !s.pre.length) break;
+        // Prefer the in-category prereq.
+        const inCatPre = s.pre.find((pid) => {
+          const p = byId.get(pid);
+          return p && p.cat === sk.cat;
+        });
+        if (!inCatPre) break;
+        cur = inCatPre;
+      }
+      this.setState({
+        mobileCategory: sk.cat,
+        mobilePaths: { ...this.state.mobilePaths, [sk.cat]: path },
+      });
+      try { localStorage.setItem('cali-mobile-cat', sk.cat); } catch (e) {}
+      setTimeout(() => {
+        const el = document.querySelector(`[data-mobile-card="${sk.id}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.onNodeClick(sk.id);
+      }, 120);
+    }
+  };
+
+  // ─── settings modal (avatar icon / color / display name / bio) ──────────────
+  openSettings = () => {
+    const p = (this.state.auth && this.state.auth.profile) || {};
+    this.setState({
+      settingsModal: {
+        avatarIcon:  p.avatar_icon  || '',
+        avatarColor: p.avatar_color || '',
+        displayName: p.display_name || '',
+        bio:         p.bio          || '',
+        status: 'idle',
+        errorMsg: '',
+      },
+      authMenuOpen: false,
+    });
+  };
+  closeSettings = () => this.setState({ settingsModal: null });
+  onSettingsField = (key, value) => {
+    const m = this.state.settingsModal;
+    if (!m) return;
+    this.setState({ settingsModal: { ...m, [key]: value, errorMsg: '' }});
+  };
+  saveSettings = async () => {
+    const m = this.state.settingsModal;
+    if (!m || !window.CaliAuth || !window.CaliAuth.ready) return;
+    this.setState({ settingsModal: { ...m, status: 'submitting', errorMsg: '' }});
+    const { error } = await window.CaliAuth.updateProfile({
+      // empty string → null (so the user can "clear" their icon/color/bio)
+      avatar_icon:  m.avatarIcon  || null,
+      avatar_color: m.avatarColor || null,
+      display_name: m.displayName || null,
+      bio:          m.bio         || null,
+    });
+    const cur = this.state.settingsModal;
+    if (!cur) return;
+    if (error) {
+      this.setState({ settingsModal: { ...cur, status: 'idle', errorMsg: error.message || 'Failed to save.' }});
+      return;
+    }
+    this.setState({ settingsModal: null });
+  };
+
   toggleSignInMode = () => {
     const m = this.state.signInModal;
     if (!m) return;
@@ -2001,6 +2224,25 @@ class Component extends DCLogic {
   // Human-readable short labels for each badge/branch. These are used to
   // label fork cards by concept ("Hamstrings", "Splits", "Shoulders") instead
   // of by the destination skill name. Keyed by badge.key.
+  // Curated avatar icons — single emoji glyphs that render the same on every
+  // platform, with an emphasis on calisthenics + movement themes. Users pick
+  // one in Settings; the value is stored as the emoji in profiles.avatar_icon.
+  _AVATAR_ICONS = [
+    '💪','🧘','🤸','🧍','🤾',
+    '⚡','🔥','🎯','🔱','✨',
+    '🌱','🌿','🦄','🌈','🐉',
+    '🖤','🤖','👻','🎸','☕',
+    '🎙','🖥','🎯','🌊','🌌',
+  ];
+
+  // Curated background-color palette (paired with the icon picker). Keep these
+  // saturated enough that white emoji glyphs stay readable on top.
+  _AVATAR_COLORS = [
+    '#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6',
+    '#EC4899','#06B6D4','#84CC16','#F97316','#6366F1',
+    '#14B8A6','#A855F7','#6B7280',
+  ];
+
   _BRANCH_SHORT_NAMES = {
     // Push
     push_up_vet:      'Push-up Mastery',
@@ -2892,14 +3134,27 @@ class Component extends DCLogic {
     // Helpers reused by auth-chip + profile + leaderboard + compare. Declared
     // up here so `authValues` (which uses initialsFor / avatarFor for the
     // Following dropdown) doesn't hit a temporal-dead-zone error.
-    const initialsFor = (str) => (str || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+    const initialsFor = (profileOrHandle) => {
+      if (profileOrHandle && typeof profileOrHandle === 'object') {
+        if (profileOrHandle.avatar_icon) return profileOrHandle.avatar_icon;
+        return (profileOrHandle.handle || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+      }
+      return (profileOrHandle || '').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?';
+    };
     const avatarHashFn = (str) => {
       let h = 200;
       for (let i = 0; i < (str || '').length; i++) h = (h + str.charCodeAt(i) * 7) % 360;
       return h;
     };
-    const avatarFor = (str) => {
-      const h = avatarHashFn(str);
+    const avatarFor = (profileOrHandle) => {
+      let color = null;
+      let handle = profileOrHandle;
+      if (profileOrHandle && typeof profileOrHandle === 'object') {
+        color = profileOrHandle.avatar_color;
+        handle = profileOrHandle.handle;
+      }
+      if (color) return `linear-gradient(135deg, ${color}, ${color}aa)`;
+      const h = avatarHashFn(handle);
       return `linear-gradient(135deg, oklch(0.6 0.22 ${h}), oklch(0.5 0.22 ${(h + 60) % 360}))`;
     };
 
@@ -2907,9 +3162,15 @@ class Component extends DCLogic {
     const a = this.state.auth || { status: 'loading' };
     const aHandle = a.profile ? a.profile.handle : '';
     const initialsSrc = aHandle || a.email || '';
-    const initials = initialsSrc ? initialsSrc.replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?' : '?';
+    const initialsLetters = initialsSrc ? initialsSrc.replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase() || '?' : '?';
+    const initials = (a.profile && a.profile.avatar_icon) ? a.profile.avatar_icon : initialsLetters;
+    const useEmoji = !!(a.profile && a.profile.avatar_icon);
     let avatarHue = 200;
     for (let i = 0; i < initialsSrc.length; i++) avatarHue = (avatarHue + initialsSrc.charCodeAt(i) * 7) % 360;
+    const myAvatarColor = a.profile && a.profile.avatar_color;
+    const myAvatarBg = myAvatarColor
+      ? `linear-gradient(135deg, ${myAvatarColor}, ${myAvatarColor}aa)`
+      : `linear-gradient(135deg, oklch(0.6 0.22 ${avatarHue}), oklch(0.5 0.22 ${(avatarHue + 60) % 360}))`;
     const authValues = {
       showChip:    a.status === 'signed-out' || a.status === 'needs-handle' || a.status === 'signed-in',
       signedOut:   a.status === 'signed-out',
@@ -2919,7 +3180,8 @@ class Component extends DCLogic {
       handle:      aHandle,
       email:       a.email || '',
       initials,
-      avatarBg:    `linear-gradient(135deg, oklch(0.6 0.22 ${avatarHue}), oklch(0.5 0.22 ${(avatarHue + 60) % 360}))`,
+      iconFontSize: useEmoji ? '17px' : '11px',
+      avatarBg:    myAvatarBg,
       onSignIn:    this.onSignIn,
       onSignOut:   this.onSignOut,
       onToggleMenu: this.toggleAuthMenu,
@@ -2927,6 +3189,8 @@ class Component extends DCLogic {
       onLeaderboard: this.onGoToLeaderboard,
       onMyProfile:   this.onGoToMyProfile,
       onFeed:        this.onGoToFeed,
+      onSearch:      this.openSearch,
+      onSettings:    this.openSettings,
       // Following sub-section (in dropdown):
       followingExpanded:        !!this.state.followingExpanded,
       followingChevronTransform: this.state.followingExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -3302,6 +3566,150 @@ class Component extends DCLogic {
       }
     }
 
+    // ─── search modal values ────────────────────────────────────────
+    let searchModalValues = null;
+    if (this.state.searchModal) {
+      const sm = this.state.searchModal;
+      const figs = window.CALI_FIGURES || {};
+      const cats = data.categories || {};
+      // Locally compute the achieved set — myCheckedSet is otherwise scoped to
+      // the mobile block below, so it's not visible here.
+      const checkedSet = this.state.myChecked || new Set();
+      const query = (sm.query || '').trim().toLowerCase();
+      const allSkills = data.skills.filter((s) => !s.isStub && !s.isRoot);
+      let matches = [];
+      if (query.length > 0) {
+        // Prefer name matches starting with the query, then containing it.
+        const starts = [];
+        const contains = [];
+        for (const s of allSkills) {
+          const name = s.name.toLowerCase();
+          if (name.startsWith(query)) starts.push(s);
+          else if (name.includes(query)) contains.push(s);
+        }
+        matches = [...starts, ...contains].slice(0, 20);
+      } else {
+        matches = allSkills.slice(0, 12);
+      }
+      const resultRows = matches.map((s) => {
+        const cat = cats[s.cat];
+        const hue = cat ? cat.hue : 240;
+        const isDone = checkedSet.has(s.id);
+        const isAvail = !isDone && (s.pre || []).every((pid) => pid === 'root' || checkedSet.has(pid));
+        const figDef = s.fig ? figs[s.fig] : null;
+        let statusLabel, figBorder, figStroke, figBg;
+        if (isDone) {
+          statusLabel = 'Done';
+          figBorder = `oklch(0.72 0.18 ${hue} / 0.7)`;
+          figStroke = `oklch(0.92 0.12 ${hue})`;
+          figBg     = `oklch(0.32 0.18 ${hue} / 0.4)`;
+        } else if (isAvail) {
+          statusLabel = 'Available';
+          figBorder = `oklch(0.55 0.12 ${hue} / 0.5)`;
+          figStroke = `oklch(0.85 0.14 ${hue})`;
+          figBg     = 'rgba(255,255,255,0.04)';
+        } else {
+          statusLabel = 'Locked';
+          figBorder = 'rgba(255,255,255,0.08)';
+          figStroke = '#6a6a82';
+          figBg     = 'rgba(255,255,255,0.02)';
+        }
+        return {
+          id: s.id,
+          name: s.name,
+          diff: s.diff,
+          catLabel: cat ? cat.name : '—',
+          catColor: `oklch(0.78 0.20 ${hue})`,
+          statusLabel,
+          figBg, figBorder, figStroke,
+          hasFig: !!figDef,
+          figHx: figDef ? figDef.hx : 0,
+          figHy: figDef ? figDef.hy : 0,
+          figHr: figDef ? figDef.hr : 0,
+          figBody: figDef ? figDef.body : '',
+          onClick: () => this.goToSkill(s.id),
+        };
+      });
+      searchModalValues = {
+        query: sm.query || '',
+        results: resultRows,
+        empty: resultRows.length === 0,
+        emptyMsg: query.length === 0 ? 'Type to search every skill in the tree…' : `No matches for “${sm.query}”`,
+        onInput: this.onSearchInput,
+        onBackdrop: this.closeSearch,
+        stopPropagation: (e) => e.stopPropagation(),
+      };
+    }
+
+    // ─── settings modal values ──────────────────────────────────────
+    let settingsModalValues = null;
+    if (this.state.settingsModal) {
+      const m = this.state.settingsModal;
+      const submitting = m.status === 'submitting';
+      // Derive an auto color from the current handle (when the user hasn't picked one).
+      let autoHue = 200;
+      const hSrc = aHandle || a.email || '';
+      for (let i = 0; i < hSrc.length; i++) autoHue = (autoHue + hSrc.charCodeAt(i) * 7) % 360;
+      const autoBg = `linear-gradient(135deg, oklch(0.6 0.22 ${autoHue}), oklch(0.5 0.22 ${(autoHue + 60) % 360}))`;
+      const chosenBg = m.avatarColor
+        ? `linear-gradient(135deg, ${m.avatarColor}, ${m.avatarColor}aa)`
+        : autoBg;
+      const previewText = m.avatarIcon || initialsLetters;
+      const previewFontSize = m.avatarIcon ? '28px' : '18px';
+      const accentBorder = 'oklch(0.75 0.18 145)';
+      const inertBorder  = 'rgba(255,255,255,0.1)';
+      // Icon picker tiles — highlight the currently-selected one.
+      const iconChoices = this._AVATAR_ICONS.map((ch) => ({
+        char: ch,
+        title: ch,
+        bg: m.avatarIcon === ch ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+        borderColor: m.avatarIcon === ch ? accentBorder : inertBorder,
+        onClick: () => this.onSettingsField('avatarIcon', ch),
+      }));
+      const colorChoices = this._AVATAR_COLORS.map((hex) => ({
+        bg: hex,
+        title: hex,
+        borderColor: m.avatarColor === hex ? '#ffffff' : 'rgba(255,255,255,0.15)',
+        onClick: () => this.onSettingsField('avatarColor', hex),
+      }));
+      settingsModalValues = {
+        // preview
+        previewBg: chosenBg,
+        previewText,
+        previewFontSize,
+        previewName: m.displayName || '— no name set —',
+        handle: aHandle,
+        // icon picker
+        iconChoices,
+        initialsTileBg: m.avatarIcon ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.12)',
+        initialsTileBorder: m.avatarIcon ? inertBorder : accentBorder,
+        onClearIcon: () => this.onSettingsField('avatarIcon', ''),
+        // color picker
+        colorChoices,
+        autoColorBg: autoBg,
+        autoColorBorder: m.avatarColor ? 'rgba(255,255,255,0.15)' : '#ffffff',
+        onClearColor: () => this.onSettingsField('avatarColor', ''),
+        // text fields
+        displayName: m.displayName || '',
+        onDisplayNameInput: (e) => this.onSettingsField('displayName', e.target.value),
+        bio: m.bio || '',
+        bioCount: (m.bio || '').length,
+        onBioInput: (e) => this.onSettingsField('bio', e.target.value),
+        // error + actions
+        hasError: !!m.errorMsg,
+        errorMsg: m.errorMsg || '',
+        saveDisabled: submitting,
+        saveLabel: submitting ? 'Saving…' : 'Save changes',
+        saveBg: 'oklch(0.55 0.18 145)',
+        saveCursor: submitting ? 'wait' : 'pointer',
+        saveOpacity: submitting ? '0.7' : '1',
+        onSave: this.saveSettings,
+        onClose: this.closeSettings,
+        onBackdrop: this.closeSettings,
+        stopPropagation: (e) => e.stopPropagation(),
+      };
+    }
+
     // ─── onboarding overlay values ───────────────────────────────────────────────
     let onboardingValues = null;
     const obStep = this.state.onboardingStep;
@@ -3576,6 +3984,7 @@ class Component extends DCLogic {
         sheetOpen: !!this.state.mobileSheetOpen,
         onBacktrack:    () => this.popMobilePath(activeCat),
         onSettings:     this.toggleMobileSheet,
+        onSearch:       this.openSearch,
         onCloseSheet:   this.closeMobileSheet,
         onSwitchCanvas: () => { this.closeMobileSheet(); this.setUiMode('canvas'); },
         onShare:        () => { this.closeMobileSheet(); this.onExport(); },
@@ -3674,6 +4083,8 @@ class Component extends DCLogic {
       auth:        authValues,
       handleModal: handleModalValues,
       signInModal: signInModalValues,
+      searchModal:   searchModalValues,
+      settingsModal: settingsModalValues,
 
       // route overlays (profile / leaderboard / compare / feed)
       profileView:     profileViewValues,

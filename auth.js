@@ -11,7 +11,7 @@
   let session = null;
   let profile = null;
   const listeners = new Set();
-  const PROFILE_COLS = 'id, handle, display_name, avatar_url, created_at';
+  const PROFILE_COLS = 'id, handle, display_name, avatar_url, avatar_icon, avatar_color, bio, created_at';
 
   if (ready) {
     client = window.supabase.createClient(cfg.url, cfg.anonKey, {
@@ -140,6 +140,43 @@
       .maybeSingle();
     if (error) return null;
     return !data;
+  }
+
+  async function updateProfile(updates) {
+    if (!client) return { error: { message: 'auth disabled' } };
+    const user = await getLiveUser();
+    if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
+
+    // Only let known editable fields through; never lets the caller change id/handle/created_at.
+    const allowed = ['display_name', 'avatar_icon', 'avatar_color', 'bio'];
+    const payload = {};
+    for (const k of allowed) {
+      if (k in updates) payload[k] = updates[k];
+    }
+    if (Object.keys(payload).length === 0) return { data: profile, error: null };
+
+    try {
+      const { error } = await withTimeout(
+        client.from('profiles').update(payload).eq('id', user.id),
+        10000,
+        'profile update'
+      );
+      if (error) return { error };
+      // Re-merge locally + notify. fetchProfile from server too for safety —
+      // some columns might not exist if the user hasn't run the phase-5 SQL,
+      // in which case the update succeeds (silently no-ops) but our local copy
+      // would be stale.
+      const updated = await fetchProfile(user.id);
+      if (updated) {
+        profile = updated;
+      } else {
+        profile = { ...(profile || {}), ...payload };
+      }
+      notify();
+      return { data: profile, error: null };
+    } catch (e) {
+      return { error: { message: e.message || 'Network error while updating profile.' } };
+    }
   }
 
   async function createProfile(handle, displayName, avatarUrl) {
@@ -368,6 +405,7 @@
 
     checkHandleAvailable,
     createProfile,
+    updateProfile,
 
     getMyProgress,
     saveMyProgress,

@@ -189,6 +189,110 @@ grant execute on function public.follow_counts(uuid) to anon, authenticated;
 If you don't run this, the Follow button and Compare view stay hidden and the
 rest of the app works fine.
 
+## 6c. Phase 5 SQL — avatar icons + bio
+
+To enable custom profile icons + bio (Settings modal), run:
+
+```sql
+alter table public.profiles
+  add column if not exists avatar_icon  text,
+  add column if not exists avatar_color text,
+  add column if not exists bio          text;
+```
+
+The `avatar_icon` column stores either a single emoji or an icon key from the
+curated set. `avatar_color` is a hex string used as the avatar background
+(otherwise the app derives one algorithmically from the handle). `bio` is a
+short one-liner (~200 chars) shown on the user's public profile page.
+
+Without this step, the Settings modal still opens but only display-name + handle
+saving works; icon/color/bio fields silently no-op.
+
+After adding the columns, re-run these RPCs so the new fields are returned by
+the leaderboard / feed / following endpoints (existing rows just have NULLs and
+the app handles that fine):
+
+```sql
+-- Updated leaderboard: returns avatar_icon + avatar_color in addition to base profile.
+create or replace function public.leaderboard(lim int default 50)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  avatar_icon  text,
+  avatar_color text,
+  total_skills bigint
+)
+language sql stable as $$
+  select pr.id, pr.handle, pr.display_name, pr.avatar_url, pr.avatar_icon, pr.avatar_color,
+         count(p.skill_id) as total_skills
+  from public.profiles pr
+  left join lateral (
+    select unnest(coalesce((pg.checked), array[]::text[])) as skill_id
+    from public.progress pg where pg.user_id = pr.id
+  ) p on true
+  group by pr.id
+  order by total_skills desc, pr.handle asc
+  limit lim
+$$;
+
+grant execute on function public.leaderboard(int) to anon, authenticated;
+
+-- Updated following_for: avatar_icon + avatar_color in the SELECT.
+create or replace function public.following_for(uid uuid)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  avatar_icon  text,
+  avatar_color text,
+  total_skills bigint
+)
+language sql stable as $$
+  select pr.id, pr.handle, pr.display_name, pr.avatar_url, pr.avatar_icon, pr.avatar_color,
+         coalesce(array_length(pg.checked, 1), 0)::bigint as total_skills
+  from public.follows f
+  join public.profiles pr on pr.id = f.followee_id
+  left join public.progress pg on pg.user_id = pr.id
+  where f.follower_id = uid
+  order by total_skills desc, pr.handle asc
+$$;
+
+grant execute on function public.following_for(uuid) to anon, authenticated;
+
+-- Updated feed_for: include avatar_icon + avatar_color so feed rows can render
+-- the follower's chosen avatar.
+create or replace function public.feed_for(uid uuid, lim int default 50)
+returns table(
+  user_id      uuid,
+  handle       text,
+  display_name text,
+  avatar_url   text,
+  avatar_icon  text,
+  avatar_color text,
+  skill_id     text,
+  achieved_at  timestamptz
+)
+language sql stable as $$
+  select a.user_id, pr.handle, pr.display_name, pr.avatar_url, pr.avatar_icon, pr.avatar_color,
+         a.skill_id, a.achieved_at
+  from public.follows f
+  join public.achievements a on a.user_id = f.followee_id
+  join public.profiles pr on pr.id = a.user_id
+  where f.follower_id = uid
+  order by a.achieved_at desc
+  limit lim
+$$;
+
+grant execute on function public.feed_for(uuid, int) to anon, authenticated;
+```
+
+If the function signatures changed in a previous deploy, you may need to
+`drop function ... cascade` first — Postgres won't let you change the return
+table shape with `create or replace` alone.
+
 ## 6b. Phase 4 SQL — activity feed
 
 To enable the activity feed at `/feed` and the "Recent activity" block on
