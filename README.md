@@ -16,6 +16,13 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Upload your own profile photo
+- **New "Upload photo" section** in Settings — pick a JPEG/PNG/WebP/GIF and it's resized client-side to 512px (avoids shipping 5MB phone snaps) before uploading to Supabase Storage.
+- Uploaded photos render everywhere: account chip, sidebar following dropdown, profile page, compare cards, leaderboard, feed.
+- Photo wins over emoji icon wins over initials. Picking a photo dims the icon + color pickers below (since they're overridden anyway), and a "Remove" button clears it back to the icon/initials.
+- Storage uses a new public `avatars` bucket under `${user_id}/avatar-${ts}.${ext}` so each upload has a unique URL (no stale-cache issues).
+- **New `supabase-setup.md` § 3d** — walks through creating the public `avatars` bucket and the four storage RLS policies. Run before pushing this build or the Upload button shows an error (icon picker keeps working though).
+
 ### 2026-06-29 — Streaks are now login-based + auth persistence hardened
 - **Streak counts visits, not achievements.** Opening the app records today's
   date locally; the streak is consecutive days the app was opened. Way more

@@ -156,7 +156,7 @@
     if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
 
     // Only let known editable fields through; never lets the caller change id/handle/created_at.
-    const allowed = ['display_name', 'avatar_icon', 'avatar_color', 'bio'];
+    const allowed = ['display_name', 'avatar_url', 'avatar_icon', 'avatar_color', 'bio'];
     const payload = {};
     for (const k of allowed) {
       if (k in updates) payload[k] = updates[k];
@@ -185,6 +185,60 @@
     } catch (e) {
       return { error: { message: e.message || 'Network error while updating profile.' } };
     }
+  }
+
+  // ─── Avatar upload (Supabase Storage → profiles.avatar_url) ─────────────────
+  // Uploads to the `avatars` bucket under `${user_id}/avatar-${ts}.${ext}`.
+  // We embed a timestamp in the filename so each upload gets a unique URL and
+  // the browser doesn't serve a stale cached image. The bucket must exist and
+  // be public — see supabase-setup.md §3d.
+  //
+  // Caller is responsible for shrinking large files BEFORE handing them here
+  // (the DC does a canvas resize so phone photos don't blow up storage).
+  async function uploadAvatar(file) {
+    if (!client) return { error: { message: 'Auth not configured.' } };
+    if (!file)   return { error: { message: 'No file provided.' } };
+    const user = await getLiveUser();
+    if (!user)  return { error: { message: 'Session expired — please refresh and sign in again.' } };
+
+    // Reject anything we don't recognize as an image type.
+    const mime = (file.type || '').toLowerCase();
+    if (!mime.startsWith('image/')) {
+      return { error: { message: 'That file isn\'t an image.' } };
+    }
+    // Pick a safe extension. Map any image/* to a known one.
+    let ext = 'jpg';
+    if (mime.includes('png'))  ext = 'png';
+    if (mime.includes('webp')) ext = 'webp';
+    if (mime.includes('gif'))  ext = 'gif';
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+    try {
+      const { error: upErr } = await withTimeout(
+        client.storage.from('avatars').upload(path, file, {
+          contentType: mime,
+          upsert: false,
+          cacheControl: '31536000',
+        }),
+        20000,
+        'avatar upload'
+      );
+      if (upErr) return { error: upErr };
+
+      const { data: pub } = client.storage.from('avatars').getPublicUrl(path);
+      const url = pub && pub.publicUrl;
+      if (!url) return { error: { message: 'Upload succeeded but no public URL came back.' } };
+
+      const upd = await updateProfile({ avatar_url: url });
+      if (upd.error) return { error: upd.error };
+      return { url };
+    } catch (e) {
+      return { error: { message: e.message || 'Network error during upload.' } };
+    }
+  }
+
+  async function removeAvatar() {
+    return updateProfile({ avatar_url: null });
   }
 
   async function createProfile(handle, displayName, avatarUrl) {
@@ -414,6 +468,8 @@
     checkHandleAvailable,
     createProfile,
     updateProfile,
+    uploadAvatar,
+    removeAvatar,
 
     getMyProgress,
     saveMyProgress,

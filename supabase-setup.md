@@ -107,6 +107,60 @@ The app's `auth.js` is already configured with `persistSession: true`,
 is established it survives tab close, browser restart, and weeks of
 inactivity — up to the Supabase-side expiry above.
 
+## 3d. Storage bucket for uploaded avatars (DO THIS)
+
+Custom profile pictures are stored in a Supabase Storage bucket. **Required**
+for the "Upload photo" button in Settings to work.
+
+**Dashboard route (easiest):**
+
+1. **Storage → New bucket**
+2. Name: `avatars`
+3. **Public bucket: ON** (so avatar URLs work without signed tokens)
+4. (Optional) set a 5MB file-size limit and restrict to `image/*` mime types
+   in the bucket's settings panel.
+5. **Storage → Policies → New policy → For Full Customization** and add the
+   following four policies on `storage.objects`:
+
+```sql
+-- Anyone (signed-in or not) can read avatars (bucket is public anyway,
+-- but RLS still gatekeeps the API path)
+create policy "Avatar read public"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
+-- Only the signed-in user can upload to their own folder
+create policy "Avatar upload own"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Only the owner can replace their files (uploads use new filenames so
+-- this is mostly defensive)
+create policy "Avatar update own"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Only the owner can delete their files
+create policy "Avatar delete own"
+  on storage.objects for delete
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+```
+
+You can paste the whole block into **SQL Editor → New query** and run it
+instead of clicking through the policy wizard.
+
+Without this bucket the Upload Photo button shows an error; the emoji-icon
+picker keeps working.
+
 ## 4. Paste credentials into the app
 
 Open `config.js` in this project and fill in:
