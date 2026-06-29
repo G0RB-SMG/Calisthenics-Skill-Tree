@@ -16,6 +16,21 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Pull tree restructure: 5 clean branches from pull-up
+- **Trunk extended to pull-up**: dead_hang → scap_pulls → negative_pullup → chin_up → pullup. No forks below pull-up — every branch starts at the first strict pull-up.
+- **5 branches from pull-up**:
+  - **Pullup Mastery** (x=-2900): weighted → chest_to_bar → l_sit_pullup → archer → typewriter → OAP negative → assisted OAP → one-arm pullup. Now a single linear chain (l_sit_pullup folded in).
+  - **Front lever holds** (x=-2200): tuck → adv tuck → half-lay → one-leg → straddle → full → weighted full → one-arm FL. Linear.
+  - **FL pullups** (x=-1500): independent branch, each tier no longer requires the matching FL hold (it's a pull-up shape, not a hold). Tops out at typewriter → archer FL pullup. Sub-fork to **Victorian** at weighted full FL pullup.
+  - **Back lever** (x=-800): now includes skin-the-cat + german hang (the BL shoulder-mobility prep) → tuck → adv tuck → straddle → full → BL raise → Hefesto. Linear.
+  - **Iron cross** (x=-100): ring support → ring L-sit → assisted iron cross → iron cross. Independent of front-lever progress.
+- **Muscle-up sub-branch** (x=-3600) hangs off chest_to_bar inside Pullup Mastery (`bar_mu_kipping` → strict → ring kipping → strict → L-sit ring MU → L-sit bar MU).
+- **Victorian** now requires only weighted_full_fl_pullup (no longer iron_cross). Placed at the apex of the FL pullups area.
+- **Removed**: `inverted_row` (vestigial — wasn't gating anything important), `explosive_pullup` (was redundant with chest_to_bar as the muscle-up gate)
+- Branch label updated: `pull_up_vet` badge now reads as **"Pullup Mastery"** on the mobile fork picker
+- Badge skill lists updated: `front_lever_vet` no longer lists skin_the_cat/inverted_row; `back_lever_vet` adds skin_the_cat; `muscle_up_vet` drops explosive_pullup; `iron_cross` no longer lists victorian (victorian falls back to its own name as a leaf)
+- `inverted_cross` is and remains a `push` skill (it's the push-side inverted variant); not affected here
+
 ### 2026-06-28 — Mobile: branch cards labeled by concept, not destination
 - Branch picker cards now show the **branch concept** ("Hips", "Splits", "Hamstrings", "Knees", "Shoulders", "Compression", "Push-ups", "Planche", etc.) instead of the destination skill name
 - Labels are pulled from the existing badge groupings — every branch's first skill maps to its badge → human-readable short name
