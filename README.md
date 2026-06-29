@@ -16,6 +16,24 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Streaks are now login-based + auth persistence hardened
+- **Streak counts visits, not achievements.** Opening the app records today's
+  date locally; the streak is consecutive days the app was opened. Way more
+  forgiving than the old "you must achieve a skill every day" rule, which
+  basically broke any streak by week 2.
+- "✓ Today" tag next to the streak number on the profile page so the user
+  sees the visit was recorded.
+- Streak still only shows on the user's own profile (check-ins are local to
+  the viewer's browser) and in the sidebar tier card.
+- **Supabase client now uses an explicit `storageKey`** + pinned localStorage
+  + PKCE flow so sessions survive cleanly across tab close / browser restart
+  with no collisions.
+- **New `supabase-setup.md` § 3c** — documents how to extend session lifetime
+  to 30 days and explains the "verify via email every time" issue (almost
+  always `Confirm email` being ON, or signing in with magic links instead of
+  password). Pass these settings on to your friend's account once you've
+  applied them in the dashboard.
+
 ### 2026-06-29 — Profile polish: streaks, sparkline, hardest-next, achievement dates, skeletons
 - **Streak stat** — current consecutive-day streak shown on profile (next to the sparkline) and in the sidebar tier card. Skipping today doesn't break the streak immediately — only an empty *yesterday* does.
 - **30-day sparkline** on profile page — small SVG bar chart of achievements per day, accent color tied to the user's tier.

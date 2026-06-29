@@ -81,6 +81,32 @@ If you keep email confirmation on, the app handles it gracefully — sign-up
 shows a "Check your email" screen and the user comes back signed in after
 clicking the link.
 
+## 3c. Keep users signed in (DON'T skip this)
+
+By default, Supabase sessions expire after 1 hour and refresh tokens after 1
+week. That means a returning user that hasn't opened the app in a week is
+forced to re-verify their email every time. To fix:
+
+1. **Authentication → Sessions** (or **Settings → Auth**, depending on dashboard version):
+   - **Time-box user sessions** → set to **30 days** (or longer)
+   - **JWT expiry** → leave at 3600 (1 hr). Refresh tokens handle the rest.
+   - **Refresh token reuse interval** → 10 seconds is fine
+   - **Refresh token rotation** → **Enabled** (recommended for security)
+2. **Authentication → Providers → Email** → **"Confirm email"** → **OFF**.
+   Users who already confirmed once won't be re-prompted, but if this is on
+   and they signed up without confirming, they hit a verify step every time.
+3. If a specific user reports "verify via email on every login":
+   - They might be using **magic-link** sign-in (single-use). Have them sign
+     in with their email **+ password** in the modal instead.
+   - Or their original sign-up never completed the email confirmation — once
+     they confirm once with the dashboard above set right, future logins are
+     password-only.
+
+The app's `auth.js` is already configured with `persistSession: true`,
+`autoRefreshToken: true`, and an explicit `storageKey`, so once the session
+is established it survives tab close, browser restart, and weeks of
+inactivity — up to the Supabase-side expiry above.
+
 ## 4. Paste credentials into the app
 
 Open `config.js` in this project and fill in:

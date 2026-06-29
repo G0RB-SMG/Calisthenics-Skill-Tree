@@ -19,6 +19,14 @@
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        // Explicit storage key — survives shared sessions cleanly and won't
+        // collide with other Supabase apps on the same origin.
+        storageKey: 'cali-supabase-auth',
+        // Use localStorage explicitly so a closed tab still has the session
+        // when the user returns (default is also localStorage but pinning it
+        // here removes any ambiguity if a host blocks sessionStorage).
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        flowType: 'pkce',
       },
     });
   } else if (configured && !sdkPresent) {
