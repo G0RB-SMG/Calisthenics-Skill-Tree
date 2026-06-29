@@ -16,6 +16,26 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-28 — Push tree restructure + canvas cleanup
+- **Push tree restructured to match pull's pattern**: trunk extends to first strict push-up, then forks into 6 branches
+  - **Trunk**: plank → knee_pu → incline_pu → pushup (no forks below pushup)
+  - **6 branches from pushup**: Push-up Mastery, Dips, Handstand, HSPU, Press to HS, Planche
+  - **Push-up Mastery** is now a single linear chain: decline → diamond → ring → archer → one-arm (ring_pu folded into the chain)
+  - **crow** and **wall_hs_hold** moved from `pre: ['plank']` to `pre: ['pushup']` so they branch from the same fork as everything else
+  - **pppu_lean** and **tuck_planche** simplified to linear prereqs in the planche entry chain
+  - Sub-branches off **full_planche**: Maltese, Planche Presses, Fingertip variants (Planche Presses `ninety_pu` simplified to require only `full_planche`)
+  - Cross-deps cleaned: `wall_hspu_neg`, `freestanding_hspu`, `press_to_hs_tuck` no longer require both planche AND handstand prereqs
+- **Pull canvas layout fix**: branches were colliding with core's columns (iron cross at x=-100 was right next to core's human flag at x=-130). Compacted pull tree leftward:
+  - Iron cross: -100 → **-3800**
+  - Back lever: -800 → **-3300**
+  - Muscle-up sub: -3600 → **-3000**
+  - Pullup Mastery: -2900 → **-2600**
+  - FL pullups: -1500 → **-1700**
+  - Pull span now -3800 to -1700, well clear of core's leftmost at -630
+- **Legs branch label**: `quad_crusher` now shows as **"Quads"** on the mobile fork picker (was "Shrimps")
+- `push_up_vet` badge renamed: "Push-up Vet" → **"Push-up Mastery"** (matches branch label)
+- Core + Mobility: no changes — branches were already organized correctly
+
 ### 2026-06-28 — Pull tree restructure: 5 clean branches from pull-up
 - **Trunk extended to pull-up**: dead_hang → scap_pulls → negative_pullup → chin_up → pullup. No forks below pull-up — every branch starts at the first strict pull-up.
 - **5 branches from pull-up**:
