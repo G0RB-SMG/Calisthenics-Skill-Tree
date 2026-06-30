@@ -16,6 +16,21 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Ranking push 2: tier-bump hints + PROMOTED celebration modal
+- **Detail panel tier-bump hint** — clicking any unachieved, available skill now shows a "TIER-UP / Achieving this would bump you to **Silver II**" callout (only when achieving it would actually move you up; silent otherwise). Computed by comparing your current tier against a hypothetical "checked + this skill + ancestors" set.
+- **PROMOTED celebration modal** — toggling a skill that bumps you up a tier now opens a big animated reveal:
+  - Backdrop fades in, card scales+bobs into place
+  - Big metal hex badge with the new sub-tier numeral, scaling/rotating in from below
+  - "PROMOTED" label, tier name in the tier's color, "From Silver III" prev-tier line
+  - Conic-gradient rays spinning slowly behind the card
+  - Shimmer sweep across the badge face
+  - "Onward →" CTA dismisses; clicking the backdrop also closes
+- Special-cases:
+  - First-ever rank (Unranked → Copper III) reads "**You're ranked!**" instead of "Promoted"
+  - Wizard apex shows "**You did the impossible**" with a ★ instead of a sub-numeral
+- Only fires on ADD (you don't get celebrated for un-checking; no rank-down toast)
+- 220ms delay before opening so the achievement flash animation lands first
+
 ### 2026-06-30 — New ranking system: 9 tiers × 3 sub-tiers + Wizard apex
 - **Brand-new tier ladder** replaces the old 6-tier `Novice → World-class` system:
   Copper → Bronze → Silver → Gold → Platinum → Emerald → Diamond → Master →

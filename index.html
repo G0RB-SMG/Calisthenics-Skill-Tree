@@ -32,6 +32,136 @@
     *::-webkit-scrollbar-track { background: transparent; }
     *::-webkit-scrollbar-thumb { background: #25253a; border-radius: 4px; }
     @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ─── PROMOTED modal animations ───────────────────────────────────── */
+    @keyframes cali-promo-overlay-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes cali-promo-card-in {
+      0%   { opacity: 0; transform: translateY(40px) scale(0.85); }
+      60%  { opacity: 1; transform: translateY(-8px) scale(1.04); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes cali-promo-rays {
+      0%   { opacity: 0; transform: scale(0.3) rotate(0deg); }
+      30%  { opacity: 0.9; }
+      100% { opacity: 0.4; transform: scale(1) rotate(180deg); }
+    }
+    @keyframes cali-promo-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes cali-promo-badge-in {
+      0%   { opacity: 0; transform: scale(0.2) rotate(-30deg); }
+      55%  { opacity: 1; transform: scale(1.15) rotate(8deg); }
+      75%  { transform: scale(0.96) rotate(-3deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+    @keyframes cali-promo-label-in {
+      0%   { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cali-promo-shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .cali-promo-overlay {
+      position: fixed; inset: 0; z-index: 400;
+      background: radial-gradient(ellipse at center, rgba(20, 12, 5, 0.85) 0%, rgba(0, 0, 0, 0.95) 80%);
+      backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: cali-promo-overlay-in 0.4s ease-out forwards;
+    }
+    .cali-promo-card {
+      position: relative;
+      width: 100%; max-width: 460px;
+      padding: 40px 32px 28px;
+      background: linear-gradient(180deg, rgba(28, 22, 38, 0.97), rgba(12, 10, 22, 0.97));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 22px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7), 0 0 80px rgba(255, 180, 80, 0.15);
+      text-align: center;
+      animation: cali-promo-card-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      overflow: hidden;
+    }
+    .cali-promo-rays {
+      position: absolute; inset: -50%;
+      background: conic-gradient(from 0deg,
+        rgba(255,255,255,0) 0deg, rgba(255,210,140,0.18) 15deg, rgba(255,255,255,0) 30deg,
+        rgba(255,255,255,0) 60deg, rgba(255,210,140,0.18) 75deg, rgba(255,255,255,0) 90deg,
+        rgba(255,255,255,0) 120deg, rgba(255,210,140,0.18) 135deg, rgba(255,255,255,0) 150deg,
+        rgba(255,255,255,0) 180deg, rgba(255,210,140,0.18) 195deg, rgba(255,255,255,0) 210deg,
+        rgba(255,255,255,0) 240deg, rgba(255,210,140,0.18) 255deg, rgba(255,255,255,0) 270deg,
+        rgba(255,255,255,0) 300deg, rgba(255,210,140,0.18) 315deg, rgba(255,255,255,0) 330deg,
+        rgba(255,255,255,0) 360deg);
+      animation: cali-promo-rays 1.2s ease-out forwards, cali-promo-rays-spin 18s linear infinite;
+      pointer-events: none;
+    }
+    .cali-promo-badge {
+      position: relative;
+      display: inline-block;
+      width: 132px; height: 152px;
+      margin: 0 auto 20px;
+      animation: cali-promo-badge-in 0.9s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+    }
+    .cali-promo-badge .hex {
+      position: absolute; inset: 0;
+      clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    }
+    .cali-promo-badge .hex-shine {
+      position: absolute; inset: 0;
+      clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+      background: linear-gradient(110deg,
+        transparent 30%,
+        rgba(255,255,255,0.6) 50%,
+        transparent 70%);
+      background-size: 200% 100%;
+      animation: cali-promo-shimmer 2.4s 0.8s ease-in-out infinite;
+      mix-blend-mode: overlay;
+    }
+    .cali-promo-badge .sub {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 48px; font-weight: 700;
+      color: rgba(20, 12, 5, 0.78);
+      text-shadow: 0 2px 1px rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.02em;
+    }
+    .cali-promo-label-promoted {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.36em; text-transform: uppercase;
+      color: oklch(0.85 0.18 70);
+      margin-bottom: 14px;
+      animation: cali-promo-label-in 0.5s 0.15s ease-out both;
+    }
+    .cali-promo-tier-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 38px; font-weight: 700;
+      letter-spacing: 0.005em;
+      margin: 0 0 6px 0; line-height: 1.05;
+      animation: cali-promo-label-in 0.55s 0.55s ease-out both;
+    }
+    .cali-promo-prev {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #6a6a82;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin: 0 0 24px 0;
+      animation: cali-promo-label-in 0.5s 0.8s ease-out both;
+    }
+    .cali-promo-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 100px;
+      color: #f0f0f8;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer;
+      animation: cali-promo-label-in 0.5s 1.05s ease-out both;
+    }
+    .cali-promo-cta:hover { background: linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)); }
     @keyframes goal-pulse {
       0%, 100% { transform: scale(1); }
       50%      { transform: scale(1.08); }
@@ -969,6 +1099,21 @@
         </sc-if>
 
         <!-- Rarity -->
+        <!-- Tier-bump hint: shown when an unachieved+available skill would
+             bump the user up a tier on the new ranking system. -->
+        <sc-if value="{{ expandedPanel.tierBumpHint }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 14px; background: linear-gradient(135deg, oklch(0.32 0.18 70 / 0.18), oklch(0.22 0.12 60 / 0.28)); border: 1px solid oklch(0.55 0.18 70 / 0.45); border-radius: 8px;">
+            <span style="font-size: 16px; line-height: 1;">↑</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: oklch(0.85 0.18 70); text-transform: uppercase; margin-bottom: 2px;">Tier-up</div>
+              <div style="font-size: 12px; color: #d8d8e4; line-height: 1.35;">
+                <span>Achieving this would bump you to </span>
+                <span style="font-weight: 700; color: oklch(0.92 0.16 70); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em;">{{ expandedPanel.tierBumpHint }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
         <sc-if value="{{ expandedPanel.hasRarity }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 14px; background: {{ expandedPanel.diffBg }}; border: 1px solid {{ expandedPanel.borderColor }}; border-radius: 8px;">
             <span style="font-size: 16px; line-height: 1;">🌍</span>
@@ -1110,6 +1255,28 @@
           </div>
         </sc-if>
 
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ─── PROMOTED tier-up celebration modal. Auto-opens after a rank-up,
+       dismissible. Driven by `promotionModal` state set in toggleCheck. ─── -->
+  <sc-if value="{{ promotionModal.active }}" hint-placeholder-val="{{ false }}">
+    <div data-no-pan="1" class="cali-promo-overlay" onClick="{{ promotionModal.onClose }}">
+      <div class="cali-promo-card" onClick="{{ promotionModal.stopPropagation }}">
+        <div class="cali-promo-rays"></div>
+        <div class="cali-promo-label-promoted">{{ promotionModal.headline }}</div>
+        <div class="cali-promo-badge">
+          <div class="hex" style="background: {{ promotionModal.tierGradient }};"></div>
+          <div class="hex-shine"></div>
+          <div class="sub">{{ promotionModal.subName }}</div>
+        </div>
+        <h2 class="cali-promo-tier-name" style="color: {{ promotionModal.tierColor }};">{{ promotionModal.tierFullName }}</h2>
+        <div class="cali-promo-prev">From {{ promotionModal.fromFullName }}</div>
+        <button class="cali-promo-cta" onClick="{{ promotionModal.onClose }}">
+          <span>Onward</span>
+          <span style="font-size: 14px; line-height: 1;">→</span>
+        </button>
       </div>
     </div>
   </sc-if>
@@ -1947,6 +2114,7 @@ class Component extends DCLogic {
         try { return localStorage.getItem('cali-goal-view-v1') === '1'; } catch (e) { return false; }
       })(),
       signInModal: null,
+      promotionModal: null,
       onboardingStep: -1,
       following: [],
       followingExpanded: false,
@@ -2231,6 +2399,11 @@ class Component extends DCLogic {
     const prev = new Set(this.state.myChecked);
     const next = new Set(prev);
     const wasChecked = next.has(id);
+    const data = window.CALI_DATA;
+    // — promotion detection — capture the current overall tier BEFORE we
+    // mutate `next`, then compare after. Only celebrate on add (no rank-down
+    // toast when the user un-checks something).
+    const beforeTier = data ? this.computeStats(data, prev).overall.tier : null;
     if (wasChecked) {
       next.delete(id);
     } else {
@@ -2269,6 +2442,18 @@ class Component extends DCLogic {
       }
     }
     this.setState({ myChecked: next, justAchievedIds, justUnlockedIds });
+    // Promotion detection — only celebrate on ADD (tier going up). Trigger
+    // after the setState so the visual update lands before the modal opens.
+    if (data && !wasChecked && beforeTier) {
+      const afterTier = this.computeStats(data, next).overall.tier;
+      if (afterTier && afterTier.idx > beforeTier.idx) {
+        setTimeout(() => {
+          this.setState({
+            promotionModal: { from: beforeTier, to: afterTier },
+          });
+        }, 220);
+      }
+    }
     // Clear the transient markers after the animations finish so they don't
     // re-trigger on every render. 900ms covers the flash, 5.4s covers 3
     // pulse cycles (1.8s each).
@@ -4274,6 +4459,22 @@ class Component extends DCLogic {
           isFingertip: !!s.isFingertip,
           isShared,
           isChecked: isCheckedNow,
+          // Tier-bump hint: shows the *exact* tier name if achieving this
+          // skill would bump the user up a tier. Only on unachieved, available,
+          // non-shared skills.
+          tierBumpHint: (() => {
+            if (isShared || isCheckedNow) return '';
+            if (!data) return '';
+            const allPreMet = (s.pre || []).every((pid) => pid === 'root' || checked.has(pid));
+            if (!allPreMet) return '';
+            const curTier = this.computeStats(data, checked).overall.tier;
+            const hypoSet = new Set(checked);
+            hypoSet.add(s.id);
+            this.collectAncestors(s.id).forEach((pid) => hypoSet.add(pid));
+            const hypoTier = this.computeStats(data, hypoSet).overall.tier;
+            if (!hypoTier || hypoTier.idx <= curTier.idx) return '';
+            return hypoTier.fullName;
+          })(),
           catLabel: cat ? cat.name : '—',
           catColor,
           diffLabel: s.diff ? String(s.diff) : '—',
@@ -4467,6 +4668,31 @@ class Component extends DCLogic {
         onInput:  this.onHandleInput,
         onSubmit: this.onHandleSubmit,
         onCancel: this.onHandleCancel,
+      };
+    }
+
+    // ─── promotion (tier-up) modal values ────────────────────────────────
+    let promotionModalValues = null;
+    if (this.state.promotionModal) {
+      const pm = this.state.promotionModal;
+      const to = pm.to || {};
+      // Special-case the very first achievement (Unranked → Copper III): the
+      // headline reads "Ranked!" instead of "Promoted" since there's no
+      // previous tier to come up FROM.
+      const isFirstRank = pm.from && pm.from.isUnranked;
+      // Wizard apex — use a star instead of the (empty) sub-name.
+      const subName = to.isWizard ? '★' : (to.subName || '');
+      promotionModalValues = {
+        active: true,
+        headline:      isFirstRank ? 'You\u2019re ranked!' : (to.isWizard ? 'You did the impossible' : 'Promoted'),
+        tierGradient:  to.gradient || 'linear-gradient(135deg, #888, #555)',
+        tierColor:     to.color    || '#e8e8ef',
+        tierFullName:  to.fullName || to.tierName || 'Ranked',
+        subName,
+        fromFullName:  (pm.from && pm.from.fullName) || 'Unranked',
+        onClose:       () => this.setState({ promotionModal: null }),
+        // Prevent clicks on the card itself from closing (only backdrop does).
+        stopPropagation: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
       };
     }
 
@@ -5567,6 +5793,7 @@ class Component extends DCLogic {
       auth:        authValues,
       handleModal: handleModalValues,
       signInModal: signInModalValues,
+      promotionModal: promotionModalValues,
       searchModal:   searchModalValues,
       settingsModal: settingsModalValues,
 
