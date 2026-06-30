@@ -16,6 +16,10 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Fix: fork diverging lines were invisible
+- Dropped the `.cali-fork-line` class — its `opacity: 0` initial state + `stroke-dasharray: 240` overrode the inline `3 4` dash pattern, and the draw-in animation got stuck pending due to React re-mounting the SVG paths every render. Lines stayed invisible.
+- Lines now render with the inline dashed attrs immediately at 60% opacity, no animation. Matches the constellation aesthetic without the broken effect.
+
 ### 2026-06-30 — Mobile redesign push 4: fork branch cards
 - Fork branch cards (the 2-3 choices above the path leaf) now match the constellation aesthetic:
   - **Translucent backgrounds** with a hue-tinted wash instead of opaque dark cards — lets the star field show through

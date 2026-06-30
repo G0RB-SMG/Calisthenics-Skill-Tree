@@ -128,18 +128,6 @@
     #mobile-scroll[data-cat-transitioning="1"] {
       opacity: 0.2;
     }
-    /* Constellation line draw-in: forks animate their diverging lines on mount. */
-    @keyframes cali-line-draw {
-      from { stroke-dashoffset: 240; opacity: 0; }
-      30%  { opacity: 1; }
-      to   { stroke-dashoffset: 0; opacity: 1; }
-    }
-    .cali-fork-line {
-      stroke-dasharray: 240;
-      stroke-dashoffset: 240;
-      opacity: 0;
-      animation: cali-line-draw 0.9s ease-out 0.1s forwards;
-    }
     /* Constellation corner brackets — four small L-shapes anchor each branch
        card like an old star-chart bookmark. Per-corner positioning kept inline
        so the colors can be data-driven. */
@@ -375,7 +363,7 @@
                 <!-- Diverging Y-lines: dashed, dot junctions where they meet the trunk -->
                 <svg viewBox="0 0 100 28" preserveAspectRatio="none" style="display: block; width: 85%; max-width: 380px; height: 26px; margin-top: 8px;">
                   <sc-for list="{{ row.branchLines }}" as="ln" hint-placeholder-count="2">
-                    <path class="cali-fork-line" d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1" stroke-dasharray="3 4" fill="none"></path>
+                    <path d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1" stroke-dasharray="3 4" fill="none" opacity="0.6"></path>
                   </sc-for>
                   <!-- Trunk junction dot -->
                   <circle cx="50" cy="26" r="1.6" fill="{{ row.lineColor }}" opacity="0.85"></circle>
