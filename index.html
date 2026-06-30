@@ -399,11 +399,13 @@
         <span class="ld-label" style="white-space: nowrap;">Search</span>
       </button>
 
-      <!-- Leaderboard nav pill (always visible) -->
-      <button onClick="{{ auth.onLeaderboard }}" title="Leaderboard" style="display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
+      <!-- Leaderboard nav pill (signed-in users only) -->
+      <sc-if value="{{ auth.showLeaderboardPill }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ auth.onLeaderboard }}" title="Leaderboard" style="display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
         <span style="font-size: 11px; line-height: 1;">▤</span>
         <span class="ld-label" style="white-space: nowrap;">Leaderboard</span>
       </button>
+      </sc-if>
 
       <sc-if value="{{ auth.signedOut }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ auth.onSignIn }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85); border-color: rgba(255,255,255,0.28);">
@@ -1181,6 +1183,27 @@
             </div>
           </div>
 
+          <!-- Best at: strongest category + hardest achieved skill. Shown on
+               any profile (yours OR someone else's) — celebrates accomplishments. -->
+          <sc-if value="{{ profileView.bestAt }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px;">
+              <sc-if value="{{ profileView.bestAt.hasCat }}" hint-placeholder-val="{{ true }}">
+                <div style="padding: 13px 14px; background: {{ profileView.bestAt.catBg }}; border: 1px solid {{ profileView.bestAt.catBorder }}; border-radius: 12px;">
+                  <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: {{ profileView.bestAt.catAccent }}; text-transform: uppercase; margin-bottom: 6px;">Strongest</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #f0f0f8; line-height: 1.2; margin-bottom: 5px;">{{ profileView.bestAt.catName }}</div>
+                  <div style="font-size: 10.5px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">{{ profileView.bestAt.catTierName }} · top {{ profileView.bestAt.catPercentile }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ profileView.bestAt.hasSkill }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ profileView.bestAt.skillOnClick }}" style="padding: 13px 14px; background: {{ profileView.bestAt.skillBg }}; border: 1px solid {{ profileView.bestAt.skillBorder }}; border-radius: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;" style-hover="filter: brightness(1.15);">
+                  <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: {{ profileView.bestAt.skillAccent }}; text-transform: uppercase; margin-bottom: 6px;">Hardest achieved</div>
+                  <div style="font-size: 16px; font-weight: 600; color: #f0f0f8; line-height: 1.2; margin-bottom: 5px; text-wrap: pretty;">{{ profileView.bestAt.skillName }}</div>
+                  <div style="font-size: 10.5px; color: #a8a8c0; font-family: 'JetBrains Mono', monospace;">{{ profileView.bestAt.skillCat }} · DIFF {{ profileView.bestAt.skillDiff }}</div>
+                </button>
+              </sc-if>
+            </div>
+          </sc-if>
+
           <!-- Hardest skill they could attempt right now (own profile only) -->
           <sc-if value="{{ profileView.hardestNext }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ profileView.hardestNext.onClick }}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; background: {{ profileView.hardestNext.bg }}; border: 1px solid {{ profileView.hardestNext.border }}; border-radius: 12px; margin-bottom: 28px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;" style-hover="filter: brightness(1.15);">
@@ -1404,6 +1427,45 @@
     </div>
   </sc-if>
 
+  <!-- ===== FEED SKILL POPOVER (overlay) ======================================== -->
+  <sc-if value="{{ feedPopover }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ feedPopover.onBackdrop }}" data-no-pan="1" style="position: fixed; inset: 0; z-index: 330; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 16px;">
+      <div onClick="{{ feedPopover.stopPropagation }}" style="width: 100%; max-width: 460px; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid {{ feedPopover.borderColor }}; border-radius: 16px; padding: 22px 22px 18px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ feedPopover.catColor }}; box-shadow: 0 0 8px {{ feedPopover.catColor }}; flex-shrink: 0;"></span>
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #8a8aa0; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">{{ feedPopover.catLabel }} · DIFF {{ feedPopover.diffLabel }}</span>
+          </div>
+          <button onClick="{{ feedPopover.onClose }}" style="background: none; border: none; color: #8a8aa0; font-size: 18px; cursor: pointer; padding: 4px 8px; font-family: 'JetBrains Mono', monospace; line-height: 1;">×</button>
+        </div>
+        <h2 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 600; color: #f0f0f8; letter-spacing: -0.005em; line-height: 1.2; text-wrap: pretty;">{{ feedPopover.name }}</h2>
+        <sc-if value="{{ feedPopover.hasDesc }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0 0 14px 0; font-size: 13.5px; color: #b0b0c4; line-height: 1.55; text-wrap: pretty;">{{ feedPopover.desc }}</p>
+        </sc-if>
+        <sc-if value="{{ feedPopover.hasStd }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 9px; margin-bottom: 12px;">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 4px;">Standard</div>
+            <div style="font-size: 12.5px; color: #e0e0ec; line-height: 1.4;">{{ feedPopover.std }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ feedPopover.hasPrereqs }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 8px;">Prereqs</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <sc-for list="{{ feedPopover.prereqs }}" as="pr" hint-placeholder-count="2">
+                <span style="padding: 5px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; font-size: 11px; color: #c0c0d0; font-family: 'JetBrains Mono', monospace;">{{ pr.name }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button onClick="{{ feedPopover.onClose }}" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #c0c0d0; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08);">Close</button>
+          <button onClick="{{ feedPopover.onView }}" style="flex: 1.4; padding: 10px; background: {{ feedPopover.viewBg }}; border: none; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="filter: brightness(1.15);">View on tree →</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- ===== FEED PAGE (route: /feed) =========================================== -->
   <sc-if value="{{ feedView.active }}" hint-placeholder-val="{{ false }}">
     <div id="feed-page" data-no-pan="1" style="position: fixed; inset: 0; z-index: 160; background: radial-gradient(ellipse at top, oklch(0.18 0.05 280) 0%, #060610 60%); overflow-y: auto; padding: 28px 24px 60px; font-family: 'Space Grotesk', sans-serif;">
@@ -1446,18 +1508,17 @@
         <sc-if value="{{ feedView.hasRows }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <sc-for list="{{ feedView.rows }}" as="row" hint-placeholder-count="6">
-              <button onClick="{{ row.onClick }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; width: 100%; transition: background 0.15s ease, border-color 0.15s ease;" style-hover="background: rgba(25,25,42,0.85); border-color: rgba(255,255,255,0.12);">
-                <span style="width: 40px; height: 40px; border-radius: 50%; background: {{ row.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ row.iconFontSize }}; color: #fff; font-family: 'JetBrains Mono', monospace; flex-shrink: 0;">{{ row.initials }}</span>
+              <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-family: 'Space Grotesk', sans-serif; transition: background 0.15s ease, border-color 0.15s ease;" style-hover="background: rgba(25,25,42,0.85); border-color: rgba(255,255,255,0.12);">
+                <button onClick="{{ row.onProfileClick }}" title="View profile" style="width: 40px; height: 40px; border-radius: 50%; background: {{ row.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ row.iconFontSize }}; color: #fff; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; border: none; cursor: pointer; padding: 0;">{{ row.initials }}</button>
                 <div style="flex: 1; min-width: 0;">
                   <div style="font-size: 13px; color: #e8e8ef; font-weight: 500; line-height: 1.4;">
-                    <span style="font-family: 'JetBrains Mono', monospace; color: #d8d8e4; font-weight: 600;">@{{ row.handle }}</span>
+                    <button onClick="{{ row.onProfileClick }}" style="background: none; border: none; padding: 0; font-family: 'JetBrains Mono', monospace; color: #d8d8e4; font-weight: 600; cursor: pointer; font-size: inherit;" style-hover="color: #fff;">@{{ row.handle }}</button>
                     <span style="color: #8a8aa0;"> achieved </span>
-                    <span style="color: {{ row.skillColor }}; font-weight: 600;">{{ row.skillName }}</span>
+                    <button onClick="{{ row.onSkillClick }}" title="View skill" style="background: none; border: none; padding: 0; color: {{ row.skillColor }}; font-weight: 600; cursor: pointer; font-size: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.15); text-underline-offset: 3px;" style-hover="text-decoration-color: currentColor;">{{ row.skillName }}</button>
                   </div>
                   <div style="font-size: 11px; color: #6a6a82; margin-top: 3px; font-family: 'JetBrains Mono', monospace;">{{ row.timeAgo }} · {{ row.categoryName }}</div>
                 </div>
-                <span style="color: #6a6a82; font-size: 14px; line-height: 1; flex-shrink: 0;">›</span>
-              </button>
+              </div>
             </sc-for>
           </div>
         </sc-if>
@@ -2116,6 +2177,7 @@ class Component extends DCLogic {
       // Pull goal from profile if the server has one (it overrides localStorage).
       // If the server has nothing, push our local goal UP — keeps it across devices.
       goalSkillId: profile && profile.goal_skill_id ? profile.goal_skill_id : this.state.goalSkillId,
+      feedPopover: null,
     });
     // Sync directions for the goal:
     //  • server-has-goal:  cache it locally (so we paint instantly next reload)
@@ -2800,11 +2862,38 @@ class Component extends DCLogic {
   };
 
   applyRoute = (route) => {
+    // ─── Auth gate ─────────────────────────────────────────────────────────────────
+    // Account features (leaderboard, feed, profile, compare) require a real
+    // signed-in account — we deliberately don't let anon users browse
+    // those, so there's no such thing as a signed-in user with an empty
+    // profile. Bounce home + open the sign-in modal instead.
+    if (this._requiresAuthRoute(route.name) && this._isSignedOutKnown()) {
+      try { history.replaceState(null, '', '/'); } catch (e) {}
+      this.setState({ route: { name: 'tree' }, authMenuOpen: false });
+      this.openSignIn();
+      return;
+    }
     this.setState({ route, authMenuOpen: false });
     if (route.name === 'profile') this.loadProfile(route.handle);
     else if (route.name === 'leaderboard') this.loadLeaderboard();
     else if (route.name === 'compare') this.loadCompare(route.handle);
     else if (route.name === 'feed') this.loadFeed();
+  };
+
+  // Routes that require a real signed-in account before they'll render.
+  _requiresAuthRoute = (name) => {
+    return name === 'leaderboard' || name === 'feed'
+        || name === 'profile' || name === 'compare';
+  };
+
+  // True only when we KNOW the user is signed out (not initializing, not
+  // 'no-config' which means Supabase isn't set up at all — in that case the
+  // app falls back to local-only mode and we don't bug the user with sign-in).
+  _isSignedOutKnown = () => {
+    const a = this.state.auth;
+    if (!a) return false;
+    if (a.status === 'no-config') return false;
+    return a.status !== 'signed-in';
   };
 
   onPopState = () => { this.applyRoute(this.parseRoute()); };
@@ -2819,14 +2908,26 @@ class Component extends DCLogic {
   };
 
   onBackToTree      = () => { this.navTo('/'); };
-  onGoToLeaderboard = () => { this.setState({ authMenuOpen: false }); this.navTo('/leaderboard'); };
+  onGoToLeaderboard = () => {
+    this.setState({ authMenuOpen: false });
+    if (this._isSignedOutKnown()) { this.openSignIn(); return; }
+    this.navTo('/leaderboard');
+  };
   onGoToMyProfile   = () => {
     this.setState({ authMenuOpen: false });
+    if (this._isSignedOutKnown()) { this.openSignIn(); return; }
     const p = this.state.auth && this.state.auth.profile;
     if (p && p.handle) this.navTo('/u/' + p.handle);
   };
-  onGoToCompare = (handle) => { this.navTo('/compare/' + handle); };
-  onGoToFeed = () => { this.setState({ authMenuOpen: false }); this.navTo('/feed'); };
+  onGoToCompare = (handle) => {
+    if (this._isSignedOutKnown()) { this.openSignIn(); return; }
+    this.navTo('/compare/' + handle);
+  };
+  onGoToFeed = () => {
+    this.setState({ authMenuOpen: false });
+    if (this._isSignedOutKnown()) { this.openSignIn(); return; }
+    this.navTo('/feed');
+  };
   toggleFollowingExpand = () => this.setState({ followingExpanded: !this.state.followingExpanded });
 
   loadProfile = async (handle) => {
@@ -3104,6 +3205,54 @@ class Component extends DCLogic {
       const preMet = (s.pre || []).every((pid) => pid === 'root' || checkedSet.has(pid));
       if (!preMet) continue;
       if (!best || (s.diff || 0) > (best.diff || 0)) best = s;
+    }
+    return best;
+  };
+
+  // ─── Feed skill popover (mentions become tappable) ────────────────────────
+  // Tapping a skill name in the feed opens a small popover with the skill's
+  // details (description, prereqs, etc.) without leaving the feed. From the
+  // popover, the user can choose to go view that skill on the tree.
+  openFeedSkillPopover = (skillId) => {
+    const s = this.skillById(skillId);
+    if (!s) return;
+    this.setState({ feedPopover: { skillId: s.id } });
+  };
+  closeFeedSkillPopover = () => this.setState({ feedPopover: null });
+  viewFeedSkillOnTree = () => {
+    const fp = this.state.feedPopover;
+    if (!fp) return;
+    this.setState({ feedPopover: null });
+    this.navTo('/');
+    setTimeout(() => this.goToSkill(fp.skillId), 80);
+  };
+
+  // ─── 'Best at' helpers (profile callout) ──────────────────────────────────────
+  // Hardest skill the user has actually achieved — max diff among ticked.
+  _findHardestAchieved = (data, checkedSet) => {
+    if (!data || !data.skills || !checkedSet) return null;
+    let best = null;
+    for (const s of data.skills) {
+      if (s.isStub || s.isRoot) continue;
+      if (!checkedSet.has(s.id)) continue;
+      if (!best || (s.diff || 0) > (best.diff || 0)) best = s;
+    }
+    return best;
+  };
+
+  // Strongest category by percentile (lowest top-X is best). Returns the
+  // matching object from stats.perCategory, or null if the user has no
+  // achievements in any category yet.
+  _findStrongestCategory = (stats) => {
+    if (!stats || !Array.isArray(stats.perCategory)) return null;
+    let best = null;
+    for (const c of stats.perCategory) {
+      if (!c.hasAchievements) continue;
+      // Lower percentile = better. Falls back to score for ties / no percentile.
+      const score = c.percentile != null ? c.percentile : (1 - (c.done / Math.max(1, c.total)));
+      if (!best || score < best._score) {
+        best = { ...c, _score: score };
+      }
     }
     return best;
   };
@@ -3406,7 +3555,7 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, signInModal: null, profileView: null, leaderboardView: null, compareView: null, feedView: null, onboarding: null, uiMode: this.state.uiMode || 'canvas', mobile: { show: false }, goal: { empty: true, active: false, onSetEmpty: this.openSearch } };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, signInModal: null, profileView: null, leaderboardView: null, compareView: null, feedView: null, onboarding: null, uiMode: this.state.uiMode || 'canvas', mobile: { show: false }, goal: { empty: true, active: false, onSetEmpty: this.openSearch }, feedPopover: null };
     }
 
     const checked = this.getActiveChecked();
@@ -3833,6 +3982,9 @@ class Component extends DCLogic {
       : baseGradient;
     const authValues = {
       showChip:    a.status === 'signed-out' || a.status === 'needs-handle' || a.status === 'signed-in',
+      // Only signed-in users see the top-right Leaderboard pill — anon users
+      // don't need account-feature surface area cluttering the header.
+      showLeaderboardPill: a.status === 'signed-in',
       signedOut:   a.status === 'signed-out',
       needsHandle: a.status === 'needs-handle',
       signedIn:    a.status === 'signed-in',
@@ -4063,20 +4215,35 @@ class Component extends DCLogic {
           sparkSvgHeight: 44,
           // Hardest skill they could attempt right now (own profile only — hidden
           // for other users since it'd just leak their next move).
-          hardestNext: (() => {
-            if (!isOwnProfile) return null;
-            const hard = this._findHardestUnachieved(data, checkedSet);
-            if (!hard) return null;
-            const cat = data.categories[hard.cat];
-            const hueH = cat ? cat.hue : 240;
+          hardestNext: null,
+          // 'Best at' callout: strongest category + hardest achieved skill.
+          // Shown for ANY profile (yours or someone else's) — it celebrates
+          // accomplishments, doesn't leak future moves.
+          bestAt: (() => {
+            const strongest = this._findStrongestCategory(ps);
+            const hardestDone = this._findHardestAchieved(data, checkedSet);
+            if (!strongest && !hardestDone) return null;
+            const sHue = strongest ? (data.categories[strongest.id] ? data.categories[strongest.id].hue : 240) : 240;
+            const hHue = hardestDone ? (data.categories[hardestDone.cat] ? data.categories[hardestDone.cat].hue : 240) : 240;
             return {
-              name: hard.name,
-              diff: hard.diff,
-              catName: cat ? cat.name : '—',
-              accent: `oklch(0.85 0.18 ${hueH})`,
-              border: `oklch(0.55 0.18 ${hueH} / 0.5)`,
-              bg:     `oklch(0.35 0.20 ${hueH} / 0.18)`,
-              onClick: () => this.goToSkill(hard.id),
+              hasCat: !!strongest,
+              catName: strongest ? strongest.name : '',
+              catTierName: strongest ? strongest.tier.name : '',
+              catPercentile: strongest ? strongest.percentileStr : '',
+              catAccent: `oklch(0.85 0.18 ${sHue})`,
+              catBorder: `oklch(0.55 0.18 ${sHue} / 0.5)`,
+              catBg: `oklch(0.32 0.20 ${sHue} / 0.15)`,
+              hasSkill: !!hardestDone,
+              skillName: hardestDone ? hardestDone.name : '',
+              skillCat: hardestDone ? (data.categories[hardestDone.cat] ? data.categories[hardestDone.cat].name : '') : '',
+              skillDiff: hardestDone ? hardestDone.diff : 0,
+              skillAccent: `oklch(0.85 0.18 ${hHue})`,
+              skillBorder: `oklch(0.55 0.18 ${hHue} / 0.5)`,
+              skillBg: `oklch(0.32 0.20 ${hHue} / 0.15)`,
+              skillOnClick: hardestDone ? (() => {
+                this.navTo('/');
+                setTimeout(() => this.goToSkill(hardestDone.id), 80);
+              }) : null,
             };
           })(),
           // Recent activity (last few clicked skills):
@@ -4266,7 +4433,11 @@ class Component extends DCLogic {
             skillColor: `oklch(0.92 0.14 ${hueF})`,
             categoryName: cat ? cat.name : '',
             timeAgo: timeAgoStr(r.achieved_at),
-            onClick: () => this.navTo('/u/' + r.handle),
+            onProfileClick: () => this.navTo('/u/' + r.handle),
+            onSkillClick: (e) => {
+              if (e && e.stopPropagation) e.stopPropagation();
+              if (sk) this.openFeedSkillPopover(sk.id);
+            },
           };
         });
         feedViewValues = {
@@ -4892,6 +5063,38 @@ class Component extends DCLogic {
       leaderboardView: leaderboardViewValues,
       compareView:     compareViewValues,
       feedView:        feedViewValues,
+      feedPopover: (() => {
+        const fp = this.state.feedPopover;
+        if (!fp) return null;
+        const s = this.skillById(fp.skillId);
+        if (!s) return null;
+        const cat = s.cat ? data.categories[s.cat] : null;
+        const hue = cat ? cat.hue : 240;
+        const byId = new Map(data.skills.map((x) => [x.id, x]));
+        const prereqs = (s.pre || [])
+          .filter((pid) => pid !== 'root')
+          .map((pid) => byId.get(pid))
+          .filter(Boolean)
+          .map((p) => ({ id: p.id, name: p.name }));
+        return {
+          name: s.name,
+          desc: s.desc || '',
+          hasDesc: !!(s.desc && s.desc.trim()),
+          std: s.std || '',
+          hasStd: !!(s.std && s.std.trim()),
+          prereqs,
+          hasPrereqs: prereqs.length > 0,
+          catLabel: cat ? cat.name : '—',
+          catColor: `oklch(0.78 0.20 ${hue})`,
+          diffLabel: s.diff ? String(s.diff) : '—',
+          borderColor: `oklch(0.55 0.18 ${hue} / 0.4)`,
+          viewBg: `oklch(0.55 0.22 ${hue})`,
+          onClose: this.closeFeedSkillPopover,
+          onBackdrop: this.closeFeedSkillPopover,
+          stopPropagation: (e) => e.stopPropagation(),
+          onView: this.viewFeedSkillOnTree,
+        };
+      })(),
       onboarding:      onboardingValues,
     };
   }

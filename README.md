@@ -16,6 +16,18 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Best-at callout · Feed skill popover · Account-features now sign-in gated
+- **"Best at" callout on every profile** replaces "Hardest you could attempt". Two side-by-side cards:
+  - **Strongest**: highest-ranked category by percentile (e.g. "Core · Top 5%")
+  - **Hardest achieved**: highest-diff skill ticked (e.g. "Front lever · DIFF 8") — clickable, takes you to the tree
+- Both shown for any profile (yours or someone else's) — celebrates accomplishments, doesn't leak future moves.
+- **Feed skill mentions are now clickable.** Click any skill name in the feed → small popover with the skill's description, standard, prereqs, and a "View on tree →" button. Click outside to dismiss. The @handle stays clickable too — goes to that user's profile.
+- **Account features gated behind sign-in.** Anonymous users:
+  - Don't see the Leaderboard pill in the top-right header
+  - Are bounced home + sign-in modal opens if they navigate to `/leaderboard`, `/feed`, `/u/<handle>`, or `/compare/<handle>`
+  - Can still use the tree itself completely (progress saves to localStorage)
+- Result: no such thing as a "signed in but empty" account — once you're signed in, you've gone through the handle picker and you have a real profile.
+
 ### 2026-06-29 — Critical hotfix: stuck on "Pick a username" prompt
 - Last push added a `goal_skill_id` column to PROFILE_COLS in `auth.js`. If you hadn't run § 6d yet, that column doesn't exist in your DB → the profile SELECT 400'd → `fetchProfile` returned null → app showed the handle picker for users who already have a handle. Picking the existing handle then said "taken" (taken by yourself).
 - **Fix:** `fetchProfile` and `getProfileByHandle` now **gracefully retry** without the optional columns if the first SELECT errors. App works whether or not § 6d has been run.
