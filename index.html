@@ -36,6 +36,39 @@
       0%, 100% { transform: scale(1); }
       50%      { transform: scale(1.08); }
     }
+    /* ─── Star-field / constellation aesthetic (mobile view) ─────────────── */
+    @keyframes cali-twinkle {
+      0%, 100% { opacity: 0.25; }
+      50%      { opacity: 1; }
+    }
+    .cali-star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: cali-twinkle 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .cali-star.big   { width: 3px; height: 3px; box-shadow: 0 0 4px rgba(255,255,255,0.8); }
+    .cali-star.tiny  { width: 1px; height: 1px; opacity: 0.5; animation-duration: 6s; }
+    @keyframes cali-halo-breathe {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50%      { opacity: 0.75; transform: scale(1.15); }
+    }
+    /* 5-star difficulty rating using CSS-overlay trick. */
+    .cali-stars {
+      position: relative;
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: rgba(255,255,255,0.15);
+    }
+    .cali-stars-fill {
+      position: absolute; top: 0; left: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
     @keyframes cali-shimmer {
       0%   { background-position: -800px 0; }
       100% { background-position: 800px 0; }
@@ -158,15 +191,41 @@
 
   <!-- ===== MOBILE TRAVERSAL VIEW (data-cali-mode=mobile) ===================== -->
   <sc-if value="{{ mobile.show }}" hint-placeholder-val="{{ false }}">
-    <div id="mobile-view" data-no-pan="1" style="position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: radial-gradient(ellipse 90% 70% at 50% 30%, #15152a 0%, #060614 60%);">
+    <div id="mobile-view" data-no-pan="1" style="position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: radial-gradient(ellipse 90% 70% at 50% 25%, #0a0a1f 0%, #04040c 60%);">
+      <!-- Star-field constellation backdrop. Pinned absolute behind every UI layer; the layer above
+           is the scrollable content. Quiet twinkle every 4-6s; subtle but adds atmosphere. -->
+      <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; overflow: hidden;">
+        <div class="cali-star big"  style="top:  5%; left: 12%; animation-delay: 0.2s;"></div>
+        <div class="cali-star"      style="top: 11%; left: 78%; animation-delay: 1.3s;"></div>
+        <div class="cali-star tiny" style="top: 19%; left: 32%; animation-delay: 0.7s;"></div>
+        <div class="cali-star"      style="top: 25%; left: 90%; animation-delay: 2.1s;"></div>
+        <div class="cali-star tiny" style="top: 32%; left:  8%; animation-delay: 1.6s;"></div>
+        <div class="cali-star big"  style="top: 39%; left: 64%; animation-delay: 3.2s;"></div>
+        <div class="cali-star tiny" style="top: 45%; left: 22%; animation-delay: 0.4s;"></div>
+        <div class="cali-star"      style="top: 52%; left: 84%; animation-delay: 2.7s;"></div>
+        <div class="cali-star tiny" style="top: 60%; left:  4%; animation-delay: 1.9s;"></div>
+        <div class="cali-star"      style="top: 66%; left: 48%; animation-delay: 0.9s;"></div>
+        <div class="cali-star big"  style="top: 73%; left: 80%; animation-delay: 2.4s;"></div>
+        <div class="cali-star tiny" style="top: 80%; left: 18%; animation-delay: 3.6s;"></div>
+        <div class="cali-star"      style="top: 86%; left: 56%; animation-delay: 1.1s;"></div>
+        <div class="cali-star tiny" style="top: 92%; left: 92%; animation-delay: 0.5s;"></div>
+        <div class="cali-star tiny" style="top:  3%; left: 46%; animation-delay: 2.8s;"></div>
+        <div class="cali-star tiny" style="top:  8%; left:  2%; animation-delay: 1.4s;"></div>
+        <div class="cali-star tiny" style="top: 14%; left: 56%; animation-delay: 0.3s;"></div>
+        <div class="cali-star tiny" style="top: 28%; left: 68%; animation-delay: 2.0s;"></div>
+        <div class="cali-star tiny" style="top: 42%; left: 92%; animation-delay: 1.5s;"></div>
+        <div class="cali-star tiny" style="top: 56%; left: 38%; animation-delay: 3.0s;"></div>
+        <div class="cali-star tiny" style="top: 70%; left: 10%; animation-delay: 0.8s;"></div>
+        <div class="cali-star tiny" style="top: 84%; left: 74%; animation-delay: 2.3s;"></div>
+      </div>
 
       <!-- Top bar: title + progress -->
-      <div style="padding: 14px 16px 6px; flex-shrink: 0;">
+      <div style="padding: 14px 16px 6px; flex-shrink: 0; position: relative;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #6a6a82;">Skill tree</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: oklch(0.78 0.16 240);">★ Skill chart</span>
           <button onClick="{{ mobile.onSearch }}" title="Search skills" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #d8d8e4; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; padding: 0;">⌕</button>
         </div>
-        <h1 style="margin: 4px 0 0 0; font-size: 17px; font-weight: 600; color: #e8e8ef; letter-spacing: -0.005em;">{{ mobile.title }}</h1>
+        <h1 style="margin: 4px 0 0 0; font-size: 17px; font-weight: 600; color: #f0f0f8; letter-spacing: -0.005em;">{{ mobile.title }}</h1>
       </div>
 
       <!-- Category tabs -->
@@ -181,12 +240,15 @@
       </div>
 
       <!-- Vertical scroll: depth rows (elite at top, root at bottom) -->
-      <div id="mobile-scroll" style="flex: 1; overflow-y: auto; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);">
+      <div id="mobile-scroll" style="flex: 1; overflow-y: auto; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px); position: relative;">
 
-        <!-- Elite cap -->
-        <div style="padding: 18px 16px 6px; text-align: center;">
-          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #6a6a82;">Elite</div>
-          <div style="margin-top: 4px; font-size: 14px; font-family: 'JetBrains Mono', monospace; color: #3a3a52;">↑</div>
+        <!-- Elite cap with flanking constellation lines -->
+        <div style="padding: 16px 16px 4px; text-align: center;">
+          <div style="display: inline-flex; align-items: center; gap: 10px;">
+            <span style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32));"></span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.82 0.18 50);">✦ Elite</span>
+            <span style="width: 34px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.32), transparent);"></span>
+          </div>
         </div>
 
         <sc-for list="{{ mobile.rows }}" as="row" hint-placeholder-count="6">
@@ -208,7 +270,7 @@
                         </sc-if>
                       </div>
                       <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty; flex: 1; display: flex; align-items: center;">{{ b.name }}</div>
-                      <div style="font-size: 9.5px; color: {{ b.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">DIFF {{ b.diff }}</div>
+                      <div class="cali-stars" style="font-size: 11px;">★★★★★<span class="cali-stars-fill" style="color: {{ b.catColor }}; width: {{ b.starPct }}%;">★★★★★</span></div>
                       <sc-if value="{{ b.isMultiStep }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size: 8.5px; color: #8a8aa0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-align: center; line-height: 1.35; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.08); width: 100%;">
                           {{ b.stepsLabel }}<br>{{ b.viaLabel }}
@@ -227,14 +289,19 @@
             </sc-if>
 
             <sc-if value="{{ row.isPath }}" hint-placeholder-val="{{ true }}">
-              <!-- Chosen-path entry: single card centered, no siblings -->
+              <!-- Chosen-path entry: single card centered, no siblings. Focused
+                   (available) cards get a slow breathing halo behind them — this is
+                   the Skyrim constellation flourish on the "your next move" card. -->
               <div style="min-height: 22vh; padding: 4px 14px; display: flex; align-items: center; justify-content: center;">
-                <button onClick="{{ row.card.onClick }}" class="mobile-card" data-mobile-card="{{ row.card.id }}" style="width: 100%; max-width: 360px; background: {{ row.card.bg }}; border: 1.5px solid {{ row.card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ row.card.shadow }}; opacity: {{ row.card.opacity }};">
+                <div style="position: relative; width: 100%; max-width: 360px;">
+                  <sc-if value="{{ row.card.isFocus }}" hint-placeholder-val="{{ false }}">
+                    <div aria-hidden="true" style="position: absolute; inset: -8px; border-radius: 24px; background: radial-gradient(ellipse, {{ row.card.haloColor }}, transparent 70%); animation: cali-halo-breathe 2.8s ease-in-out infinite; pointer-events: none; z-index: 0;"></div>
+                  </sc-if>
+                <button onClick="{{ row.card.onClick }}" class="mobile-card" data-mobile-card="{{ row.card.id }}" style="position: relative; z-index: 1; width: 100%; background: {{ row.card.bg }}; border: 1.5px solid {{ row.card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ row.card.shadow }}; opacity: {{ row.card.opacity }};">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: {{ row.card.catColor }}; text-transform: uppercase;">{{ row.card.catLabel }}</span>
-                    <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 100px; background: {{ row.card.diffBg }}; border: 1px solid {{ row.card.diffBorder }};">
-                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: #9a9ab0;">DIFF</span>
-                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: {{ row.card.catColor }};">{{ row.card.diff }}</span>
+                    <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px;">
+                      <span class="cali-stars" style="font-size: 12px;">★★★★★<span class="cali-stars-fill" style="color: {{ row.card.catColor }}; width: {{ row.card.starPct }}%;">★★★★★</span></span>
                     </span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 14px;">
@@ -252,6 +319,7 @@
                     </div>
                   </div>
                 </button>
+                </div>
               </div>
             </sc-if>
 
@@ -4758,6 +4826,12 @@ class Component extends DCLogic {
           catLabel: catMeta.short,
           catColor,
           diff: s.diff,
+          // 5-star difficulty: 1 star = 2 diff points, half-stars supported via
+          // a fill % overlay (see .cali-stars in the helmet styles).
+          starPct: Math.round(((s.diff || 0) / 10) * 100),
+          // Halo color for the focused (available) card — quiet glow that
+          // breathes via cali-halo-breathe. Same hue as the category.
+          haloColor: `oklch(0.65 0.22 ${hue} / 0.35)`,
           diffBg: `oklch(0.3 0.12 ${hue} / 0.3)`,
           diffBorder: `oklch(0.5 0.15 ${hue} / 0.4)`,
           isFocus,
@@ -4838,6 +4912,7 @@ class Component extends DCLogic {
           isMultiStep: hasFooter,
           viaLabel,
           stepsLabel,
+          starPct: Math.round(((display.diff || 0) / 10) * 100),
           bg, borderColor, opacity, shadow,
           figBg, figStroke,
           hasFig: !!figDef,

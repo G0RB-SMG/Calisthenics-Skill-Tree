@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Mobile redesign push 1: star-field constellation aesthetic
+- **Star-field background** behind the mobile view — radial deep-navy gradient + 22 twinkling dots (some bigger with subtle glow, all on slow 4-6s cycles). Replaces the flat dark-purple panel.
+- **5-star difficulty** replaces the old `DIFF X` pill on both branch cards and path cards. Uses half-star precision via a percentage-fill overlay (e.g. DIFF 3 = 1.5 stars, DIFF 7 = 3.5 stars). Star color matches the category.
+- **Halo on the focused (available) path card** — slow breathing glow with the category hue, gives the "your next move" card a tactile presence without distracting from achieved cards.
+- **Elite cap refresh** — replaces the "ELITE ↑" header with `✦ ELITE` flanked by short constellation lines, plus a `⟡ Choose path` label above forks.
+- **Header rebrand** — `★ Skill chart` subtitle (instead of plain "Skill tree") in the constellation accent color.
+- Pushes 2-4 (gem-style node figures, tap animations, fork-card restyle) coming next.
+
 ### 2026-06-29 — Best-at callout · Feed skill popover · Account-features now sign-in gated
 - **"Best at" callout on every profile** replaces "Hardest you could attempt". Two side-by-side cards:
   - **Strongest**: highest-ranked category by percentile (e.g. "Core · Top 5%")
