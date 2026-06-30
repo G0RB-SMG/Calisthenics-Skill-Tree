@@ -253,6 +253,7 @@
     .mobile-row-cards::-webkit-scrollbar { display: none; }
     .mobile-card { scroll-snap-align: center; }
     .mobile-tabs { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .cali-branch-row::-webkit-scrollbar { display: none; }
     .mobile-tabs::-webkit-scrollbar { display: none; }
   </style>
   <script src="./skills.js"></script>
@@ -337,9 +338,13 @@
                   <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.78 0.16 240);">⟡ {{ row.label }}</span>
                   <span style="width: 28px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.28), transparent);"></span>
                 </div>
-                <div style="display: grid; grid-template-columns: {{ row.gridCols }}; gap: 10px; width: 100%; max-width: 460px;">
+                <!-- Branches row: always side-by-side, scrolls horizontally
+                     when too many to fit. Snap-aligned so swipes land on a
+                     card. `safe center` keeps small rows centered while still
+                     allowing scroll when contents overflow. -->
+                <div class="cali-branch-row" style="display: flex; gap: 10px; width: 100%; max-width: 100%; justify-content: safe center; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 14px; margin: 0 -14px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
                   <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
-                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; position: relative; background: {{ b.bg }}; border: 1px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: {{ b.catColor }}; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 142px;">
+                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; position: relative; flex: 0 0 auto; width: 148px; scroll-snap-align: center; background: {{ b.bg }}; border: 1px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: {{ b.catColor }}; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 154px;">
                       <!-- Constellation corner brackets — star-chart bookmark look -->
                       <span class="cali-corner tl"></span>
                       <span class="cali-corner tr"></span>
@@ -360,14 +365,13 @@
                     </button>
                   </sc-for>
                 </div>
-                <!-- Diverging Y-lines: dashed, dot junctions where they meet the trunk -->
-                <svg viewBox="0 0 100 28" preserveAspectRatio="none" style="display: block; width: 85%; max-width: 380px; height: 26px; margin-top: 8px;">
-                  <sc-for list="{{ row.branchLines }}" as="ln" hint-placeholder-count="2">
-                    <path d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1" stroke-dasharray="3 4" fill="none" opacity="0.6"></path>
-                  </sc-for>
-                  <!-- Trunk junction dot -->
-                  <circle cx="50" cy="26" r="1.6" fill="{{ row.lineColor }}" opacity="0.85"></circle>
-                </svg>
+                <!-- Trunk: simple short vertical descender from the row to
+                     the path card below, replacing the per-branch diverging
+                     lines (which never matched a horizontally-scrolling row). -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 0; margin-top: 6px;">
+                  <div style="width: 1px; height: 18px; background: {{ row.lineColor }}; opacity: 0.55;"></div>
+                  <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ row.lineColor }}; opacity: 0.85; box-shadow: 0 0 5px {{ row.lineColor }};"></div>
+                </div>
               </div>
             </sc-if>
 

@@ -16,6 +16,12 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Mobile: forks are now side-by-side
+- Replaced the grid layout (which wrapped to 2 columns when 4+ branches, stacking them vertically) with a **horizontal scroll row** — branches are always side-by-side like picking a path on a map.
+- Cards fit 1-3 branches centered on screen with no scroll; 4+ branches you swipe horizontally with scroll-snap to lock onto each.
+- Replaced the diverging Y-lines below the branches with a clean single-trunk descender + junction dot (the per-branch lines didn't make sense when the row could overflow / scroll).
+- Applies universally to every category's fork — Pull (which has 5 branches after Dead Hang), Push, Mobility, etc.
+
 ### 2026-06-30 — Fix: fork diverging lines were invisible
 - Dropped the `.cali-fork-line` class — its `opacity: 0` initial state + `stroke-dasharray: 240` overrode the inline `3 4` dash pattern, and the draw-in animation got stuck pending due to React re-mounting the SVG paths every render. Lines stayed invisible.
 - Lines now render with the inline dashed attrs immediately at 60% opacity, no animation. Matches the constellation aesthetic without the broken effect.
