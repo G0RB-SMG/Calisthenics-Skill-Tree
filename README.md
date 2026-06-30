@@ -16,6 +16,16 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Goal / target skill
+- **Pick a target skill** ("Front Lever", "Planche", etc.) and the canvas highlights the prereq chain leading to it. Set via:
+  - The new **Set as goal ⚐** button in any skill's detail panel
+  - The new **⚐ button** next to each result in the Search modal
+  - **Right-click** any node on the canvas
+- **Sidebar Goal card** shows: target name, X of N steps done, progress bar, the next concrete skill you can attempt, and a "Go to next →" button that pans/zooms the canvas to it.
+- **Highlight mode toggle** (◉ ON / ◯ OFF pill in the card). When ON: chain nodes pop, target node pulses, all other nodes dim to 22% opacity, and non-chain connections fade out.
+- Goal syncs to your Supabase profile (`profiles.goal_skill_id`) when signed in, falls back to localStorage otherwise. New **`supabase-setup.md` § 6d** documents the one-line SQL — without it the goal works fine locally but doesn't sync across devices.
+- When viewing someone else's shared progress link, the Set-as-goal button is hidden (doesn't make sense to set someone else's progress as your goal from there).
+
 ### 2026-06-29 — Upload your own profile photo
 - **New "Upload photo" section** in Settings — pick a JPEG/PNG/WebP/GIF and it's resized client-side to 512px (avoids shipping 5MB phone snaps) before uploading to Supabase Storage.
 - Uploaded photos render everywhere: account chip, sidebar following dropdown, profile page, compare cards, leaderboard, feed.

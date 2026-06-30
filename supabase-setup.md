@@ -269,6 +269,19 @@ grant execute on function public.follow_counts(uuid) to anon, authenticated;
 If you don't run this, the Follow button and Compare view stay hidden and the
 rest of the app works fine.
 
+## 6d. Phase 6 SQL — target skill (goal)
+
+To enable the **Set as goal** feature (highlights the prereq chain to a target
+skill, sidebar shows "X of N steps to goal · Next: Y"), run:
+
+```sql
+alter table public.profiles
+  add column if not exists goal_skill_id text;
+```
+
+Without this column the Set-as-Goal action falls back to localStorage (works
+fine for a single device, doesn't sync across devices).
+
 ## 6c. Phase 5 SQL — avatar icons + bio
 
 To enable custom profile icons + bio (Settings modal), run:

@@ -11,7 +11,7 @@
   let session = null;
   let profile = null;
   const listeners = new Set();
-  const PROFILE_COLS = 'id, handle, display_name, avatar_url, avatar_icon, avatar_color, bio, created_at';
+  const PROFILE_COLS = 'id, handle, display_name, avatar_url, avatar_icon, avatar_color, bio, goal_skill_id, created_at';
 
   if (ready) {
     client = window.supabase.createClient(cfg.url, cfg.anonKey, {
@@ -156,7 +156,7 @@
     if (!user) return { error: { message: 'Session expired — please refresh and sign in again.' } };
 
     // Only let known editable fields through; never lets the caller change id/handle/created_at.
-    const allowed = ['display_name', 'avatar_url', 'avatar_icon', 'avatar_color', 'bio'];
+    const allowed = ['display_name', 'avatar_url', 'avatar_icon', 'avatar_color', 'bio', 'goal_skill_id'];
     const payload = {};
     for (const k of allowed) {
       if (k in updates) payload[k] = updates[k];

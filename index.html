@@ -32,6 +32,10 @@
     *::-webkit-scrollbar-track { background: transparent; }
     *::-webkit-scrollbar-thumb { background: #25253a; border-radius: 4px; }
     @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes goal-pulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.08); }
+    }
     @keyframes cali-shimmer {
       0%   { background-position: -800px 0; }
       100% { background-position: 800px 0; }
@@ -339,7 +343,7 @@
 
       <!-- Skill nodes -->
       <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="50">
-        <div data-node="{{ node.id }}" onClick="{{ node.onClick }}" style="position: absolute; left: {{ node.lx }}px; top: {{ node.ty }}px; width: {{ node.size }}px; height: {{ node.size }}px; border-radius: 50%; border: 2px solid {{ node.color }}; background: {{ node.fill }}; box-shadow: {{ node.shadow }}; cursor: {{ node.cursor }}; display: flex; align-items: center; justify-content: center; z-index: {{ node.z }}; opacity: {{ node.opacity }}; transition: box-shadow 0.25s ease, transform 0.15s ease; font-family: 'Space Grotesk', sans-serif;" style-hover="transform: scale(1.12); z-index: 30;">
+        <div data-node="{{ node.id }}" onClick="{{ node.onClick }}" onContextMenu="{{ node.onContextMenu }}" style="position: absolute; left: {{ node.lx }}px; top: {{ node.ty }}px; width: {{ node.size }}px; height: {{ node.size }}px; border-radius: 50%; border: 2px solid {{ node.color }}; background: {{ node.fill }}; box-shadow: {{ node.shadow }}; cursor: {{ node.cursor }}; display: flex; align-items: center; justify-content: center; z-index: {{ node.z }}; opacity: {{ node.opacity }}; transition: box-shadow 0.25s ease, transform 0.15s ease, opacity 0.3s ease; font-family: 'Space Grotesk', sans-serif; animation: {{ node.goalAnim }};" style-hover="transform: scale(1.12); z-index: 30;">
           <!-- Stick figure -->
           <sc-if value="{{ node.hasFig }}" hint-placeholder-val="{{ false }}">
             <svg width="{{ node.figSize }}" height="{{ node.figSize }}" viewBox="0 0 60 60" fill="none" stroke="{{ node.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; overflow: visible;">
@@ -472,6 +476,62 @@
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
       <span style="font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase;">Your progress</span>
       <button onClick="{{ onToggleSidebar }}" title="Hide panel" style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #8a8aa0; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; font-family: 'JetBrains Mono', monospace;" style-hover="background: rgba(255,255,255,0.1); color: #e8e8ef;">«</button>
+    </div>
+
+    <!-- Overall tier card (always visible — start at Novice / 0 pts) -->
+    <!-- ─── Goal / target skill card. Always rendered (CTA when empty, full card when set). ─── -->
+    <div style="margin-bottom: 14px;">
+      <sc-if value="{{ goal.empty }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ goal.onSetEmpty }}" style="width: 100%; padding: 11px 12px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.14); border-radius: 12px; color: #a8a8c0; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px;" style-hover="background: rgba(255,255,255,0.06); color: #e8e8ef; border-color: rgba(255,255,255,0.22);">
+          <span style="font-size: 13px; line-height: 1;">⚑</span>
+          <span>Set a target skill</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ goal.active }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 13px 14px; background: {{ goal.cardBg }}; border: 1px solid {{ goal.cardBorder }}; border-radius: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 6px;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: {{ goal.targetCatColor }}; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px;">
+              <span style="font-size: 11px; line-height: 1;">⚑</span>
+              <span>Goal</span>
+            </span>
+            <button onClick="{{ goal.onToggleView }}" title="Toggle highlight" style="background: {{ goal.toggleBg }}; border: 1px solid {{ goal.toggleBorder }}; border-radius: 100px; padding: 3px 8px; color: {{ goal.toggleColor }}; font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'JetBrains Mono', monospace; line-height: 1.4;">{{ goal.toggleLabel }}</button>
+          </div>
+          <div style="font-size: 14.5px; font-weight: 600; color: #e8e8ef; line-height: 1.25; margin-bottom: 10px; text-wrap: pretty;">{{ goal.targetName }}</div>
+          <div style="margin-bottom: 11px;">
+            <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8a8aa0; margin-bottom: 5px;">
+              <span>{{ goal.stepsLabel }}</span>
+              <span>{{ goal.progressPctLabel }}</span>
+            </div>
+            <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden;">
+              <div style="height: 100%; width: {{ goal.progressPct }}%; background: {{ goal.progressBarColor }}; box-shadow: 0 0 8px {{ goal.progressBarColor }}; transition: width 0.4s ease;"></div>
+            </div>
+          </div>
+          <sc-if value="{{ goal.isAchieved }}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 9px 10px; background: oklch(0.35 0.18 145 / 0.2); border: 1px solid oklch(0.55 0.18 145 / 0.5); border-radius: 8px; color: oklch(0.88 0.16 145); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; margin-bottom: 8px;">✓ Goal achieved</div>
+          </sc-if>
+          <sc-if value="{{ goal.hasNext }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goal.onGoToNext }}" style="width: 100%; padding: 10px 11px; background: {{ goal.nextBg }}; border: 1.5px solid {{ goal.nextBorder }}; border-radius: 9px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 10px; text-align: left; margin-bottom: 8px;" style-hover="filter: brightness(1.12);">
+              <span style="width: 28px; height: 28px; border-radius: 50%; background: {{ goal.nextFigBg }}; border: 1.5px solid {{ goal.nextBorder }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <sc-if value="{{ goal.nextHasFig }}" hint-placeholder-val="{{ false }}">
+                  <svg width="22" height="22" viewBox="0 0 60 60" fill="none" stroke="{{ goal.nextFigStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="{{ goal.nextFigHx }}" cy="{{ goal.nextFigHy }}" r="{{ goal.nextFigHr }}"></circle>
+                    <path d="{{ goal.nextFigBody }}"></path>
+                  </svg>
+                </sc-if>
+              </span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; color: {{ goal.targetCatColor }}; text-transform: uppercase; margin-bottom: 2px;">Next up</div>
+                <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; line-height: 1.2; text-wrap: pretty;">{{ goal.nextName }}</div>
+              </div>
+              <span style="color: #8a8aa0; font-size: 14px; line-height: 1; flex-shrink: 0;">→</span>
+            </button>
+          </sc-if>
+          <div style="display: flex; gap: 6px;">
+            <button onClick="{{ goal.onChange }}" style="flex: 1; padding: 7px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #a8a8c0; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08); color: #e8e8ef;">Change</button>
+            <button onClick="{{ goal.onClear }}" style="flex: 1; padding: 7px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #a8a8c0; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08); color: #e8e8ef;">Clear</button>
+          </div>
+        </div>
+      </sc-if>
     </div>
 
     <!-- Overall tier card (always visible — start at Novice / 0 pts) -->
@@ -715,6 +775,13 @@
           </div>
         </sc-if>
 
+        <!-- Set as goal (or clear if it's already the goal). Hidden when
+             viewing a shared progress link — doesn't make sense to set someone
+             else's progress as YOUR goal from here. -->
+        <sc-if value="{{ expandedPanel.canSetGoal }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ expandedPanel.onSetGoal }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 14px; margin-bottom: 14px; background: {{ expandedPanel.goalBtnBg }}; border: 1.5px solid {{ expandedPanel.goalBtnBorder }}; border-radius: 10px; color: {{ expandedPanel.goalBtnColor }}; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="filter: brightness(1.15);">{{ expandedPanel.goalBtnLabel }}</button>
+        </sc-if>
+
         <!-- Rarity -->
         <sc-if value="{{ expandedPanel.hasRarity }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 14px; background: {{ expandedPanel.diffBg }}; border: 1px solid {{ expandedPanel.borderColor }}; border-radius: 8px;">
@@ -897,21 +964,24 @@
             <div style="padding: 30px 16px; text-align: center; color: #6a6a82; font-size: 13px;">{{ searchModal.emptyMsg }}</div>
           </sc-if>
           <sc-for list="{{ searchModal.results }}" as="r" hint-placeholder-count="6">
-            <button onClick="{{ r.onClick }}" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: transparent; border: none; border-radius: 8px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; transition: background 0.1s;" style-hover="background: rgba(255,255,255,0.04);">
-              <span style="width: 32px; height: 32px; border-radius: 50%; background: {{ r.figBg }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid {{ r.figBorder }};">
-                <sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}">
-                  <svg width="22" height="22" viewBox="0 0 60 60" fill="none" stroke="{{ r.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="{{ r.figHx }}" cy="{{ r.figHy }}" r="{{ r.figHr }}"></circle>
-                    <path d="{{ r.figBody }}"></path>
-                  </svg>
-                </sc-if>
-              </span>
-              <div style="flex: 1; min-width: 0;">
-                <div style="font-size: 13.5px; font-weight: 600; color: #e8e8ef; line-height: 1.3;">{{ r.name }}</div>
-                <div style="font-size: 10.5px; color: {{ r.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-top: 2px;">{{ r.catLabel }} · DIFF {{ r.diff }} · {{ r.statusLabel }}</div>
-              </div>
-              <span style="color: #6a6a82; font-size: 12px; flex-shrink: 0;">›</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 4px; padding: 0 4px;">
+              <button onClick="{{ r.onClick }}" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: transparent; border: none; border-radius: 8px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; transition: background 0.1s;" style-hover="background: rgba(255,255,255,0.04);">
+                <span style="width: 32px; height: 32px; border-radius: 50%; background: {{ r.figBg }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid {{ r.figBorder }};">
+                  <sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}">
+                    <svg width="22" height="22" viewBox="0 0 60 60" fill="none" stroke="{{ r.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="{{ r.figHx }}" cy="{{ r.figHy }}" r="{{ r.figHr }}"></circle>
+                      <path d="{{ r.figBody }}"></path>
+                    </svg>
+                  </sc-if>
+                </span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13.5px; font-weight: 600; color: #e8e8ef; line-height: 1.3;">{{ r.name }}</div>
+                  <div style="font-size: 10.5px; color: {{ r.catColor }}; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-top: 2px;">{{ r.catLabel }} · DIFF {{ r.diff }} · {{ r.statusLabel }}</div>
+                </div>
+                <span style="color: #6a6a82; font-size: 12px; flex-shrink: 0;">›</span>
+              </button>
+              <button onClick="{{ r.onSetGoal }}" title="{{ r.goalTitle }}" style="width: 34px; height: 34px; flex-shrink: 0; background: {{ r.goalBg }}; border: 1px solid {{ r.goalBorder }}; border-radius: 8px; color: {{ r.goalColor }}; cursor: pointer; font-size: 15px; line-height: 1; padding: 0; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; justify-content: center;" style-hover="filter: brightness(1.2);">{{ r.goalIcon }}</button>
+            </div>
           </sc-for>
         </div>
       </div>
@@ -1589,6 +1659,21 @@ class Component extends DCLogic {
       feedView: null,
       myAchievements: [],   // list of {skill_id, achieved_at} for the signed-in user;
                             // populated on sign-in, kept in sync by toggleCheck.
+      // ─── goal / target skill ───────────────────────────────────────────────────
+      // The user picks ONE skill they're working towards. We highlight its
+      // prereq chain on the canvas + show 'next-step' in the sidebar.
+      // Source of truth: profile.goal_skill_id when signed in, else localStorage.
+      // Loaded eagerly from localStorage so a returning anon visitor still sees
+      // their goal pre-login; sign-in overwrites with the server copy.
+      goalSkillId: (() => {
+        try { return localStorage.getItem('cali-goal-v1') || null; } catch (e) { return null; }
+      })(),
+      // Highlight-mode toggle. When OFF, the goal is still tracked + the
+      // sidebar card shows, but the canvas paints normally. When ON, non-chain
+      // nodes dim and the chain pops.
+      goalViewActive: (() => {
+        try { return localStorage.getItem('cali-goal-view-v1') === '1'; } catch (e) { return false; }
+      })(),
       signInModal: null,
       onboardingStep: -1,
       following: [],
@@ -1819,6 +1904,16 @@ class Component extends DCLogic {
   };
 
   // ─── node interactions ────────────────────────────────────────────────────
+  // Right-click a node to instantly set it as your goal. Suppresses the
+  // browser's native context menu — the new goal is visible in the sidebar
+  // and via the canvas highlight straight away, so no extra confirmation needed.
+  onNodeRightClick = (id, e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const s = this.skillById(id);
+    if (!s || s.isStub || s.isRoot) return;
+    this.setGoal(s.id);
+  };
+
   onNodeClick = (id) => {
     const s = this.skillById(id);
     if (!s) return;
@@ -1995,6 +2090,9 @@ class Component extends DCLogic {
         following: [],
         followingExpanded: false,
         myAchievements: [],
+        // Goal: clear server-derived state but keep the local one so anon
+        // users still see their goal after signing out.
+        // (state.goalSkillId stays as-is since it was set from localStorage.)
       });
       return;
     }
@@ -2015,7 +2113,18 @@ class Component extends DCLogic {
       auth: { status: 'signed-in', user, profile, email },
       signInModal: null,
       handleModal: null,
+      // Pull goal from profile if the server has one (it overrides localStorage).
+      // If the server has nothing, push our local goal UP — keeps it across devices.
+      goalSkillId: profile && profile.goal_skill_id ? profile.goal_skill_id : this.state.goalSkillId,
     });
+    // Sync directions for the goal:
+    //  • server-has-goal:  cache it locally (so we paint instantly next reload)
+    //  • server-empty + we-have-local: push it to the server
+    if (profile && profile.goal_skill_id) {
+      try { localStorage.setItem('cali-goal-v1', profile.goal_skill_id); } catch (e) {}
+    } else if (this.state.goalSkillId && window.CaliAuth && window.CaliAuth.ready) {
+      window.CaliAuth.updateProfile({ goal_skill_id: this.state.goalSkillId });
+    }
     if (justSignedIn) await this.mergeAndSyncProgress();
     this.loadMyFollowing();
     this.loadMyAchievements();
@@ -2999,6 +3108,124 @@ class Component extends DCLogic {
     return best;
   };
 
+  // ─── Goal / target skill helpers ────────────────────────────────────────────
+  // The goal feature: pick one target skill, see the whole prereq chain
+  // highlighted on the tree and the "next concrete step" in the sidebar.
+  //
+  // _computeGoalChain returns the SET of all ancestors of target (via .pre)
+  // plus target itself. Used by the canvas to glow the path and by the
+  // sidebar to count steps done/remaining.
+  _goalChainCache = { targetId: null, chain: null };
+  _computeGoalChain = (targetId, data) => {
+    if (!targetId || !data || !data.skills) return new Set();
+    if (this._goalChainCache.targetId === targetId && this._goalChainCache.chain) {
+      return this._goalChainCache.chain;
+    }
+    const byId = new Map(data.skills.map((s) => [s.id, s]));
+    const chain = new Set();
+    const queue = [targetId];
+    let safety = 500;
+    while (queue.length && safety-- > 0) {
+      const id = queue.shift();
+      if (chain.has(id) || id === 'root') continue;
+      chain.add(id);
+      const sk = byId.get(id);
+      if (sk && Array.isArray(sk.pre)) {
+        for (const p of sk.pre) {
+          if (p !== 'root' && !chain.has(p)) queue.push(p);
+        }
+      }
+    }
+    this._goalChainCache = { targetId, chain };
+    return chain;
+  };
+
+  // Next-step lookup: lowest-diff skill in the chain that is (a) unachieved
+  // and (b) has all its prereqs already achieved (i.e. actually doable today).
+  _nextGoalStep = (targetId, achievedSet, data) => {
+    if (!targetId || !data) return null;
+    if (achievedSet && achievedSet.has(targetId)) return null;  // goal already done
+    const chain = this._computeGoalChain(targetId, data);
+    const byId = new Map(data.skills.map((s) => [s.id, s]));
+    const candidates = [];
+    for (const id of chain) {
+      if (achievedSet && achievedSet.has(id)) continue;
+      const sk = byId.get(id);
+      if (!sk) continue;
+      const ready = (sk.pre || []).every((p) => p === 'root' || (achievedSet && achievedSet.has(p)));
+      if (ready) candidates.push(sk);
+    }
+    if (!candidates.length) return null;
+    // Lowest difficulty first; ties broken by name for stability.
+    candidates.sort((a, b) => (a.diff || 0) - (b.diff || 0) || a.name.localeCompare(b.name));
+    return candidates[0];
+  };
+
+  // Combined snapshot used by both the sidebar card and the canvas highlight.
+  _goalSnapshot = (data) => {
+    const targetId = this.state.goalSkillId;
+    if (!targetId) return { active: false };
+    const byId = new Map(data.skills.map((s) => [s.id, s]));
+    const target = byId.get(targetId);
+    if (!target) return { active: false };
+    const achieved = this.state.myChecked || new Set();
+    const chain = this._computeGoalChain(targetId, data);
+    let doneCount = 0;
+    for (const id of chain) if (achieved.has(id)) doneCount++;
+    const next = this._nextGoalStep(targetId, achieved, data);
+    return {
+      active: true,
+      target,
+      chain,
+      doneCount,
+      totalCount: chain.size,
+      next,
+      isAchieved: achieved.has(targetId),
+      viewActive: !!this.state.goalViewActive,
+    };
+  };
+
+  // ─── Goal mutation methods ──────────────────────────────────────────────────
+  setGoal = (skillId) => {
+    if (!skillId) return;
+    this._goalChainCache = { targetId: null, chain: null };
+    this.setState({ goalSkillId: skillId, goalViewActive: true });
+    try { localStorage.setItem('cali-goal-v1', skillId); } catch (e) {}
+    try { localStorage.setItem('cali-goal-view-v1', '1'); } catch (e) {}
+    // Sync to server if signed in. Fire-and-forget: failure just means it
+    // doesn't sync across devices this round.
+    if (this.state.auth && this.state.auth.status === 'signed-in' && window.CaliAuth) {
+      window.CaliAuth.updateProfile({ goal_skill_id: skillId });
+    }
+  };
+
+  clearGoal = () => {
+    this._goalChainCache = { targetId: null, chain: null };
+    this.setState({ goalSkillId: null, goalViewActive: false });
+    try { localStorage.removeItem('cali-goal-v1'); } catch (e) {}
+    try { localStorage.removeItem('cali-goal-view-v1'); } catch (e) {}
+    if (this.state.auth && this.state.auth.status === 'signed-in' && window.CaliAuth) {
+      window.CaliAuth.updateProfile({ goal_skill_id: null });
+    }
+  };
+
+  toggleGoalView = () => {
+    const next = !this.state.goalViewActive;
+    this.setState({ goalViewActive: next });
+    try { localStorage.setItem('cali-goal-view-v1', next ? '1' : '0'); } catch (e) {}
+  };
+
+  goToNextGoalStep = () => {
+    const data = window.CALI_DATA;
+    if (!data) return;
+    const snap = this._goalSnapshot(data);
+    if (!snap.active) return;
+    // If the goal itself is unachieved + ready (no chain ahead of it), focus
+    // the goal node. Otherwise pan/zoom to the computed next step.
+    const target = snap.next || snap.target;
+    if (target) this.goToSkill(target.id);
+  };
+
   computeStats = (data, checked) => {
     const cats = data.categories;
     const catIds = Object.keys(cats);
@@ -3179,11 +3406,20 @@ class Component extends DCLogic {
   renderVals() {
     const data = window.CALI_DATA;
     if (!data) {
-      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, signInModal: null, profileView: null, leaderboardView: null, compareView: null, feedView: null, onboarding: null, uiMode: this.state.uiMode || 'canvas', mobile: { show: false } };
+      return { nodes: [], connections: [], categoryStats: [], minimap: { width: 200, height: 140, dots: [], viewport: { x: 0, y: 0, w: 0, h: 0 }, onClick: () => {} }, panX: 0, panY: 0, scale: 1, totalCheckedLabel: '', zoomLabel: '100%', exportLabel: 'Share progress', canvasRef: (el) => { this.canvasEl = el; }, onPanStart: this.onPanStart, onZoomIn: () => this.zoomBy(1.25), onZoomOut: () => this.zoomBy(0.8), onResetView: this.centerView, onExport: this.onExport, onReset: this.onReset, onMakeMine: this.onMakeMine, onDiscardShared: this.onDiscardShared, isShared: false, expandedPanel: null, copyFeedback: '', auth: { showChip: false }, handleModal: null, signInModal: null, profileView: null, leaderboardView: null, compareView: null, feedView: null, onboarding: null, uiMode: this.state.uiMode || 'canvas', mobile: { show: false }, goal: { empty: true, active: false, onSetEmpty: this.openSearch } };
     }
 
     const checked = this.getActiveChecked();
     const { pan, scale } = this.state;
+
+    // ─── Goal snapshot ─────────────────────────────────────────────────────────────
+    // Computed up here because both the node loop and the connection loop
+    // below need to know which skills are in the chain.
+    const goalSnap = this._goalSnapshot(data);
+    const goalActive = goalSnap.active && goalSnap.viewActive;
+    const goalChainSet = goalActive ? goalSnap.chain : null;
+    const goalTargetId = goalActive ? goalSnap.target.id : null;
+    const goalNextId   = (goalActive && goalSnap.next) ? goalSnap.next.id : null;
 
     // ─── Build nodes ────────────────────────────────────────────────────────
     const nodes = data.skills.map((s) => {
@@ -3226,6 +3462,37 @@ class Component extends DCLogic {
         shadow += `, 0 0 0 3px rgba(255,255,255,0.15)`;
       }
 
+      // ─── Goal-highlight overrides. Three states when goalActive:
+      //   • in chain + IS target  → pulsing glow + bright ring
+      //   • in chain + IS next    → strong ring (no pulse, less distracting)
+      //   • in chain (other)      → keep default + small accent ring
+      //   • NOT in chain          → dim everything down
+      // Root + stubs follow the chain rule too — we want users to see exactly
+      // what's part of the path and what isn't.
+      let goalAnim = '';
+      let goalCssVars = '';
+      let opacity = 1;
+      if (goalActive) {
+        const inChain = goalChainSet && goalChainSet.has(s.id);
+        const isGoalTarget = s.id === goalTargetId;
+        const isGoalNext   = s.id === goalNextId;
+        if (!inChain && !s.isRoot) {
+          opacity = s.isStub ? 0.12 : 0.22;
+          shadow = `inset 0 0 6px rgba(0,0,0,0.5)`;
+        } else if (isGoalTarget && hue != null) {
+          const glow = `oklch(0.78 0.22 ${hue} / 0.9)`;
+          const ring = `oklch(0.88 0.18 ${hue} / 0.85)`;
+          goalCssVars = `--goal-glow: ${glow}; --goal-ring: ${ring}; `;
+          goalAnim = 'goal-pulse 2.2s ease-in-out infinite';
+          shadow = `0 0 22px ${glow}, 0 0 50px ${glow}, 0 0 0 3px ${ring}, inset 0 0 14px rgba(255,255,255,0.18)`;
+        } else if (isGoalNext && hue != null) {
+          const ring = `oklch(0.85 0.20 ${hue})`;
+          shadow = `0 0 18px oklch(0.7 0.22 ${hue} / 0.7), 0 0 38px oklch(0.7 0.22 ${hue} / 0.4), 0 0 0 2.5px ${ring}, inset 0 0 10px rgba(255,255,255,0.12)`;
+        } else if (inChain && hue != null) {
+          shadow += `, 0 0 0 1.5px oklch(0.6 0.18 ${hue} / 0.45)`;
+        }
+      }
+
       // Label
       const labelTop = size + 6;
       const isImportant = s.isRoot || s.isStub || isChecked || isExpanded || s.diff >= 9 || !!s.isFingertip;
@@ -3259,7 +3526,9 @@ class Component extends DCLogic {
         shadow,
         cursor: s.isStub ? 'default' : 'pointer',
         z: isExpanded ? 40 : 10,
-        opacity: s.isStub ? 0.55 : 1,
+        opacity: s.isStub ? 0.55 : opacity,
+        goalAnim,
+        goalCssVars,
         isRoot: !!s.isRoot,
         hasFig: !!figDef,
         figSize,
@@ -3278,6 +3547,7 @@ class Component extends DCLogic {
         labelWeight,
         labelColor,
         onClick: () => this.onNodeClick(s.id),
+        onContextMenu: (e) => this.onNodeRightClick(s.id, e),
       };
     });
 
@@ -3318,6 +3588,21 @@ class Component extends DCLogic {
         } else {
           stroke = `oklch(0.5 0.12 ${hue} / 0.45)`;
           strokeWidth = 1.4;
+        }
+
+        // Goal-aware shading: chain edges (both endpoints in the chain) pop,
+        // every other edge dims down so the path is visible at a glance.
+        if (goalActive) {
+          const sInChain   = goalChainSet.has(s.id);
+          const preInChain = pre.isRoot || goalChainSet.has(preId);
+          if (sInChain && preInChain) {
+            stroke = `oklch(0.82 0.22 ${hue} / 0.95)`;
+            strokeWidth = 2.8;
+            dash = '';
+          } else {
+            stroke = `oklch(0.45 0.04 ${hue} / 0.12)`;
+            strokeWidth = 1;
+          }
         }
 
         // Path
@@ -3443,6 +3728,25 @@ class Component extends DCLogic {
             : (isCheckedNow ? '✓ Achieved — click to undo' : 'Mark as achieved'),
           checkCursor: isShared ? 'not-allowed' : 'pointer',
           checkOpacity: isShared ? 0.6 : 1,
+          // Goal button state. When this skill is already the active goal,
+          // the button reads "Clear goal" and clears; otherwise it sets the
+          // goal to this skill.
+          isCurrentGoal: this.state.goalSkillId === s.id,
+          canSetGoal: !isShared,
+          goalBtnLabel: this.state.goalSkillId === s.id ? 'Clear goal ⚑' : 'Set as goal ⚑',
+          goalBtnBg: this.state.goalSkillId === s.id
+            ? 'rgba(255,255,255,0.04)'
+            : `oklch(0.32 0.18 ${hue} / 0.4)`,
+          goalBtnBorder: this.state.goalSkillId === s.id
+            ? 'rgba(255,255,255,0.12)'
+            : `oklch(0.62 0.20 ${hue} / 0.55)`,
+          goalBtnColor: this.state.goalSkillId === s.id
+            ? '#a8a8c0'
+            : `oklch(0.92 0.16 ${hue})`,
+          onSetGoal: () => {
+            if (this.state.goalSkillId === s.id) this.clearGoal();
+            else this.setGoal(s.id);
+          },
           // Achievement date (own data, when we have it). Surfaced only for
           // skills the user has actually checked AND that we have a
           // timestamp for (achievements logged before the achievements table
@@ -4037,6 +4341,24 @@ class Component extends DCLogic {
           figHy: figDef ? figDef.hy : 0,
           figHr: figDef ? figDef.hr : 0,
           figBody: figDef ? figDef.body : '',
+          isCurrentGoal: this.state.goalSkillId === s.id,
+          goalIcon: this.state.goalSkillId === s.id ? '✓' : '⚑',
+          goalTitle: this.state.goalSkillId === s.id ? 'Already your goal — click to clear' : 'Set as goal',
+          goalBg: this.state.goalSkillId === s.id
+            ? `oklch(0.42 0.18 ${hue} / 0.5)`
+            : 'rgba(255,255,255,0.04)',
+          goalBorder: this.state.goalSkillId === s.id
+            ? `oklch(0.7 0.22 ${hue} / 0.7)`
+            : 'rgba(255,255,255,0.08)',
+          goalColor: this.state.goalSkillId === s.id
+            ? `oklch(0.92 0.18 ${hue})`
+            : '#a8a8c0',
+          onSetGoal: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            if (this.state.goalSkillId === s.id) this.clearGoal();
+            else this.setGoal(s.id);
+            this.setState({ searchModal: null });
+          },
           onClick: () => this.goToSkill(s.id),
         };
       });
@@ -4497,6 +4819,53 @@ class Component extends DCLogic {
       isShared: this.state.viewMode === 'shared',
       onMakeMine: this.onMakeMine,
       onDiscardShared: this.onDiscardShared,
+
+      // panel
+      goal: (() => {
+        if (!goalSnap.active) {
+          return { empty: true, active: false, onSetEmpty: this.openSearch };
+        }
+        const t = goalSnap.target;
+        const tCat = t.cat ? data.categories[t.cat] : null;
+        const tHue = tCat ? tCat.hue : 240;
+        const pct = goalSnap.totalCount ? Math.round((goalSnap.doneCount / goalSnap.totalCount) * 100) : 0;
+        const figs = window.CALI_FIGURES || {};
+        const nextFig = (goalSnap.next && goalSnap.next.fig) ? figs[goalSnap.next.fig] : null;
+        const nextCat = goalSnap.next && goalSnap.next.cat ? data.categories[goalSnap.next.cat] : null;
+        const nextHue = nextCat ? nextCat.hue : tHue;
+        return {
+          empty: false, active: true,
+          targetName: t.name,
+          targetCatColor: `oklch(0.85 0.18 ${tHue})`,
+          cardBg: `linear-gradient(135deg, oklch(0.28 0.16 ${tHue} / 0.22), rgba(255,255,255,0.01))`,
+          cardBorder: `oklch(0.55 0.18 ${tHue} / 0.4)`,
+          stepsLabel: `${goalSnap.doneCount} of ${goalSnap.totalCount} steps`,
+          progressPct: pct,
+          progressPctLabel: `${pct}%`,
+          progressBarColor: `oklch(0.65 0.22 ${tHue})`,
+          isAchieved: goalSnap.isAchieved,
+          hasNext: !!goalSnap.next && !goalSnap.isAchieved,
+          nextName: goalSnap.next ? goalSnap.next.name : '',
+          nextHasFig: !!nextFig,
+          nextFigHx: nextFig ? nextFig.hx : 0,
+          nextFigHy: nextFig ? nextFig.hy : 0,
+          nextFigHr: nextFig ? nextFig.hr : 0,
+          nextFigBody: nextFig ? nextFig.body : '',
+          nextFigStroke: `oklch(0.88 0.14 ${nextHue})`,
+          nextFigBg: `oklch(0.32 0.18 ${nextHue} / 0.4)`,
+          nextBg: `oklch(0.22 0.14 ${nextHue} / 0.4)`,
+          nextBorder: `oklch(0.55 0.18 ${nextHue} / 0.55)`,
+          viewActive: goalSnap.viewActive,
+          toggleLabel: goalSnap.viewActive ? '◉ ON' : '○ OFF',
+          toggleBg: goalSnap.viewActive ? `oklch(0.42 0.18 ${tHue} / 0.5)` : 'rgba(255,255,255,0.04)',
+          toggleBorder: goalSnap.viewActive ? `oklch(0.7 0.22 ${tHue} / 0.7)` : 'rgba(255,255,255,0.12)',
+          toggleColor: goalSnap.viewActive ? `oklch(0.92 0.18 ${tHue})` : '#8a8aa0',
+          onToggleView: this.toggleGoalView,
+          onGoToNext: this.goToNextGoalStep,
+          onChange: this.openSearch,
+          onClear: this.clearGoal,
+        };
+      })(),
 
       // panel
       expandedPanel,
