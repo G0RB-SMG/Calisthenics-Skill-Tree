@@ -141,9 +141,11 @@
   async function checkHandleAvailable(handle) {
     if (!client) return null;
     if (!/^[a-z0-9_]{3,24}$/.test(handle)) return false;
+    // Use only the handle column — avoids the optional-column issue that
+    // can break a full PROFILE_COLS select before the migration's run.
     const { data, error } = await client
       .from('profiles')
-      .select('id')
+      .select('id, handle')
       .eq('handle', handle)
       .maybeSingle();
     if (error) return null;
@@ -323,11 +325,20 @@
   // Used later for public profile pages and leaderboards.
   async function getProfileByHandle(handle) {
     if (!client) return null;
-    const { data } = await client
+    let { data, error } = await client
       .from('profiles')
       .select(PROFILE_COLS)
       .eq('handle', handle)
       .maybeSingle();
+    // Same migration safety as fetchProfile: retry without optional columns.
+    if (error) {
+      const retry = await client
+        .from('profiles')
+        .select(CORE_PROFILE_COLS)
+        .eq('handle', handle)
+        .maybeSingle();
+      data = retry.data;
+    }
     return data;
   }
 

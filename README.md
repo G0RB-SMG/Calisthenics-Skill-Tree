@@ -16,6 +16,12 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-29 — Critical hotfix: stuck on "Pick a username" prompt
+- Last push added a `goal_skill_id` column to PROFILE_COLS in `auth.js`. If you hadn't run § 6d yet, that column doesn't exist in your DB → the profile SELECT 400'd → `fetchProfile` returned null → app showed the handle picker for users who already have a handle. Picking the existing handle then said "taken" (taken by yourself).
+- **Fix:** `fetchProfile` and `getProfileByHandle` now **gracefully retry** without the optional columns if the first SELECT errors. App works whether or not § 6d has been run.
+- `checkHandleAvailable` now selects only `id, handle` — same reason; was selecting full PROFILE_COLS and failing the same way.
+- Goal sync to the server still requires § 6d, but the app no longer breaks if you haven't run it yet — goal just stays local until the column exists.
+
 ### 2026-06-29 — Goal / target skill
 - **Pick a target skill** ("Front Lever", "Planche", etc.) and the canvas highlights the prereq chain leading to it. Set via:
   - The new **Set as goal ⚐** button in any skill's detail panel
