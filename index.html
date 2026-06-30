@@ -128,6 +128,33 @@
     #mobile-scroll[data-cat-transitioning="1"] {
       opacity: 0.2;
     }
+    /* Constellation line draw-in: forks animate their diverging lines on mount. */
+    @keyframes cali-line-draw {
+      from { stroke-dashoffset: 240; opacity: 0; }
+      30%  { opacity: 1; }
+      to   { stroke-dashoffset: 0; opacity: 1; }
+    }
+    .cali-fork-line {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      opacity: 0;
+      animation: cali-line-draw 0.9s ease-out 0.1s forwards;
+    }
+    /* Constellation corner brackets — four small L-shapes anchor each branch
+       card like an old star-chart bookmark. Per-corner positioning kept inline
+       so the colors can be data-driven. */
+    .cali-corner {
+      position: absolute;
+      width: 9px; height: 9px;
+      pointer-events: none;
+      border-color: currentColor;
+      border-style: solid;
+      border-width: 0;
+    }
+    .cali-corner.tl { top: 4px; left: 4px;  border-top-width: 1.5px;  border-left-width: 1.5px;  }
+    .cali-corner.tr { top: 4px; right: 4px; border-top-width: 1.5px;  border-right-width: 1.5px; }
+    .cali-corner.bl { bottom: 4px; left: 4px;  border-bottom-width: 1.5px; border-left-width: 1.5px;  }
+    .cali-corner.br { bottom: 4px; right: 4px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
     @keyframes cali-shimmer {
       0%   { background-position: -800px 0; }
       100% { background-position: 800px 0; }
@@ -316,14 +343,26 @@
             <sc-if value="{{ row.isFork }}" hint-placeholder-val="{{ false }}">
               <!-- Fork: branches in a grid, diverging Y-lines below converging to path leaf -->
               <div style="padding: 18px 14px 6px; display: flex; flex-direction: column; align-items: center;">
-                <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a82; margin-bottom: 14px;">{{ row.label }}</div>
+                <!-- Header: '⟡ Choose path' flanked by constellation lines -->
+                <div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                  <span style="width: 28px; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28));"></span>
+                  <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.78 0.16 240);">⟡ {{ row.label }}</span>
+                  <span style="width: 28px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.28), transparent);"></span>
+                </div>
                 <div style="display: grid; grid-template-columns: {{ row.gridCols }}; gap: 10px; width: 100%; max-width: 460px;">
                   <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
-                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;">
+                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; position: relative; background: {{ b.bg }}; border: 1px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: {{ b.catColor }}; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 142px;">
+                      <!-- Constellation corner brackets — star-chart bookmark look -->
+                      <span class="cali-corner tl"></span>
+                      <span class="cali-corner tr"></span>
+                      <span class="cali-corner bl"></span>
+                      <span class="cali-corner br"></span>
                       <div style="width: 50px; height: 50px; border-radius: 50%; background: {{ b.gemRingBg }}; border: 2px solid {{ b.gemRingBorder }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: {{ b.gemRingShadow }};">
                         <div style="width: 9px; height: 9px; border-radius: 50%; background: {{ b.gemDot }}; box-shadow: {{ b.gemDotShadow }};"></div>
                       </div>
                       <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty; flex: 1; display: flex; align-items: center;">{{ b.name }}</div>
+                      <!-- Status pip: tiny constellation-style state indicator -->
+                      <div style="font-size: 8px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: {{ b.statusColor }}; font-family: 'JetBrains Mono', monospace;">{{ b.statusLabel }}</div>
                       <div class="cali-stars" style="font-size: 11px;">★★★★★<span class="cali-stars-fill" style="color: {{ b.catColor }}; width: {{ b.starPct }}%;">★★★★★</span></div>
                       <sc-if value="{{ b.isMultiStep }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size: 8.5px; color: #8a8aa0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-align: center; line-height: 1.35; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.08); width: 100%;">
@@ -333,11 +372,13 @@
                     </button>
                   </sc-for>
                 </div>
-                <!-- Diverging Y-lines: branches above converging to a trunk below -->
-                <svg viewBox="0 0 100 24" preserveAspectRatio="none" style="display: block; width: 85%; max-width: 380px; height: 22px; margin-top: 6px;">
+                <!-- Diverging Y-lines: dashed, dot junctions where they meet the trunk -->
+                <svg viewBox="0 0 100 28" preserveAspectRatio="none" style="display: block; width: 85%; max-width: 380px; height: 26px; margin-top: 8px;">
                   <sc-for list="{{ row.branchLines }}" as="ln" hint-placeholder-count="2">
-                    <path d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1.8" fill="none"></path>
+                    <path class="cali-fork-line" d="{{ ln.d }}" stroke="{{ row.lineColor }}" stroke-width="1" stroke-dasharray="3 4" fill="none"></path>
                   </sc-for>
+                  <!-- Trunk junction dot -->
+                  <circle cx="50" cy="26" r="1.6" fill="{{ row.lineColor }}" opacity="0.85"></circle>
                 </svg>
               </div>
             </sc-if>
@@ -4995,36 +5036,46 @@ class Component extends DCLogic {
 
         let bg, borderColor, opacity, shadow;
         let gemRingBg, gemRingBorder, gemRingShadow, gemDot, gemDotShadow;
+        let statusLabel, statusColor;
         if (isFirstChecked) {
-          bg = `linear-gradient(135deg, oklch(0.34 0.16 ${hue} / 0.5), oklch(0.22 0.12 ${hue} / 0.8))`;
-          borderColor = `oklch(0.7 0.20 ${hue} / 0.7)`;
-          opacity = 0.85;
-          shadow = `0 4px 18px rgba(0,0,0,0.4)`;
+          // Achieved branch — brighter wash, no card outline, just a hue tint.
+          bg = `linear-gradient(135deg, oklch(0.30 0.16 ${hue} / 0.30), oklch(0.18 0.10 ${hue} / 0.55))`;
+          borderColor = `oklch(0.7 0.20 ${hue} / 0.45)`;
+          opacity = 0.92;
+          shadow = `0 0 16px oklch(0.5 0.18 ${hue} / 0.18)`;
           gemRingBg = `radial-gradient(circle, oklch(0.55 0.22 ${hue} / 0.85), oklch(0.30 0.16 ${hue} / 0.95) 70%)`;
           gemRingBorder = `oklch(0.78 0.22 ${hue})`;
           gemRingShadow = `0 0 14px oklch(0.6 0.22 ${hue} / 0.5), inset 0 0 6px rgba(255,255,255,0.12)`;
           gemDot = '#fff';
           gemDotShadow = '0 0 8px #fff';
+          statusLabel = '✓ done';
+          statusColor = `oklch(0.85 0.18 ${hue})`;
         } else if (isAvailable) {
-          bg = 'rgba(20,20,36,0.92)';
-          borderColor = `oklch(0.6 0.18 ${hue} / 0.55)`;
+          // Ready: translucent hue tint, faint glow.
+          bg = `linear-gradient(135deg, oklch(0.18 0.12 ${hue} / 0.35), oklch(0.10 0.06 ${hue} / 0.55))`;
+          borderColor = `oklch(0.6 0.18 ${hue} / 0.45)`;
           opacity = 1;
-          shadow = `0 4px 18px rgba(0,0,0,0.4)`;
+          shadow = `0 0 14px oklch(0.5 0.18 ${hue} / 0.18)`;
           gemRingBg = `radial-gradient(circle, oklch(0.32 0.20 ${hue} / 0.55), oklch(0.18 0.10 ${hue} / 0.7) 70%)`;
           gemRingBorder = `oklch(0.65 0.20 ${hue} / 0.75)`;
           gemRingShadow = `0 0 18px oklch(0.65 0.20 ${hue} / 0.45), inset 0 0 8px rgba(255,255,255,0.08)`;
           gemDot = `oklch(0.88 0.18 ${hue})`;
           gemDotShadow = `0 0 8px oklch(0.88 0.18 ${hue})`;
+          statusLabel = 'ready';
+          statusColor = `oklch(0.85 0.18 ${hue})`;
         } else {
-          bg = 'rgba(15,15,26,0.75)';
-          borderColor = 'rgba(255,255,255,0.08)';
-          opacity = 0.5;
-          shadow = '0 2px 10px rgba(0,0,0,0.3)';
+          // Locked: very faint, no glow, dim text.
+          bg = 'linear-gradient(135deg, rgba(15,15,26,0.4), rgba(10,10,18,0.55))';
+          borderColor = 'rgba(255,255,255,0.06)';
+          opacity = 0.55;
+          shadow = 'none';
           gemRingBg = 'rgba(20,20,36,0.7)';
           gemRingBorder = 'rgba(255,255,255,0.1)';
           gemRingShadow = 'none';
           gemDot = '#4a4a62';
           gemDotShadow = 'none';
+          statusLabel = 'locked';
+          statusColor = '#5a5a72';
         }
         // Footer wording — when we have a branch label, lead with the
         // destination so the user knows where they'd end up; otherwise keep
@@ -5048,6 +5099,7 @@ class Component extends DCLogic {
           catAccent: `oklch(0.78 0.22 ${hue})`,
           justAchieved: justAchievedIds.has(firstSkillId) ? '1' : '',
           justUnlocked: justUnlockedIds.has(firstSkillId) ? '1' : '',
+          statusLabel, statusColor,
           bg, borderColor, opacity, shadow,
           // Gem fields (replaces stick-figure SVG).
           gemRingBg, gemRingBorder, gemRingShadow,

@@ -16,6 +16,16 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Mobile redesign push 4: fork branch cards
+- Fork branch cards (the 2-3 choices above the path leaf) now match the constellation aesthetic:
+  - **Translucent backgrounds** with a hue-tinted wash instead of opaque dark cards — lets the star field show through
+  - **Constellation corner brackets** (four L-shapes at each corner) — star-chart bookmark look
+  - **"⟡ PICK A BRANCH" header** flanked by short constellation lines (matches the Elite cap style)
+  - **Status pip** under the gem: "✓ DONE" / "ready" / "locked" in tiny monospace caps with category color
+  - **Dashed diverging Y-lines** below the cards (3-4 dash pattern, thinner stroke) with a junction dot where they meet the trunk
+  - Lines animate IN on mount via `stroke-dashoffset` — they "draw" themselves from the gem down to the trunk
+- Mobile-redesign sprint complete — pushes 1-4 shipped.
+
 ### 2026-06-30 — Mobile redesign push 3: tactile animations
 - **Tap press** — mobile cards briefly scale down to 0.97 on touch (`.mobile-card:active`). Pure CSS, works on touch + mouse.
 - **Newly-available pulse** — when a tap unlocks a previously-locked node (its prereqs are now met), that node pulses 3× with a slow expand + accent-color glow.
