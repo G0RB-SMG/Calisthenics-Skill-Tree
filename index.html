@@ -3585,9 +3585,11 @@ class Component extends DCLogic {
 
   // World-class gate: Grandmaster requires ≥1 of these skills.
   // (Wizard requires ALL skills, computed dynamically.)
+  // NOTE: iron_cross was previously here but was recalibrated to diff 9 in
+  // the diff-audit pass — it no longer counts as world-class apex tier.
   RANK_GATES_GRANDMASTER = [
     'full_maltese', 'fingertip_full_planche', 'victorian',
-    'iron_cross', 'one_arm_fl', 'one_arm_hs_free',
+    'one_arm_fl', 'one_arm_hs_free',
     'manna', 'pelican', 'hefesto', 'iron_split',
   ];
   // Per-category gates (still require an elite peak skill at the top).

@@ -16,6 +16,27 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Diff recalibration pass (push 1 of N)
+- **Drops from diff 10:**
+  - Iron cross (Pull) → 9
+  - 90° HSPU (Push) → 8
+  - Weighted full FL pullup (Pull) → 9
+  - Weighted full front lever (Pull) → 9
+  - Sissy squat (Legs) → 9 — still the apex leg skill
+  - Straddle maltese (Push) → 9
+  - One-arm pull-up (Pull) → 9 — too common (~0.1%) to share a row with Victorian (~0.002%)
+- **Drops from diff 9:**
+  - Natural leg extension (Legs) → 8
+  - One-arm handstand (fingertip-assisted) (Push) → 8 — much less rare than other 9s
+- **Bumps up:**
+  - Dragon flag (Core): 7 → 8
+  - L-sit (Core): 4 → 5
+- **Drops:**
+  - Diamond push-up (Push): 5 → 4
+- **Iron cross removed from the Grandmaster gate list.** Since it's now diff 9, it doesn't count as world-class apex anymore. The 9 remaining gate skills (Full Maltese, Fingertip Full Planche, Victorian, One-arm FL, One-arm HS free, Manna, Pelican, Hefesto, Iron Split) still unlock Grandmaster overall. Iron cross stays in the per-category Pull gate (still elite for pull specifically).
+- All score thresholds and tier badges unchanged — these are pure data-side recalibrations. Existing ranks will shift slightly down or up depending on which skills the user has.
+- **Rarity (`~0.04%` etc.) values still need a pass** — saved for a separate round.
+
 ### 2026-06-30 — Ranking push 3: world-class gate finalized
 - **Grandmaster overall gate** expanded from 3 to 10 skills. Achieving any of these now unlocks the Grandmaster tier (overall): Full Maltese, Fingertip Full Planche, Victorian, Iron Cross, One-arm Front Lever, One-arm Handstand (free), Manna, Pelican, Hefesto, Iron Split.
 - **Per-category gates updated**:
