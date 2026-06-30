@@ -16,6 +16,22 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Mobile redesign push 3: tactile animations
+- **Tap press** — mobile cards briefly scale down to 0.97 on touch (`.mobile-card:active`). Pure CSS, works on touch + mouse.
+- **Newly-available pulse** — when a tap unlocks a previously-locked node (its prereqs are now met), that node pulses 3× with a slow expand + accent-color glow.
+- **Achievement flash** — toggling a skill to checked fires a brief radial white ring on the card (and on every cascaded prereq that became achieved).
+- **Category cross-fade** — switching tabs fades the scroll container out (~180ms), swaps category mid-fade, and fades back in.
+- All transient effects are driven by `data-just-achieved` / `data-just-unlocked` attrs that auto-clear after the animation finishes — they don't re-trigger on subsequent renders.
+
+### 2026-06-30 — Mobile redesign push 2: gem-style constellation nodes
+- Replaced the stick-figure SVGs on mobile path cards + branch cards with **gem-style constellation nodes** — outer ring with radial gradient + box-shadow glow, bright inner dot.
+- Three visual states per node:
+  - **Achieved**: bright core, pure-white dot with heavy glow ("the star is lit")
+  - **Available/Ready**: medium core, hue-colored dot with strong glow
+  - **Locked**: flat, no glow, dim grey dot
+- Glow intensity is heaviest on path cards, gentler on smaller fork cards.
+- All driven by inline styles (no class state machine), so the look survives direct-manipulation edits.
+
 ### 2026-06-29 — Mobile redesign push 1: star-field constellation aesthetic
 - **Star-field background** behind the mobile view — radial deep-navy gradient + 22 twinkling dots (some bigger with subtle glow, all on slow 4-6s cycles). Replaces the flat dark-purple panel.
 - **5-star difficulty** replaces the old `DIFF X` pill on both branch cards and path cards. Uses half-star precision via a percentage-fill overlay (e.g. DIFF 3 = 1.5 stars, DIFF 7 = 3.5 stars). Star color matches the category.

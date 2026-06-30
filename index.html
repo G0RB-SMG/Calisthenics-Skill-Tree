@@ -69,6 +69,65 @@
       overflow: hidden;
       white-space: nowrap;
     }
+    /* ─── Mobile interaction animations (push 3) ──────────────────────────── */
+    /* Tap press: scale the whole card briefly when tapped. CSS active state
+       is robust — works on touch + mouse, doesn't need JS. */
+    .mobile-card {
+      transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .mobile-card:active {
+      transform: scale(0.97);
+      transition-duration: 0.05s;
+    }
+    /* Newly-available pulse: a card that just unlocked emits a slow scale +
+       glow pulse for a few seconds. Triggered by [data-just-unlocked="1"]. */
+    @keyframes cali-newly-available {
+      0%, 100% { transform: scale(1);     box-shadow: 0 4px 18px rgba(0,0,0,0.4); }
+      50%      { transform: scale(1.025); box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 26px var(--cali-accent, oklch(0.7 0.22 240 / 0.6)); }
+    }
+    [data-just-unlocked="1"] {
+      animation: cali-newly-available 1.8s ease-in-out 0s 3 both;
+    }
+    /* Achievement flash + radial burst. Triggered by [data-just-achieved="1"]
+       briefly when a node is checked off. Lasts ~900ms then auto-removes. */
+    @keyframes cali-achieve-flash {
+      0%   { box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 0 0 #fff; }
+      30%  { box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 0 8px rgba(255,255,255,0.4); }
+      100% { box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 0 28px rgba(255,255,255,0); }
+    }
+    [data-just-achieved="1"] {
+      animation: cali-achieve-flash 0.9s ease-out forwards;
+    }
+    /* Achievement burst: 8 particles shoot out from center, fade away. */
+    .cali-burst {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .cali-burst-particle {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--cali-accent, oklch(0.85 0.18 240));
+      box-shadow: 0 0 8px var(--cali-accent, oklch(0.85 0.18 240));
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      animation: cali-burst-fly 0.85s ease-out forwards;
+    }
+    @keyframes cali-burst-fly {
+      0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+      100% { transform: translate(calc(-50% + var(--bx, 40px)), calc(-50% + var(--by, -40px))) scale(1); opacity: 0; }
+    }
+    /* Category cross-fade: when switching categories, the scroll container
+       fades out then in. Driven by [data-cat-transitioning] on #mobile-scroll. */
+    #mobile-scroll {
+      transition: opacity 0.22s ease;
+    }
+    #mobile-scroll[data-cat-transitioning="1"] {
+      opacity: 0.2;
+    }
     @keyframes cali-shimmer {
       0%   { background-position: -800px 0; }
       100% { background-position: 800px 0; }
@@ -260,14 +319,9 @@
                 <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a82; margin-bottom: 14px;">{{ row.label }}</div>
                 <div style="display: grid; grid-template-columns: {{ row.gridCols }}; gap: 10px; width: 100%; max-width: 460px;">
                   <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
-                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" style="background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;" style-hover="transform: translateY(-2px);">
-                      <div style="width: 46px; height: 46px; border-radius: 50%; background: {{ b.figBg }}; border: 1.5px solid {{ b.borderColor }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <sc-if value="{{ b.hasFig }}" hint-placeholder-val="{{ false }}">
-                          <svg width="34" height="34" viewBox="0 0 60 60" fill="none" stroke="{{ b.figStroke }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="{{ b.figHx }}" cy="{{ b.figHy }}" r="{{ b.figHr }}"></circle>
-                            <path d="{{ b.figBody }}"></path>
-                          </svg>
-                        </sc-if>
+                    <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; background: {{ b.bg }}; border: 1.5px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 132px;">
+                      <div style="width: 50px; height: 50px; border-radius: 50%; background: {{ b.gemRingBg }}; border: 2px solid {{ b.gemRingBorder }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: {{ b.gemRingShadow }};">
+                        <div style="width: 9px; height: 9px; border-radius: 50%; background: {{ b.gemDot }}; box-shadow: {{ b.gemDotShadow }};"></div>
                       </div>
                       <div style="font-size: 12.5px; font-weight: 600; color: #e8e8ef; text-align: center; line-height: 1.22; text-wrap: pretty; flex: 1; display: flex; align-items: center;">{{ b.name }}</div>
                       <div class="cali-stars" style="font-size: 11px;">★★★★★<span class="cali-stars-fill" style="color: {{ b.catColor }}; width: {{ b.starPct }}%;">★★★★★</span></div>
@@ -297,7 +351,7 @@
                   <sc-if value="{{ row.card.isFocus }}" hint-placeholder-val="{{ false }}">
                     <div aria-hidden="true" style="position: absolute; inset: -8px; border-radius: 24px; background: radial-gradient(ellipse, {{ row.card.haloColor }}, transparent 70%); animation: cali-halo-breathe 2.8s ease-in-out infinite; pointer-events: none; z-index: 0;"></div>
                   </sc-if>
-                <button onClick="{{ row.card.onClick }}" class="mobile-card" data-mobile-card="{{ row.card.id }}" style="position: relative; z-index: 1; width: 100%; background: {{ row.card.bg }}; border: 1.5px solid {{ row.card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ row.card.shadow }}; opacity: {{ row.card.opacity }};">
+                <button onClick="{{ row.card.onClick }}" class="mobile-card" data-mobile-card="{{ row.card.id }}" data-just-achieved="{{ row.card.justAchieved }}" data-just-unlocked="{{ row.card.justUnlocked }}" style="--cali-accent: {{ row.card.catAccent }}; position: relative; z-index: 1; width: 100%; background: {{ row.card.bg }}; border: 1.5px solid {{ row.card.borderColor }}; border-radius: 16px; padding: 16px 18px; font-family: 'Space Grotesk', sans-serif; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 12px; color: #e8e8ef; box-shadow: {{ row.card.shadow }}; opacity: {{ row.card.opacity }};">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: {{ row.card.catColor }}; text-transform: uppercase;">{{ row.card.catLabel }}</span>
                     <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px;">
@@ -305,13 +359,8 @@
                     </span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 14px;">
-                    <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; background: {{ row.card.figBg }}; border: 1.5px solid {{ row.card.borderColor }}; display: flex; align-items: center; justify-content: center;">
-                      <sc-if value="{{ row.card.hasFig }}" hint-placeholder-val="{{ false }}">
-                        <svg width="42" height="42" viewBox="0 0 60 60" fill="none" stroke="{{ row.card.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                          <circle cx="{{ row.card.figHx }}" cy="{{ row.card.figHy }}" r="{{ row.card.figHr }}"></circle>
-                          <path d="{{ row.card.figBody }}"></path>
-                        </svg>
-                      </sc-if>
+                    <div style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: {{ row.card.gemRingBg }}; border: 2px solid {{ row.card.gemRingBorder }}; display: flex; align-items: center; justify-content: center; box-shadow: {{ row.card.gemRingShadow }};">
+                      <div style="width: 12px; height: 12px; border-radius: 50%; background: {{ row.card.gemDot }}; box-shadow: {{ row.card.gemDotShadow }};"></div>
                     </div>
                     <div style="flex: 1; min-width: 0;">
                       <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #f0f0f8; line-height: 1.22; text-wrap: pretty;">{{ row.card.name }}</h3>
@@ -2085,7 +2134,8 @@ class Component extends DCLogic {
 
   toggleCheck = (id) => {
     if (this.state.viewMode === 'shared') return;
-    const next = new Set(this.state.myChecked);
+    const prev = new Set(this.state.myChecked);
+    const next = new Set(prev);
     const wasChecked = next.has(id);
     if (wasChecked) {
       next.delete(id);
@@ -2094,7 +2144,44 @@ class Component extends DCLogic {
       // Auto-achieve every prereq up the chain.
       this.collectAncestors(id).forEach((pid) => next.add(pid));
     }
-    this.setState({ myChecked: next });
+    // ─── Mobile animation triggers ───────────────────────────────────────
+    // - justAchievedIds: skills whose state flipped to checked this tap;
+    //   the mobile card flashes a brief white ring via [data-just-achieved].
+    // - justUnlockedIds: skills that were LOCKED before this tap (had at
+    //   least one missing prereq) but are now AVAILABLE (all prereqs met).
+    //   These pulse gently for a few seconds so the user sees what opened up.
+    const justAchievedIds = new Set(this.state.justAchievedIds || []);
+    const justUnlockedIds = new Set(this.state.justUnlockedIds || []);
+    if (!wasChecked) {
+      // Newly checked skills (id + cascaded prereqs).
+      for (const sid of next) if (!prev.has(sid)) justAchievedIds.add(sid);
+      // Compute newly-available children of any newly-checked node.
+      const data = window.CALI_DATA;
+      if (data) {
+        const justChecked = [...next].filter((sid) => !prev.has(sid));
+        const justCheckedSet = new Set(justChecked);
+        for (const s of data.skills) {
+          if (s.isStub || s.isRoot) continue;
+          if (next.has(s.id)) continue;
+          // Was this skill locked before AND is it available now?
+          const wasLockedBefore = (s.pre || []).some((pid) => pid !== 'root' && !prev.has(pid));
+          if (!wasLockedBefore) continue;
+          const availableNow = (s.pre || []).every((pid) => pid === 'root' || next.has(pid));
+          if (!availableNow) continue;
+          // Only pulse skills that became available *because* of this tap.
+          const triggeredByThisTap = (s.pre || []).some((pid) => justCheckedSet.has(pid));
+          if (triggeredByThisTap) justUnlockedIds.add(s.id);
+        }
+      }
+    }
+    this.setState({ myChecked: next, justAchievedIds, justUnlockedIds });
+    // Clear the transient markers after the animations finish so they don't
+    // re-trigger on every render. 900ms covers the flash, 5.4s covers 3
+    // pulse cycles (1.8s each).
+    if (this._achieveTimer) clearTimeout(this._achieveTimer);
+    this._achieveTimer = setTimeout(() => this.setState({ justAchievedIds: new Set() }), 950);
+    if (this._unlockTimer) clearTimeout(this._unlockTimer);
+    this._unlockTimer = setTimeout(() => this.setState({ justUnlockedIds: new Set() }), 5500);
     try {
       localStorage.setItem('cali-tree-v1', JSON.stringify([...next]));
     } catch (e) {}
@@ -2619,8 +2706,17 @@ class Component extends DCLogic {
   setMobileCategory = (cat) => {
     if (this.state.mobileCategory === cat) return;
     try { localStorage.setItem('cali-mobile-cat', cat); } catch (e) {}
-    this.setState({ mobileCategory: cat });
-    setTimeout(() => this.scrollMobileFocusIntoView(true), 80);
+    // Brief cross-fade: mark the scroll container 'transitioning' (opacity
+    // drops via CSS), swap category mid-fade, then clear the marker so it
+    // fades back in.
+    const scroll = document.getElementById('mobile-scroll');
+    if (scroll) scroll.setAttribute('data-cat-transitioning', '1');
+    setTimeout(() => {
+      this.setState({ mobileCategory: cat });
+      const s2 = document.getElementById('mobile-scroll');
+      if (s2) s2.removeAttribute('data-cat-transitioning');
+      setTimeout(() => this.scrollMobileFocusIntoView(true), 80);
+    }, 180);
   };
 
   toggleMobileSheet = () => this.setState({ mobileSheetOpen: !this.state.mobileSheetOpen });
@@ -4780,6 +4876,12 @@ class Component extends DCLogic {
       const focusId = this.computeMobilePathFocusId(activeCat, myCheckedSet);
       const catMeta = data.categories[activeCat];
 
+      // ─── transient mobile animation markers ───────────────────────────────────
+      // Populated by toggleCheck; surfaced into card data so templates can
+      // stamp data-just-achieved / data-just-unlocked on the right elements.
+      const justAchievedIds = this.state.justAchievedIds || new Set();
+      const justUnlockedIds = this.state.justUnlockedIds || new Set();
+
       // Build one card descriptor. `isChosen` = on the active linear path.
       const buildCard = (skillId, atIndex, isChosen) => {
         const s = byId.get(skillId);
@@ -4790,7 +4892,12 @@ class Component extends DCLogic {
         const figDef = s.fig ? figs[s.fig] : null;
         const hue = catMeta.hue;
         const catColor = `oklch(0.85 0.18 ${hue})`;
-        let bg, borderColor, opacity, statusLabel, shadow, figStroke, figBg;
+        // Gem treatment per state — the round avatar slot on each card becomes
+        // a Skyrim-style constellation node: an outer ring (radial gradient +
+        // glow) wrapping a bright inner dot. Strength scales with achieved/
+        // available/locked.
+        let bg, borderColor, opacity, statusLabel, shadow;
+        let gemRingBg, gemRingBorder, gemRingShadow, gemDot, gemDotShadow;
         if (isChecked) {
           bg = `linear-gradient(135deg, oklch(0.34 0.16 ${hue} / 0.65), oklch(0.22 0.12 ${hue} / 0.85))`;
           borderColor = `oklch(0.7 0.20 ${hue} / 0.85)`;
@@ -4799,8 +4906,12 @@ class Component extends DCLogic {
           shadow = isChosen
             ? `0 8px 28px oklch(0.3 0.18 ${hue} / 0.4), 0 0 0 2px oklch(0.6 0.18 ${hue} / 0.45) inset`
             : `0 4px 18px rgba(0,0,0,0.4)`;
-          figStroke = `oklch(0.92 0.10 ${hue})`;
-          figBg = `oklch(0.28 0.18 ${hue} / 0.5)`;
+          // Achieved gem: bright core, white dot with heavy glow.
+          gemRingBg = `radial-gradient(circle, oklch(0.55 0.22 ${hue} / 0.85), oklch(0.30 0.16 ${hue} / 0.95) 70%)`;
+          gemRingBorder = `oklch(0.78 0.22 ${hue})`;
+          gemRingShadow = `0 0 20px oklch(0.6 0.22 ${hue} / 0.6), inset 0 0 8px rgba(255,255,255,0.15)`;
+          gemDot = '#fff';
+          gemDotShadow = '0 0 10px #fff';
         } else if (isAvailable) {
           bg = 'rgba(20,20,36,0.92)';
           borderColor = isChosen ? `oklch(0.7 0.20 ${hue} / 0.75)` : `oklch(0.6 0.18 ${hue} / 0.4)`;
@@ -4809,16 +4920,24 @@ class Component extends DCLogic {
           shadow = isChosen
             ? `0 10px 32px rgba(0,0,0,0.55), 0 0 0 2px oklch(0.7 0.20 ${hue} / 0.5) inset`
             : `0 4px 18px rgba(0,0,0,0.4)`;
-          figStroke = `oklch(0.88 0.14 ${hue})`;
-          figBg = `oklch(0.22 0.10 ${hue} / 0.35)`;
+          // Available gem: medium-bright core, hue-colored dot with strong glow.
+          gemRingBg = `radial-gradient(circle, oklch(0.32 0.20 ${hue} / 0.6), oklch(0.16 0.08 ${hue} / 0.85) 70%)`;
+          gemRingBorder = `oklch(0.72 0.22 ${hue} / 0.85)`;
+          gemRingShadow = `0 0 24px oklch(0.7 0.22 ${hue} / 0.5), inset 0 0 10px rgba(255,255,255,0.1)`;
+          gemDot = `oklch(0.92 0.20 ${hue})`;
+          gemDotShadow = `0 0 12px oklch(0.92 0.20 ${hue}), 0 0 6px #fff`;
         } else {
           bg = 'rgba(15,15,26,0.75)';
           borderColor = isChosen ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)';
           opacity = isChosen ? 0.8 : 0.5;
           statusLabel = '○ LOCKED';
           shadow = '0 2px 10px rgba(0,0,0,0.3)';
-          figStroke = '#6a6a82';
-          figBg = 'rgba(255,255,255,0.04)';
+          // Locked gem: flat, no glow, dim dot.
+          gemRingBg = 'rgba(20,20,36,0.7)';
+          gemRingBorder = 'rgba(255,255,255,0.1)';
+          gemRingShadow = 'none';
+          gemDot = '#4a4a62';
+          gemDotShadow = 'none';
         }
         return {
           id: s.id,
@@ -4832,18 +4951,20 @@ class Component extends DCLogic {
           // Halo color for the focused (available) card — quiet glow that
           // breathes via cali-halo-breathe. Same hue as the category.
           haloColor: `oklch(0.65 0.22 ${hue} / 0.35)`,
+          // Category accent (consumed by the burst/pulse CSS variables).
+          catAccent: `oklch(0.78 0.22 ${hue})`,
+          // Animation markers: '1' or '' so template can stamp them as attrs.
+          justAchieved: justAchievedIds.has(s.id) ? '1' : '',
+          justUnlocked: justUnlockedIds.has(s.id) ? '1' : '',
           diffBg: `oklch(0.3 0.12 ${hue} / 0.3)`,
           diffBorder: `oklch(0.5 0.15 ${hue} / 0.4)`,
           isFocus,
           isChosen,
           statusLabel,
           bg, borderColor, opacity, shadow,
-          figBg, figStroke,
-          hasFig: !!figDef,
-          figHx: figDef ? figDef.hx : 0,
-          figHy: figDef ? figDef.hy : 0,
-          figHr: figDef ? figDef.hr : 0,
-          figBody: figDef ? figDef.body : '',
+          // Gem fields (replaces stick-figure SVG).
+          gemRingBg, gemRingBorder, gemRingShadow,
+          gemDot, gemDotShadow,
           onClick: () => this.mobileCardTap(activeCat, s.id, isChosen),
         };
       };
@@ -4872,28 +4993,38 @@ class Component extends DCLogic {
         const figDef = display.fig ? figs[display.fig] : null;
         const hue = catMeta.hue;
 
-        let bg, borderColor, opacity, shadow, figStroke, figBg;
+        let bg, borderColor, opacity, shadow;
+        let gemRingBg, gemRingBorder, gemRingShadow, gemDot, gemDotShadow;
         if (isFirstChecked) {
           bg = `linear-gradient(135deg, oklch(0.34 0.16 ${hue} / 0.5), oklch(0.22 0.12 ${hue} / 0.8))`;
           borderColor = `oklch(0.7 0.20 ${hue} / 0.7)`;
           opacity = 0.85;
           shadow = `0 4px 18px rgba(0,0,0,0.4)`;
-          figStroke = `oklch(0.92 0.10 ${hue})`;
-          figBg = `oklch(0.28 0.18 ${hue} / 0.5)`;
+          gemRingBg = `radial-gradient(circle, oklch(0.55 0.22 ${hue} / 0.85), oklch(0.30 0.16 ${hue} / 0.95) 70%)`;
+          gemRingBorder = `oklch(0.78 0.22 ${hue})`;
+          gemRingShadow = `0 0 14px oklch(0.6 0.22 ${hue} / 0.5), inset 0 0 6px rgba(255,255,255,0.12)`;
+          gemDot = '#fff';
+          gemDotShadow = '0 0 8px #fff';
         } else if (isAvailable) {
           bg = 'rgba(20,20,36,0.92)';
           borderColor = `oklch(0.6 0.18 ${hue} / 0.55)`;
           opacity = 1;
           shadow = `0 4px 18px rgba(0,0,0,0.4)`;
-          figStroke = `oklch(0.88 0.14 ${hue})`;
-          figBg = `oklch(0.22 0.10 ${hue} / 0.35)`;
+          gemRingBg = `radial-gradient(circle, oklch(0.32 0.20 ${hue} / 0.55), oklch(0.18 0.10 ${hue} / 0.7) 70%)`;
+          gemRingBorder = `oklch(0.65 0.20 ${hue} / 0.75)`;
+          gemRingShadow = `0 0 18px oklch(0.65 0.20 ${hue} / 0.45), inset 0 0 8px rgba(255,255,255,0.08)`;
+          gemDot = `oklch(0.88 0.18 ${hue})`;
+          gemDotShadow = `0 0 8px oklch(0.88 0.18 ${hue})`;
         } else {
           bg = 'rgba(15,15,26,0.75)';
           borderColor = 'rgba(255,255,255,0.08)';
           opacity = 0.5;
           shadow = '0 2px 10px rgba(0,0,0,0.3)';
-          figStroke = '#6a6a82';
-          figBg = 'rgba(255,255,255,0.04)';
+          gemRingBg = 'rgba(20,20,36,0.7)';
+          gemRingBorder = 'rgba(255,255,255,0.1)';
+          gemRingShadow = 'none';
+          gemDot = '#4a4a62';
+          gemDotShadow = 'none';
         }
         // Footer wording — when we have a branch label, lead with the
         // destination so the user knows where they'd end up; otherwise keep
@@ -4913,13 +5044,14 @@ class Component extends DCLogic {
           viaLabel,
           stepsLabel,
           starPct: Math.round(((display.diff || 0) / 10) * 100),
+          // Animation markers for the constellation burst/pulse animations.
+          catAccent: `oklch(0.78 0.22 ${hue})`,
+          justAchieved: justAchievedIds.has(firstSkillId) ? '1' : '',
+          justUnlocked: justUnlockedIds.has(firstSkillId) ? '1' : '',
           bg, borderColor, opacity, shadow,
-          figBg, figStroke,
-          hasFig: !!figDef,
-          figHx: figDef ? figDef.hx : 0,
-          figHy: figDef ? figDef.hy : 0,
-          figHr: figDef ? figDef.hr : 0,
-          figBody: figDef ? figDef.body : '',
+          // Gem fields (replaces stick-figure SVG).
+          gemRingBg, gemRingBorder, gemRingShadow,
+          gemDot, gemDotShadow,
           onClick: () => this.mobileCardTap(activeCat, firstSkillId, false),
         };
       };
