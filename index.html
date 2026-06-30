@@ -573,9 +573,15 @@
 
       <sc-if value="{{ auth.signedIn }}" hint-placeholder-val="{{ false }}">
         <div style="position: relative;">
-          <button onClick="{{ auth.onToggleMenu }}" style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85);">
+          <button onClick="{{ auth.onToggleMenu }}" title="{{ auth.chipTierLabel }}" style="display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 6px; background: rgba(10,10,22,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.14); border-radius: 100px; color: #e8e8ef; font-size: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(40,40,60,0.85);">
             <span style="width: 30px; height: 30px; border-radius: 50%; background: {{ auth.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ auth.iconFontSize }}; color: #fff; letter-spacing: 0.04em; font-family: 'JetBrains Mono', monospace;">{{ auth.initials }}</span>
             <span style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">@{{ auth.handle }}</span>
+            <sc-if value="{{ auth.chipShowTier }}" hint-placeholder-val="{{ false }}">
+              <span style="position: relative; display: inline-block; width: 16px; height: 18px; flex-shrink: 0;" title="{{ auth.chipTierLabel }}">
+                <span style="position: absolute; inset: 0; background: {{ auth.chipTierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);"></span>
+                <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 700; color: rgba(20,12,5,0.78); font-family: 'JetBrains Mono', monospace;">{{ auth.chipTierSubName }}</span>
+              </span>
+            </sc-if>
             <span style="color: #6a6a82; font-size: 10px; line-height: 1;">▾</span>
           </button>
           <sc-if value="{{ auth.menuOpen }}" hint-placeholder-val="{{ false }}">
@@ -686,10 +692,28 @@
       </sc-if>
     </div>
 
-    <!-- Overall tier card (always visible — start at Novice / 0 pts) -->
+    <!-- Overall tier card — metal-gradient hex badge + tier name + progress bar to next tier -->
     <div style="margin-bottom: 18px; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
-      <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 5px;">Overall tier</div>
-      <div style="font-size: 19px; font-weight: 700; color: {{ overallTierColor }}; letter-spacing: 0.01em; line-height: 1.1; margin-bottom: 10px;">{{ overallTierName }}</div>
+      <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 10px;">Overall tier</div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+        <!-- Hex badge (clip-path polygon) with metal gradient + roman numeral sub-tier overlay -->
+        <div style="position: relative; width: 42px; height: 48px; flex-shrink: 0;">
+          <div style="position: absolute; inset: 0; background: {{ overallTierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); box-shadow: 0 3px 12px rgba(0,0,0,0.45);"></div>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: rgba(20,12,5,0.78); letter-spacing: 0.02em; text-shadow: 0 1px 0 rgba(255,255,255,0.35);">{{ overallTierSubName }}</div>
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 18px; font-weight: 700; color: {{ overallTierColor }}; line-height: 1.1; letter-spacing: 0.01em;">{{ overallTierName }}</div>
+          <sc-if value="{{ overallTierNextName }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #6a6a82; letter-spacing: 0.04em; text-transform: uppercase;">Next: {{ overallTierNextName }}</div>
+          </sc-if>
+        </div>
+      </div>
+      <!-- Progress within current sub-tier toward the next -->
+      <sc-if value="{{ overallTierShowProgress }}" hint-placeholder-val="{{ true }}">
+        <div style="height: 4px; background: rgba(255,255,255,0.07); border-radius: 100px; overflow: hidden; margin-bottom: 10px;">
+          <div style="height: 100%; width: {{ overallTierProgressPct }}%; background: {{ overallTierGradient }}; border-radius: 100px;"></div>
+        </div>
+      </sc-if>
       <div style="display: flex; align-items: center; gap: 9px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
         <span style="color: #d8d8e4; font-weight: 600;">{{ overallScore }} pts</span>
         <span style="color: #3a3a52;">·</span>
@@ -724,8 +748,18 @@
         <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
           <div style="height: 100%; width: {{ cat.pct }}%; background: {{ cat.barColor }}; box-shadow: {{ cat.barGlow }}; border-radius: 2px; transition: width 0.3s ease;"></div>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; line-height: 1;">
-          <span style="font-size: 9px; color: {{ cat.tierColor }}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">{{ cat.tierName }}</span>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; line-height: 1;">
+          <!-- Per-category mini hex badge (only when ranked) -->
+          <sc-if value="{{ cat.tierIsUnranked }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 9px; color: #5a5a72; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Unranked</span>
+          </sc-if>
+          <sc-if value="{{ cat.tierFullName }}" hint-placeholder-val="{{ true }}">
+            <span style="position: relative; display: inline-block; width: 16px; height: 18px; flex-shrink: 0;">
+              <span style="position: absolute; inset: 0; background: {{ cat.tierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);"></span>
+              <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 6.5px; font-weight: 700; color: rgba(20,12,5,0.78);">{{ cat.tierSubName }}</span>
+            </span>
+            <span style="font-size: 9px; color: {{ cat.tierColor }}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">{{ cat.tierName }}</span>
+          </sc-if>
           <span style="font-size: 9px; color: #3a3a52;">·</span>
           <span style="font-size: 10px; color: #9a9ab0;">top {{ cat.percentileStr }}</span>
           <span style="font-size: 9px; color: #3a3a52;">·</span>
@@ -1299,8 +1333,26 @@
           </sc-if>
 
           <div style="padding: 22px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 18px;">
-            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 6px;">Overall tier</div>
-            <div style="font-size: 28px; font-weight: 700; color: {{ profileView.tierColor }}; letter-spacing: 0.005em; line-height: 1.1; margin-bottom: 14px;">{{ profileView.tierName }}</div>
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 14px;">Overall tier</div>
+            <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 14px;">
+              <!-- Big hex badge with metal gradient + roman numeral sub-tier overlay -->
+              <div style="position: relative; width: 76px; height: 88px; flex-shrink: 0;">
+                <div style="position: absolute; inset: 0; background: {{ profileView.tierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); box-shadow: 0 6px 22px rgba(0,0,0,0.5);"></div>
+                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: rgba(20,12,5,0.78); letter-spacing: 0.02em; text-shadow: 0 1px 1px rgba(255,255,255,0.4);">{{ profileView.tierSubName }}</div>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 32px; font-weight: 700; color: {{ profileView.tierColor }}; letter-spacing: 0.005em; line-height: 1; margin-bottom: 4px;">{{ profileView.tierName }}</div>
+                <sc-if value="{{ profileView.tierNextName }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #6a6a82; letter-spacing: 0.04em; text-transform: uppercase;">Next: {{ profileView.tierNextName }}</div>
+                </sc-if>
+              </div>
+            </div>
+            <!-- Progress bar within current sub-tier -->
+            <sc-if value="{{ profileView.tierShowProgress }}" hint-placeholder-val="{{ true }}">
+              <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; margin-bottom: 14px;">
+                <div style="height: 100%; width: {{ profileView.tierProgressPct }}%; background: {{ profileView.tierGradient }}; border-radius: 100px;"></div>
+              </div>
+            </sc-if>
             <div style="display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex-wrap: wrap;">
               <span style="color: #d8d8e4; font-weight: 600;">{{ profileView.scoreStr }} pts</span>
               <span style="color: #3a3a52;">·</span>
@@ -1747,20 +1799,29 @@
         <sc-if value="{{ leaderboardView.hasRows }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <sc-for list="{{ leaderboardView.rows }}" as="row" hint-placeholder-count="5">
-              <button onClick="{{ row.onClick }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; width: 100%; transition: background 0.15s ease, border-color 0.15s ease;" style-hover="background: rgba(25,25,42,0.85); border-color: rgba(255,255,255,0.12);">
+              <button onClick="{{ row.onClick }}" title="{{ row.tierFullName }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(15,15,28,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left; width: 100%; transition: background 0.15s ease, border-color 0.15s ease;" style-hover="background: rgba(25,25,42,0.85); border-color: rgba(255,255,255,0.12);">
                 <span style="width: 36px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: {{ row.rankColor }}; text-align: right; flex-shrink: 0;">#{{ row.rank }}</span>
                 <span style="width: 40px; height: 40px; border-radius: 50%; background: {{ row.avatarBg }}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: {{ row.iconFontSize }}; color: #fff; font-family: 'JetBrains Mono', monospace; flex-shrink: 0;">{{ row.initials }}</span>
                 <div style="flex: 1; min-width: 0;">
                   <div style="font-size: 13px; color: #e8e8ef; font-weight: 600; font-family: 'JetBrains Mono', monospace;">@{{ row.handle }}</div>
                   <div style="font-size: 11px; color: #8a8aa0; margin-top: 3px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap;">
-                    <span style="color: {{ row.tierColor }}; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 9.5px;">{{ row.tierName }}</span>
+                    <span style="color: {{ row.tierColor }}; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 9.5px;">{{ row.tierFullName }}</span>
                     <span style="color: #3a3a52;">·</span>
                     <span style="font-family: 'JetBrains Mono', monospace;">{{ row.totalSkills }} skills</span>
                     <span style="color: #3a3a52;">·</span>
                     <span style="font-family: 'JetBrains Mono', monospace;">{{ row.scoreStr }} pts</span>
                   </div>
                 </div>
-                <span style="color: #6a6a82; font-size: 14px; line-height: 1; flex-shrink: 0;">›</span>
+                <!-- Per-row tier hex badge -->
+                <sc-if value="{{ row.tierIsUnranked }}" hint-placeholder-val="{{ false }}">
+                  <span style="color: #6a6a82; font-size: 14px; line-height: 1; flex-shrink: 0;">›</span>
+                </sc-if>
+                <sc-if value="{{ row.tierFullName }}" hint-placeholder-val="{{ true }}">
+                  <span style="position: relative; display: inline-block; width: 24px; height: 28px; flex-shrink: 0;">
+                    <span style="position: absolute; inset: 0; background: {{ row.tierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);"></span>
+                    <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: rgba(20,12,5,0.78); font-family: 'JetBrains Mono', monospace;">{{ row.tierSubName }}</span>
+                  </span>
+                </sc-if>
               </button>
             </sc-for>
           </div>
@@ -3304,6 +3365,143 @@ class Component extends DCLogic {
   };
 
   // ─── render ────────────────────────────────────────────────────────────────
+  // ─── Ranking system (9 tiers × 3 sub-tiers + Wizard top) ───────────────────
+  // Bottom → top: Copper, Bronze, Silver, Gold, Platinum, Emerald, Diamond,
+  // Master, Grandmaster — each with sub-tiers III/II/I — plus a "Wizard"
+  // crown rank for full tree completion (insanely rare).
+  RANK_TIERS = [
+    { id: 'copper',      name: 'Copper',      grad: 'linear-gradient(135deg, #c47a3e 0%, #ddae7a 50%, #8a4a1e 100%)', color: '#d09a5e' },
+    { id: 'bronze',      name: 'Bronze',      grad: 'linear-gradient(135deg, #cd7f32 0%, #f2b56c 50%, #7a4a1c 100%)', color: '#e0a04a' },
+    { id: 'silver',      name: 'Silver',      grad: 'linear-gradient(135deg, #b8b8c0 0%, #f0f0f4 50%, #707078 100%)', color: '#e0e0e8' },
+    { id: 'gold',        name: 'Gold',        grad: 'linear-gradient(135deg, #c5921a 0%, #ffe162 50%, #8c6a16 100%)', color: '#ffd24a' },
+    { id: 'platinum',    name: 'Platinum',    grad: 'linear-gradient(135deg, #5fb5c7 0%, #b8e8ee 50%, #2d6e7a 100%)', color: '#9adff0' },
+    { id: 'emerald',     name: 'Emerald',     grad: 'linear-gradient(135deg, #1d9a5f 0%, #6eddae 50%, #0a5c3a 100%)', color: '#4adb8c' },
+    { id: 'diamond',     name: 'Diamond',     grad: 'linear-gradient(135deg, #5cc7ff 0%, #cdf3ff 50%, #357ba8 100%)', color: '#b8eaff' },
+    { id: 'master',      name: 'Master',      grad: 'linear-gradient(135deg, #6a2bb8 0%, #c886ff 50%, #3a1670 100%)', color: '#c186ff' },
+    { id: 'grandmaster', name: 'Grandmaster', grad: 'linear-gradient(135deg, #e74c3c 0%, #ff9b3a 50%, #8b1a10 100%)', color: '#ff7b5a' },
+    { id: 'wizard',      name: 'Wizard',      grad: 'linear-gradient(135deg, #ff3a9a 0%, #a06bff 25%, #3aceff 50%, #56e860 75%, #ffd23a 100%)', color: '#e0c8ff' },
+  ];
+  RANK_TIER_IDS = ['copper','bronze','silver','gold','platinum','emerald','diamond','master','grandmaster'];
+  RANK_SUB_NAMES = ['III', 'II', 'I']; // index 0..2, low → high within a tier
+
+  // Absolute score thresholds — start of each main tier (overall scoring).
+  // Tuned so first achievement = Copper III, full tree completion = Wizard,
+  // and Grandmaster sits just below the apex (gated by a world-class skill).
+  RANK_THRESHOLDS = {
+    copper: 1, bronze: 50, silver: 130, gold: 260, platinum: 440,
+    emerald: 680, diamond: 980, master: 1340, grandmaster: 1750,
+  };
+  // Per-category thresholds — scaled down (each category caps at ~25% of
+  // overall max, so gate at ~30% to keep the curve climbable).
+  RANK_THRESHOLDS_CAT = {
+    copper: 1, bronze: 15, silver: 40, gold: 78, platinum: 130,
+    emerald: 205, diamond: 295, master: 405, grandmaster: 525,
+  };
+
+  // World-class gate: Grandmaster requires ≥1 of these skills.
+  // (Wizard requires ALL skills, computed dynamically.)
+  RANK_GATES_GRANDMASTER = ['full_maltese', 'fingertip_full_planche', 'victorian'];
+  // Per-category gates (still require an elite peak skill at the top).
+  RANK_GATES_CAT = {
+    push:     ['full_maltese', 'fingertip_full_planche', 'fingertip_full_maltese', 'fingertip_straddle_maltese', 'one_arm_hs_free'],
+    pull:     ['victorian', 'iron_cross', 'one_arm_fl'],
+    core:     ['manna', 'full_human_flag'],
+    legs:     ['shrimp_squat', 'nordic_curl'],
+    mobility: ['full_iron_split', 'passive_sissy'],
+  };
+
+  // Categories whose skills are weighted 1.5× in the score formula.
+  RANK_WEIGHTED_CATS = new Set(['push', 'pull']);
+
+  // Score formula:
+  //   per skill: (diff)^1.7 × (1.5 if push/pull else 1)
+  //   per cat:   bonus = max_achieved_diff_in_cat × 5
+  //   total = Σ(skill_score) + Σ(category_bonus)
+  _scoreSkill = (s) => {
+    const base = Math.pow(s.diff || 0, 1.7);
+    const mult = this.RANK_WEIGHTED_CATS.has(s.cat) ? 1.5 : 1;
+    return base * mult;
+  };
+
+  // Compute the rank (full metadata) for a given score + achieved set.
+  // `scope` is 'overall' or 'cat' — picks thresholds. For 'overall' the gate
+  // skill list is RANK_GATES_GRANDMASTER; for 'cat' pass `catId` so we can
+  // pick the per-category gate list.
+  _tierFromScore = (score, achievedSet, scope, catId) => {
+    const thresholds = scope === 'cat' ? this.RANK_THRESHOLDS_CAT : this.RANK_THRESHOLDS;
+    // Unranked: no achievements at all in this scope.
+    if (!achievedSet || achievedSet.size === 0 || score < thresholds.copper) {
+      return {
+        idx: -1, tierId: 'unranked', tierName: 'Unranked', name: 'Unranked',
+        subIdx: 0, subName: '', fullName: 'Unranked',
+        color: '#5a5a72',
+        gradient: 'linear-gradient(135deg, rgba(60,60,80,0.6), rgba(35,35,52,0.8))',
+        nextFullName: 'Copper III', nextThreshold: thresholds.copper,
+        progressPct: 0, isWizard: false, isUnranked: true,
+      };
+    }
+    // Wizard: every applicable skill checked.
+    const data = window.CALI_DATA;
+    if (data) {
+      let allSkills;
+      if (scope === 'cat') {
+        allSkills = data.skills.filter((s) => s.cat === catId && !s.isStub && !s.isRoot);
+      } else {
+        allSkills = data.skills.filter((s) => !s.isStub && !s.isRoot);
+      }
+      const allDone = allSkills.length > 0 && allSkills.every((s) => achievedSet.has(s.id));
+      if (allDone) {
+        const wiz = this.RANK_TIERS[9];
+        return {
+          idx: 27, tierId: 'wizard', tierName: wiz.name, name: wiz.name,
+          subIdx: 0, subName: '', fullName: wiz.name,
+          color: wiz.color, gradient: wiz.grad,
+          nextFullName: null, nextThreshold: null, progressPct: 100,
+          isWizard: true, isUnranked: false,
+        };
+      }
+    }
+    // Find current main tier from thresholds.
+    const ids = this.RANK_TIER_IDS;
+    let mainIdx = 0;
+    for (let i = 0; i < ids.length; i++) {
+      if (score >= thresholds[ids[i]]) mainIdx = i;
+      else break;
+    }
+    // Grandmaster gate: need ≥1 world-class skill (overall) or a category peak (cat).
+    if (mainIdx === 8) {
+      const gateList = scope === 'cat'
+        ? (this.RANK_GATES_CAT[catId] || [])
+        : this.RANK_GATES_GRANDMASTER;
+      const gateOk = gateList.some((id) => achievedSet.has(id));
+      if (!gateOk) mainIdx = 7; // Cap at Master I.
+    }
+    const tdef = this.RANK_TIERS[mainIdx];
+    const curT = thresholds[ids[mainIdx]];
+    const nextT = mainIdx < 8
+      ? thresholds[ids[mainIdx + 1]]
+      : (curT * 1.6); // Grandmaster: synthetic ceiling for progress bar.
+    // Sub-tier: split [curT, nextT) into 3 equal parts (III low → I high).
+    const span = Math.max(1, nextT - curT);
+    const sub = Math.min(2, Math.max(0, Math.floor(((score - curT) / span) * 3)));
+    const subName = this.RANK_SUB_NAMES[sub];
+    const subLo = curT + (span * sub / 3);
+    const subHi = curT + (span * (sub + 1) / 3);
+    const idx = mainIdx * 3 + sub;
+    const nextFullName = (idx === 26)
+      ? 'Wizard'
+      : (sub < 2 ? tdef.name + ' ' + this.RANK_SUB_NAMES[sub + 1] : this.RANK_TIERS[mainIdx + 1].name + ' III');
+    return {
+      idx, tierId: tdef.id, tierName: tdef.name, name: tdef.name + ' ' + subName,
+      subIdx: sub, subName,
+      fullName: tdef.name + ' ' + subName,
+      color: tdef.color, gradient: tdef.grad,
+      nextFullName, nextThreshold: subHi,
+      progressPct: Math.round(((score - subLo) / Math.max(1, subHi - subLo)) * 100),
+      isWizard: false, isUnranked: false,
+    };
+  };
+
   // ─── scoring engine ────────────────────────────────────────────────────────
   // score = sum of (100 / rarity_percent) for each achieved skill.
   // percentile = top-5 rarest, compounded with α=0.25 damping.
@@ -3618,9 +3816,20 @@ class Component extends DCLogic {
 
     const achieved = data.skills.filter((s) => !s.isRoot && !s.isStub && checked.has(s.id));
     const totalSkills = data.skills.filter((s) => !s.isStub && !s.isRoot).length;
-    const overallScore = achieved.reduce((sum, s) => sum + scoreOf(s), 0);
+
+    // ─── New ranking-system scoring ─────────────────────────────────────────
+    // Per-skill: diff^1.7, ×1.5 for push/pull.
+    // Per-category: bonus = max_achieved_diff × 5.
+    const overallSkillsScore = achieved.reduce((sum, s) => sum + this._scoreSkill(s), 0);
+    const perCatMaxDiff = {};
+    for (const s of achieved) {
+      const cur = perCatMaxDiff[s.cat] || 0;
+      if ((s.diff || 0) > cur) perCatMaxDiff[s.cat] = s.diff || 0;
+    }
+    const catBonusTotal = Object.values(perCatMaxDiff).reduce((sum, d) => sum + d * 5, 0);
+    const overallScore = overallSkillsScore + catBonusTotal;
     const overallMaxDiff = achieved.reduce((m, s) => Math.max(m, s.diff || 0), 0);
-    const overallTier = tierFromDiff(overallMaxDiff);
+    const overallTier = this._tierFromScore(overallScore, checked, 'overall');
     const overallPct = pctileFromSet(achieved);
 
     const perCategory = catIds.map((catId) => {
@@ -3629,9 +3838,14 @@ class Component extends DCLogic {
       const stub = data.skills.find((s) => s.cat === catId && s.isStub);
       const isStub = !!stub && allCat.length === 0;
       const inCat = achieved.filter((s) => s.cat === catId);
-      const score = inCat.reduce((sum, s) => sum + scoreOf(s), 0);
+      const skillsScore = inCat.reduce((sum, s) => sum + this._scoreSkill(s), 0);
       const maxDiff = inCat.reduce((m, s) => Math.max(m, s.diff || 0), 0);
-      const tier = tierFromDiff(maxDiff);
+      const score = skillsScore + maxDiff * 5;
+      // Per-category checked subset (intersection of achieved IDs with this cat).
+      const catChecked = new Set(inCat.map((s) => s.id));
+      const tier = isStub
+        ? this._tierFromScore(0, new Set(), 'cat', catId)
+        : this._tierFromScore(score, catChecked, 'cat', catId);
       const pct = pctileFromSet(inCat);
       return {
         id: catId, name: cat.name, hue: cat.hue, isStub,
@@ -3988,8 +4202,12 @@ class Component extends DCLogic {
         barColor: isStub ? 'transparent' : `oklch(0.65 0.22 ${c.hue})`,
         barGlow: isStub || pct === 0 ? 'none' : `0 0 8px oklch(0.65 0.22 ${c.hue} / 0.7)`,
         hasAchievements: c.hasAchievements && !isStub,
-        tierName: c.tier.name,
+        tierName: c.tier.tierName,
+        tierFullName: c.tier.fullName,
+        tierSubName: c.tier.subName,
         tierColor: c.tier.color,
+        tierGradient: c.tier.gradient,
+        tierIsUnranked: c.tier.isUnranked,
         percentileStr: c.percentileStr,
         scoreStr: c.scoreStr,
       };
@@ -4190,6 +4408,12 @@ class Component extends DCLogic {
       email:       a.email || '',
       initials,
       iconFontSize: useEmoji ? '17px' : '11px',
+      // Account-chip tier indicator: tiny hex badge next to the username.
+      // Only shown for signed-in users with at least one achievement.
+      chipShowTier: a.status === 'signed-in' && !stats.overall.tier.isUnranked,
+      chipTierSubName: stats.overall.tier.subName || (stats.overall.tier.isWizard ? '★' : ''),
+      chipTierGradient: stats.overall.tier.gradient,
+      chipTierLabel: stats.overall.tier.fullName,
       avatarBg:    myAvatarBg,
       onSignIn:    this.onSignIn,
       onSignOut:   this.onSignOut,
@@ -4374,8 +4598,16 @@ class Component extends DCLogic {
           hasBio: !!(p.bio && p.bio.trim()),
           joinedStr: joinedStr || '—',
           followCountsLabel,
-          tierName:  ps.overall.tier.name,
+          tierName:  ps.overall.tier.tierName,
+          tierFullName: ps.overall.tier.fullName,
+          tierSubName:  ps.overall.tier.subName,
           tierColor: ps.overall.tier.color,
+          tierGradient: ps.overall.tier.gradient,
+          tierProgressPct: ps.overall.tier.progressPct,
+          tierNextName: ps.overall.tier.nextFullName,
+          tierIsUnranked: ps.overall.tier.isUnranked,
+          tierIsWizard: ps.overall.tier.isWizard,
+          tierShowProgress: !ps.overall.tier.isUnranked && !ps.overall.tier.isWizard,
           scoreStr:  ps.overall.scoreStr,
           percentileStr: ps.overall.percentileStr,
           skillsLabel: `${ps.overall.achieved} / ${ps.overall.total} skills`,
@@ -4481,9 +4713,20 @@ class Component extends DCLogic {
       if (lv.loading) {
         leaderboardViewValues = { active: true, loading: true, empty: false, hasRows: false, rows: [], onBack: this.onBackToTree };
       } else {
-        const rows = (lv.rows || []).map((r, i) => {
+        // Compute stats for every row first, then sort by tier idx (desc),
+        // then by score (desc) within the same tier. This replaces the
+        // server's score-based ordering with a proper tier-aware leaderboard.
+        const enriched = (lv.rows || []).map((r) => {
           const checkedSet = new Set(r.checked || []);
           const rs = this.computeStats(data, checkedSet);
+          return { r, rs };
+        });
+        enriched.sort((a, b) => {
+          const ai = a.rs.overall.tier.idx, bi = b.rs.overall.tier.idx;
+          if (bi !== ai) return bi - ai;
+          return b.rs.overall.score - a.rs.overall.score;
+        });
+        const rows = enriched.map(({ r, rs }, i) => {
           const rank = i + 1;
           const rankColor = rank === 1 ? 'oklch(0.85 0.18 80)' : rank === 2 ? 'oklch(0.78 0.04 240)' : rank === 3 ? 'oklch(0.7 0.18 40)' : '#8a8aa0';
           return {
@@ -4493,9 +4736,13 @@ class Component extends DCLogic {
             avatarBg: avatarFor(r),
             iconFontSize: r.avatar_url ? '0px' : (r.avatar_icon ? '22px' : '12px'),
             totalSkills: r.total_skills,
-            scoreStr:  rs.overall.scoreStr,
-            tierName:  rs.overall.tier.name,
-            tierColor: rs.overall.tier.color,
+            scoreStr:    rs.overall.scoreStr,
+            tierName:    rs.overall.tier.tierName,
+            tierFullName: rs.overall.tier.fullName,
+            tierSubName: rs.overall.tier.subName || (rs.overall.tier.isWizard ? '★' : ''),
+            tierColor:   rs.overall.tier.color,
+            tierGradient: rs.overall.tier.gradient,
+            tierIsUnranked: rs.overall.tier.isUnranked,
             onClick: () => this.navTo('/u/' + r.handle),
           };
         });
@@ -4561,8 +4808,11 @@ class Component extends DCLogic {
           initials:   initialsFor(cv.me.profile),
           avatarBg:   avatarFor(cv.me.profile),
           iconFontSize: cv.me.profile.avatar_url ? '0px' : (cv.me.profile.avatar_icon ? '30px' : '16px'),
-          tierName:   myStats.overall.tier.name,
+          tierName:   myStats.overall.tier.tierName,
+          tierFullName: myStats.overall.tier.fullName,
+          tierSubName:  myStats.overall.tier.subName,
           tierColor:  myStats.overall.tier.color,
+          tierGradient: myStats.overall.tier.gradient,
           scoreStr:   myStats.overall.scoreStr,
           skillsStr:  `${myStats.overall.achieved}/${myStats.overall.total} skills`,
         };
@@ -4571,8 +4821,11 @@ class Component extends DCLogic {
           initials:   initialsFor(cv.them.profile),
           avatarBg:   avatarFor(cv.them.profile),
           iconFontSize: cv.them.profile.avatar_url ? '0px' : (cv.them.profile.avatar_icon ? '30px' : '16px'),
-          tierName:   themStats.overall.tier.name,
+          tierName:   themStats.overall.tier.tierName,
+          tierFullName: themStats.overall.tier.fullName,
+          tierSubName:  themStats.overall.tier.subName,
           tierColor:  themStats.overall.tier.color,
+          tierGradient: themStats.overall.tier.gradient,
           scoreStr:   themStats.overall.scoreStr,
           skillsStr:  `${themStats.overall.achieved}/${themStats.overall.total} skills`,
         };
@@ -5181,10 +5434,18 @@ class Component extends DCLogic {
       zoomLabel,
       exportLabel,
 
-      // overall scoring
+      // overall scoring + rank
       hasAchievements: stats.overall.achieved > 0,
-      overallTierName: stats.overall.tier.name,
+      overallTierName: stats.overall.tier.tierName,        // 'Silver'
+      overallTierSubName: stats.overall.tier.subName,      // 'II'
+      overallTierFullName: stats.overall.tier.fullName,    // 'Silver II'
       overallTierColor: stats.overall.tier.color,
+      overallTierGradient: stats.overall.tier.gradient,
+      overallTierProgressPct: stats.overall.tier.progressPct,
+      overallTierNextName: stats.overall.tier.nextFullName,
+      overallTierIsUnranked: stats.overall.tier.isUnranked,
+      overallTierIsWizard: stats.overall.tier.isWizard,
+      overallTierShowProgress: !stats.overall.tier.isUnranked && !stats.overall.tier.isWizard,
       overallScore: stats.overall.scoreStr,
       overallPercentile: stats.overall.percentileStr,
 

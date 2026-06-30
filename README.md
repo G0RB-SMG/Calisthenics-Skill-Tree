@@ -16,6 +16,29 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — New ranking system: 9 tiers × 3 sub-tiers + Wizard apex
+- **Brand-new tier ladder** replaces the old 6-tier `Novice → World-class` system:
+  Copper → Bronze → Silver → Gold → Platinum → Emerald → Diamond → Master →
+  Grandmaster (+ secret **Wizard** rank for full tree completion). Each main
+  tier has 3 sub-tiers (III → II → I, low to high), so 27 ranks total + Wizard.
+- **New score formula**: per-skill `diff^1.7` with **1.5× weighting on Push +
+  Pull** (the longest, hardest trees); per-category bonus = `max_diff × 5`.
+- **Hard gates** on the top ranks:
+  - 0 skills → Unranked (no tier badge)
+  - Grandmaster requires **at least one world-class skill** (`full_maltese`,
+    `fingertip_full_planche`, or `victorian`) — without one you cap at Master I
+  - Wizard requires **the entire tree** (insanely rare)
+- **Metal-gradient hex badges** (clip-path polygon + gradient + roman-numeral
+  sub-tier overlay) on:
+  - Sidebar "Overall tier" card (with next-tier hint + progress bar)
+  - Profile page (big badge at top)
+  - Per-category sidebar rows (mini hex badge)
+  - Account chip in top-right (tiny next to username)
+  - Each leaderboard row (rank-aware badge)
+- **Leaderboard** now sorts by **tier idx first**, then by score within tier —
+  matches how every ranked-game ladder works.
+- No SQL or schema changes — entirely client-side; existing data works as-is.
+
 ### 2026-06-30 — Mobile: forks are now side-by-side
 - Replaced the grid layout (which wrapped to 2 columns when 4+ branches, stacking them vertically) with a **horizontal scroll row** — branches are always side-by-side like picking a path on a map.
 - Cards fit 1-3 branches centered on screen with no scroll; 4+ branches you swipe horizontally with scroll-snap to lock onto each.
