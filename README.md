@@ -16,6 +16,14 @@ npx serve .
 
 ## Changelog
 
+### 2026-06-30 — Ranking push 3: world-class gate finalized
+- **Grandmaster overall gate** expanded from 3 to 10 skills. Achieving any of these now unlocks the Grandmaster tier (overall): Full Maltese, Fingertip Full Planche, Victorian, Iron Cross, One-arm Front Lever, One-arm Handstand (free), Manna, Pelican, Hefesto, Iron Split.
+- **Per-category gates updated**:
+  - Push: added Pelican
+  - Pull: added Hefesto (Victorian / Iron Cross / One-arm FL already there)
+  - Mobility: fixed Iron Split ID
+- **Legs category caps at Master I.** No leg skill on the current tree is hard enough to count as world-class; Legs Grandmaster is intentionally locked off until harder skills get added.
+
 ### 2026-06-30 — Ranking push 2: tier-bump hints + PROMOTED celebration modal
 - **Detail panel tier-bump hint** — clicking any unachieved, available skill now shows a "TIER-UP / Achieving this would bump you to **Silver II**" callout (only when achieving it would actually move you up; silent otherwise). Computed by comparing your current tier against a hypothetical "checked + this skill + ancestors" set.
 - **PROMOTED celebration modal** — toggling a skill that bumps you up a tier now opens a big animated reveal:

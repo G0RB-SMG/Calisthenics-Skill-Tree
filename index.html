@@ -3585,14 +3585,21 @@ class Component extends DCLogic {
 
   // World-class gate: Grandmaster requires ≥1 of these skills.
   // (Wizard requires ALL skills, computed dynamically.)
-  RANK_GATES_GRANDMASTER = ['full_maltese', 'fingertip_full_planche', 'victorian'];
+  RANK_GATES_GRANDMASTER = [
+    'full_maltese', 'fingertip_full_planche', 'victorian',
+    'iron_cross', 'one_arm_fl', 'one_arm_hs_free',
+    'manna', 'pelican', 'hefesto', 'iron_split',
+  ];
   // Per-category gates (still require an elite peak skill at the top).
+  // NOTE: legs is intentionally empty — no current leg skill is hard enough
+  // to gate Grandmaster. The Legs category therefore caps at Master I until
+  // harder skills get added.
   RANK_GATES_CAT = {
-    push:     ['full_maltese', 'fingertip_full_planche', 'fingertip_full_maltese', 'fingertip_straddle_maltese', 'one_arm_hs_free'],
-    pull:     ['victorian', 'iron_cross', 'one_arm_fl'],
+    push:     ['full_maltese', 'fingertip_full_planche', 'fingertip_full_maltese', 'fingertip_straddle_maltese', 'one_arm_hs_free', 'pelican'],
+    pull:     ['victorian', 'iron_cross', 'one_arm_fl', 'hefesto'],
     core:     ['manna', 'full_human_flag'],
-    legs:     ['shrimp_squat', 'nordic_curl'],
-    mobility: ['full_iron_split', 'passive_sissy'],
+    legs:     [],
+    mobility: ['iron_split', 'passive_sissy'],
   };
 
   // Categories whose skills are weighted 1.5× in the score formula.
