@@ -1281,6 +1281,50 @@
     </div>
   </sc-if>
 
+  <!-- ─── RANK LADDER modal ────────────────────────────────────────────────────────────────────────
+       Full list of every rank + score threshold. Highlights the user's current
+       row and reveals the Grandmaster / Wizard gate requirements. ───────────────── -->
+  <sc-if value="{{ rankLadderModal.active }}" hint-placeholder-val="{{ false }}">
+    <div data-no-pan="1" style="position: fixed; inset: 0; z-index: 380; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: 20px;" onClick="{{ rankLadderModal.onClose }}">
+      <div onClick="{{ rankLadderModal.stopPropagation }}" style="position: relative; width: 100%; max-width: 500px; max-height: 88vh; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.14); border-radius: 18px; padding: 28px 20px 20px; font-family: 'Space Grotesk', sans-serif; color: #e8e8ef; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.7);">
+
+        <button onClick="{{ rankLadderModal.onClose }}" style="position: absolute; top: 14px; right: 16px; background: none; border: none; padding: 0; color: #6a6a82; font-size: 22px; line-height: 1; cursor: pointer;" style-hover="color: #d0d0dc;">×</button>
+
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; color: oklch(0.78 0.16 145); text-transform: uppercase; margin-bottom: 4px;">Ranks</div>
+        <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 600; color: #f0f0f6;">The ladder</h2>
+        <div style="font-size: 11px; color: #8a8aa0; margin-bottom: 20px;">You're at <span style="color: {{ rankLadderModal.curTierColor }}; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">{{ rankLadderModal.curTierName }}</span></div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{ rankLadderModal.rows }}" as="row" hint-placeholder-count="10">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: {{ row.rowBg }}; border: 1px solid {{ row.rowBorder }};">
+              <div style="position: relative; width: 28px; height: 32px; flex-shrink: 0;">
+                <div style="position: absolute; inset: 0; background: {{ row.gradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);"></div>
+                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: rgba(20,12,5,0.78); letter-spacing: 0.02em;">{{ row.subName }}</div>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                  <span style="font-size: 13.5px; font-weight: 700; color: {{ row.color }}; letter-spacing: 0.01em;">{{ row.fullName }}</span>
+                  <sc-if value="{{ row.isCurrent }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 8.5px; font-weight: 700; color: oklch(0.78 0.16 145); letter-spacing: 0.14em; text-transform: uppercase; padding: 2px 6px; background: oklch(0.35 0.16 145 / 0.25); border-radius: 100px;">You</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ row.requirement }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size: 10px; color: #8a8aa0; margin-top: 2px; letter-spacing: 0.02em;">{{ row.requirement }}</div>
+                </sc-if>
+              </div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a8a8c0; letter-spacing: 0.04em; flex-shrink: 0;">{{ row.thresholdStr }}<span style="color: #4a4a62; margin-left: 3px;">{{ row.thresholdUnit }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top: 18px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 10.5px; color: #8a8aa0; line-height: 1.55;">
+          Score is the sum of rarity points across your achieved skills (rarer = more points, push/pull weighted 1.5×). Sub-tiers III → II → I within each main tier.
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+
   <!-- Username (handle) picker modal — shown after first sign-in, or when chip is clicked. -->
   <sc-if value="{{ handleModal }}" hint-placeholder-val="{{ false }}">
     <div data-no-pan="1" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;">
@@ -1500,7 +1544,10 @@
           </sc-if>
 
           <div style="padding: 22px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 18px;">
-            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 14px;">Overall tier</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">Overall tier</div>
+              <button onClick="{{ profileView.onOpenLadder }}" style="padding: 6px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; color: #a8a8c0; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;" style-hover="background: rgba(255,255,255,0.08); color: #d0d0dc;">See all ranks</button>
+            </div>
             <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 14px;">
               <!-- Big hex badge with metal gradient + roman numeral sub-tier overlay -->
               <div style="position: relative; width: 76px; height: 88px; flex-shrink: 0;">
@@ -1514,10 +1561,17 @@
                 </sc-if>
               </div>
             </div>
-            <!-- Progress bar within current sub-tier -->
+            <!-- Progress bar within current sub-tier + labelled endpoints -->
             <sc-if value="{{ profileView.tierShowProgress }}" hint-placeholder-val="{{ true }}">
-              <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; margin-bottom: 14px;">
-                <div style="height: 100%; width: {{ profileView.tierProgressPct }}%; background: {{ profileView.tierGradient }}; border-radius: 100px;"></div>
+              <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.04em;">
+                  <span style="color: {{ profileView.tierColor }}; font-weight: 700; text-transform: uppercase;">{{ profileView.tierName }}</span>
+                  <span style="color: #6a6a82;">{{ profileView.tierPointsToNext }}</span>
+                  <span style="color: #8a8aa0; font-weight: 700; text-transform: uppercase;">{{ profileView.tierNextName }}</span>
+                </div>
+                <div style="height: 8px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; position: relative;">
+                  <div style="height: 100%; width: {{ profileView.tierProgressPct }}%; background: {{ profileView.tierGradient }}; border-radius: 100px; box-shadow: 0 0 12px {{ profileView.tierColor }}55;"></div>
+                </div>
               </div>
             </sc-if>
             <div style="display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex-wrap: wrap;">
@@ -2115,6 +2169,7 @@ class Component extends DCLogic {
       })(),
       signInModal: null,
       promotionModal: null,
+      rankLadderModal: null,
       onboardingStep: -1,
       following: [],
       followingExpanded: false,
@@ -2750,6 +2805,10 @@ class Component extends DCLogic {
     });
   };
   closeSettings = () => this.setState({ settingsModal: null });
+
+  // ─── rank ladder modal ──────────────────────────────────────────────────────
+  openRankLadder = () => this.setState({ rankLadderModal: { active: true }, authMenuOpen: false });
+  closeRankLadder = () => this.setState({ rankLadderModal: null });
 
   // Resize a user-picked photo client-side to ~512px max so we don't ship a
   // 5MB phone snap to Storage. Returns a Blob with the smaller bytes; falls
@@ -4703,6 +4762,79 @@ class Component extends DCLogic {
       };
     }
 
+    // ─── rank ladder modal values ─────────────────────────────────────────────
+    // Full 28-row rank table (27 sub-tiers + Wizard apex) with score
+    // thresholds and a highlight for the user's current position.
+    let rankLadderModalValues = null;
+    if (this.state.rankLadderModal && this.state.rankLadderModal.active) {
+      const curTier = stats && stats.overall && stats.overall.tier;
+      const rows = [];
+      const ids = this.RANK_TIER_IDS;
+      const thresholds = this.RANK_THRESHOLDS;
+      // Walk each main tier low→high, emit sub-tiers III/II/I.
+      for (let mainIdx = 0; mainIdx < ids.length; mainIdx++) {
+        const tdef = this.RANK_TIERS[mainIdx];
+        const curT = thresholds[ids[mainIdx]];
+        const nextT = mainIdx < 8 ? thresholds[ids[mainIdx + 1]] : (curT * 1.6);
+        const span = Math.max(1, nextT - curT);
+        for (let sub = 0; sub < 3; sub++) {
+          const idx = mainIdx * 3 + sub;
+          const subLo = Math.round(curT + (span * sub / 3));
+          const subName = this.RANK_SUB_NAMES[sub];
+          rows.push({
+            idx,
+            fullName: tdef.name + ' ' + subName,
+            subName,
+            gradient: tdef.grad,
+            color: tdef.color,
+            threshold: subLo,
+            thresholdStr: subLo.toLocaleString(),
+            thresholdUnit: 'pts',
+            rowBg: (curTier && curTier.idx === idx)
+              ? 'linear-gradient(90deg, oklch(0.28 0.14 145 / 0.35), rgba(255,255,255,0.02))'
+              : 'rgba(255,255,255,0.02)',
+            rowBorder: (curTier && curTier.idx === idx)
+              ? 'oklch(0.55 0.16 145 / 0.55)'
+              : 'rgba(255,255,255,0.05)',
+            isCurrent: curTier && curTier.idx === idx,
+            requirement: (mainIdx === 8 && sub === 0)
+              ? '† Requires ≥1 world-class skill'
+              : (mainIdx === 0 && sub === 0 ? 'First skill = ranked' : ''),
+          });
+        }
+      }
+      // Wizard apex row (idx 27, no threshold — 100% completion).
+      const wiz = this.RANK_TIERS[9];
+      rows.push({
+        idx: 27,
+        fullName: wiz.name,
+        subName: '★',
+        gradient: wiz.grad,
+        color: wiz.color,
+        threshold: -1,
+        thresholdStr: 'ALL',
+        thresholdUnit: 'skills',
+        rowBg: (curTier && curTier.isWizard)
+          ? 'linear-gradient(90deg, oklch(0.28 0.14 145 / 0.35), rgba(255,255,255,0.02))'
+          : 'rgba(255,255,255,0.02)',
+        rowBorder: (curTier && curTier.isWizard)
+          ? 'oklch(0.55 0.16 145 / 0.55)'
+          : 'rgba(255,255,255,0.05)',
+        isCurrent: curTier && curTier.isWizard,
+        requirement: '† Every skill on the tree — rarer than any single element',
+      });
+      // Newest-first (Wizard on top, Copper III on bottom). Feels aspirational.
+      rows.reverse();
+      rankLadderModalValues = {
+        active: true,
+        rows,
+        curTierName: (curTier && !curTier.isUnranked) ? curTier.fullName : 'Unranked',
+        curTierColor: (curTier && curTier.color) || '#5a5a72',
+        onClose: () => this.setState({ rankLadderModal: null }),
+        stopPropagation: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      };
+    }
+
     // ─── sign-in modal values ─────────────────────────────────────────────────────
     let signInModalValues = null;
     if (this.state.signInModal) {
@@ -4838,6 +4970,14 @@ class Component extends DCLogic {
           tierGradient: ps.overall.tier.gradient,
           tierProgressPct: ps.overall.tier.progressPct,
           tierNextName: ps.overall.tier.nextFullName,
+          // Points remaining to the next sub-tier (or empty string if wizard).
+          tierPointsToNext: (() => {
+            const t = ps.overall.tier;
+            if (t.isWizard || !t.nextThreshold) return '';
+            const remaining = Math.max(0, Math.ceil(t.nextThreshold - ps.overall.score));
+            return remaining + ' pts to go';
+          })(),
+          onOpenLadder: this.openRankLadder,
           tierIsUnranked: ps.overall.tier.isUnranked,
           tierIsWizard: ps.overall.tier.isWizard,
           tierShowProgress: !ps.overall.tier.isUnranked && !ps.overall.tier.isWizard,
@@ -5801,6 +5941,7 @@ class Component extends DCLogic {
       handleModal: handleModalValues,
       signInModal: signInModalValues,
       promotionModal: promotionModalValues,
+      rankLadderModal: rankLadderModalValues,
       searchModal:   searchModalValues,
       settingsModal: settingsModalValues,
 

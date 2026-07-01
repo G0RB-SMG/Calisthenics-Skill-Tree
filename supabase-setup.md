@@ -306,7 +306,8 @@ the leaderboard / feed / following endpoints (existing rows just have NULLs and
 the app handles that fine):
 
 ```sql
--- Updated leaderboard: returns avatar_icon + avatar_color in addition to base profile.
+-- Updated leaderboard: returns avatar_icon + avatar_color + the raw checked[]
+-- array (needed client-side so each row's tier/rank can be computed).
 create or replace function public.leaderboard(lim int default 50)
 returns table(
   user_id      uuid,
@@ -315,24 +316,24 @@ returns table(
   avatar_url   text,
   avatar_icon  text,
   avatar_color text,
-  total_skills bigint
+  total_skills bigint,
+  checked      text[]
 )
 language sql stable as $$
   select pr.id, pr.handle, pr.display_name, pr.avatar_url, pr.avatar_icon, pr.avatar_color,
-         count(p.skill_id) as total_skills
+         coalesce(array_length(pg.checked, 1), 0)::bigint as total_skills,
+         coalesce(pg.checked, array[]::text[]) as checked
   from public.profiles pr
-  left join lateral (
-    select unnest(coalesce((pg.checked), array[]::text[])) as skill_id
-    from public.progress pg where pg.user_id = pr.id
-  ) p on true
-  group by pr.id
+  left join public.progress pg on pg.user_id = pr.id
+  where coalesce(array_length(pg.checked, 1), 0) > 0
   order by total_skills desc, pr.handle asc
   limit lim
 $$;
 
 grant execute on function public.leaderboard(int) to anon, authenticated;
 
--- Updated following_for: avatar_icon + avatar_color in the SELECT.
+-- Updated following_for: avatar_icon + avatar_color + checked[] so the
+-- following list can render each user's tier + rank correctly.
 create or replace function public.following_for(uid uuid)
 returns table(
   user_id      uuid,
@@ -341,11 +342,13 @@ returns table(
   avatar_url   text,
   avatar_icon  text,
   avatar_color text,
-  total_skills bigint
+  total_skills bigint,
+  checked      text[]
 )
 language sql stable as $$
   select pr.id, pr.handle, pr.display_name, pr.avatar_url, pr.avatar_icon, pr.avatar_color,
-         coalesce(array_length(pg.checked, 1), 0)::bigint as total_skills
+         coalesce(array_length(pg.checked, 1), 0)::bigint as total_skills,
+         coalesce(pg.checked, array[]::text[]) as checked
   from public.follows f
   join public.profiles pr on pr.id = f.followee_id
   left join public.progress pg on pg.user_id = pr.id

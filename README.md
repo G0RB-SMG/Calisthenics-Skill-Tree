@@ -16,6 +16,13 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-01 — Rank visibility polish + leaderboard tier fix
+- **Leaderboard now shows tiers correctly.** The RPC was only returning `total_skills` and not the `checked[]` array — so the client's tier computation ran on an empty set and everyone rendered as "Unranked". Fixed in `supabase-setup.md` (§6c updated leaderboard + following_for). **Run the updated SQL block to see it working.**
+- **Beefier progress bar on profile page** — bumped from 5px to 8px, added inline labels: current tier (left), points to next tier (center), next tier name (right). Glowy accent tinted to your tier color.
+- **New "See all ranks" button** on the profile tier card — opens a full 28-row ladder modal showing every tier (Wizard on top → Copper III at bottom), score thresholds, and gate requirements. Your current row is highlighted with a green tint + "YOU" badge.
+- Wizard apex row shows "ALL skills" with the note "Every skill on the tree — rarer than any single element".
+- Grandmaster tier III row shows "†Requires ≥1 world-class skill" hint so users know the gate exists.
+
 ### 2026-07-01 — Grandmaster gate expanded + tier-up hint no longer hidden by locked prereqs
 - Added **Fingertip full planche press** and **Archer FL pullup** to the Grandmaster gate list (now 11 skills)
 - Fixed the "Tier-up: achieving this would bump you to X" hint in the detail panel — it now shows on **any** unachieved skill that would bump your tier, not just skills whose prereqs are already met. Previously it was hidden on things like Full Maltese if you hadn't done the prereq chain yet, even though the hint is aspirational
