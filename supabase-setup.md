@@ -94,6 +94,20 @@ forced to re-verify their email every time. To fix:
    - **Refresh token rotation** → **Enabled** (recommended for security)
 2. **Authentication → Providers → Email** → **"Confirm email"** → **OFF**.
    Users who already confirmed once won't be re-prompted, but if this is on
+
+### Mobile-Safari-specific notes
+
+- iOS Safari **pauses JavaScript timers when the tab is backgrounded**. If the
+  JWT expires while the app is off-screen, the SDK's auto-refresh never fires.
+  The app now hooks `visibilitychange` / `pageshow` / `focus` to force a
+  refresh whenever the tab comes back — so returning users stay signed in as
+  long as their refresh token is still valid.
+- **Intelligent Tracking Prevention (ITP)** can wipe first-party site data
+  after ~7 days of inactivity. If your users disappear from your app for over
+  a week, they'll need to sign in again. The escape valve: **Add to Home
+  Screen** — homescreen-launched sites get much better storage retention.
+- The client uses `signOut({ scope: 'local' })` so signing out on one device
+  doesn't invalidate refresh tokens on other devices.
    and they signed up without confirming, they hit a verify step every time.
 3. If a specific user reports "verify via email on every login":
    - They might be using **magic-link** sign-in (single-use). Have them sign

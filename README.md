@@ -16,6 +16,13 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-01 — Mobile-Safari sign-in persistence
+Fixes the bug where users on mobile got logged out after closing/reopening the browser.
+- **Foreground revive**: added `visibilitychange` / `pageshow` (bfcache) / `focus` handlers that force a session refresh whenever the tab comes back. Safari pauses the SDK's auto-refresh timer while backgrounded — without this fix, a JWT that expired during the backgrounded window would leave the session stale and the next API call would kick the user out.
+- **`signOut()` now uses `scope: 'local'`** — previously used the default `global` scope, which invalidated refresh tokens on ALL your devices. Signing out on desktop was silently killing the mobile session (and vice-versa).
+- **Transient `TOKEN_REFRESHED` with null session** — now ignored instead of triggering sign-out (was rare but possible during network hiccups).
+- Docs: `supabase-setup.md §3c` now includes a "Mobile-Safari-specific notes" block explaining the timer-pause behavior, ITP 7-day eviction, and the Add-to-Home-Screen escape valve.
+
 ### 2026-07-01 — Rank visibility polish + leaderboard tier fix
 - **Leaderboard now shows tiers correctly.** The RPC was only returning `total_skills` and not the `checked[]` array — so the client's tier computation ran on an empty set and everyone rendered as "Unranked". Fixed in `supabase-setup.md` (§6c updated leaderboard + following_for). **Run the updated SQL block to see it working.**
 - **Beefier progress bar on profile page** — bumped from 5px to 8px, added inline labels: current tier (left), points to next tier (center), next tier name (right). Glowy accent tinted to your tier color.

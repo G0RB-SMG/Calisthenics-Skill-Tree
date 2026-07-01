@@ -56,6 +56,33 @@
     return data;
   }
 
+  // Refresh the JWT + refresh token pair explicitly. Called from the
+  // visibility/pageshow hooks below when the tab is foregrounded, since
+  // Safari pauses the SDK's internal auto-refresh timer while the app is
+  // backgrounded — without this, a session whose access token expired
+  // during the backgrounded window can go stale.
+  async function forceRefresh(source) {
+    if (!client) return;
+    try {
+      const { data, error } = await client.auth.refreshSession();
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[CaliAuth] forceRefresh(' + source + ') error', error.message);
+        return;
+      }
+      if (data && data.session) {
+        session = data.session;
+        // Only refetch the profile if we don't have one yet — saves a network
+        // round-trip on every foreground event.
+        if (!profile) profile = await fetchProfile(session.user.id);
+        notify();
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('[CaliAuth] forceRefresh(' + source + ') threw', e && e.message);
+    }
+  }
+
   async function init() {
     if (!ready) return { ready: false };
     try {
@@ -72,10 +99,44 @@
       // completed yet, that value is null — don't let it clobber a real session
       // we already have.
       if (event === 'INITIAL_SESSION' && !newSession && session) return;
+      // A one-off transient TOKEN_REFRESH_FAILURE (offline, brief 5xx) should
+      // not kick the user out. supabase-js emits SIGNED_OUT on hard refresh
+      // failures, so we let that path clear state; a transient TOKEN_REFRESHED
+      // event with no session (rare) is ignored.
+      if ((event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && !newSession && session) {
+        // eslint-disable-next-line no-console
+        console.warn('[CaliAuth] ignoring ' + event + ' with null session (transient)');
+        return;
+      }
       session = newSession;
       profile = session ? await fetchProfile(session.user.id) : null;
       notify();
     });
+
+    // ─── Foreground revive (mobile Safari fix) ────────────────────────────
+    // When the tab is backgrounded, the SDK's internal auto-refresh timer is
+    // paused. A JWT that expires during that window would leave the session
+    // stale on return — potentially triggering a spurious sign-out on the next
+    // authenticated request. Proactively refresh whenever the tab regains
+    // focus, but only if we already believe we have a session (no work to do
+    // for signed-out users).
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!session) return;
+      forceRefresh('visibilitychange');
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    // pageshow fires on both normal load and bfcache restore — the latter is
+    // Safari's page-cache reuse where JS state is kept but timers may be
+    // stale. `persisted: true` = bfcache restore.
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && session) forceRefresh('pageshow.bfcache');
+    });
+    // Belt & braces for older Safari that doesn't always fire visibilitychange.
+    window.addEventListener('focus', () => {
+      if (session) forceRefresh('focus');
+    });
+
     return { ready: true, session, profile };
   }
 
@@ -133,7 +194,11 @@
 
   async function signOut() {
     if (!client) return;
-    await client.auth.signOut();
+    // scope: 'local' keeps this device's sign-out from invalidating sessions
+    // on other devices. Default 'global' would also revoke refresh tokens
+    // server-side, which was silently killing mobile sessions any time the
+    // user signed out on desktop (or vice-versa).
+    await client.auth.signOut({ scope: 'local' });
     // onAuthStateChange will fire and clear session/profile.
   }
 
