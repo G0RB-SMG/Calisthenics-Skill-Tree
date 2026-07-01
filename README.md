@@ -16,6 +16,23 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-01 — Rarity recalibration for all 176 skills
+- Every `rarity` field in `skills.js` reset using a consistent framework:
+  - Denominator = physically active adults (2-3×/week)
+  - Power-law by difficulty (roughly halves per step)
+  - Category multipliers: push ×1.0, pull ×0.85, core ×0.9, **legs ×0.6** (under-trained in calisthenics), **mobility ×1.3** (higher genetic variance)
+  - Diff-10 sub-tiered internally: Common (hundreds globally), Rare (dozens), Mythical (a handful ever)
+  - Monotonic constraint enforced (a skill's rarity ≤ its rarest prereq)
+- 20 skills that had no `rarity` field at all (e.g. Push-up, Dead hang, Side plank, Glute bridge, Weighted pull-up, Scap pulls…) now have one.
+- Notable moves:
+  - **Pelican**: 0.01% → 0.003% (10R)
+  - **Manna**: reclassified 10-Common → 10-Rare (0.005%)
+  - **One-arm handstand (free)**: reclassified 10-Common → 10-Rare (0.002%)
+  - **Full maltese**: reclassified 10-Rare → 10-Mythical (0.0005%)
+  - **One-arm front lever**: reclassified 10-Rare → 10-Mythical (0.0002%)
+  - **Weighted full FL** and **Weighted full FL pullup**: brought into line with each other (0.02% and 0.003%)
+- Diff values untouched. Names, prereqs, descriptions, cues, standards — all untouched.
+
 ### 2026-06-30 — Diff recalibration pass (push 1 of N)
 - **Drops from diff 10:**
   - Iron cross (Pull) → 9
