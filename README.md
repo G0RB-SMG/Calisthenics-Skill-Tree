@@ -16,6 +16,12 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-01 — Sidebar tier card is now clickable
+- The "Overall Tier" card in the sidebar (canvas view) is now a button that opens the same full rank-ladder modal as the "See all ranks" button on your profile
+- Added a small "SEE ALL ›" hint in the card header so users know it's clickable
+- Hover state on the card (background brightens slightly, border becomes more visible)
+- The ladder modal is one component — this just wires up a second entry point to it
+
 ### 2026-07-01 — Mobile-Safari sign-in persistence
 Fixes the bug where users on mobile got logged out after closing/reopening the browser.
 - **Foreground revive**: added `visibilitychange` / `pageshow` (bfcache) / `focus` handlers that force a session refresh whenever the tab comes back. Safari pauses the SDK's auto-refresh timer while backgrounded — without this fix, a JWT that expired during the backgrounded window would leave the session stale and the next API call would kick the user out.

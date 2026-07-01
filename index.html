@@ -823,8 +823,11 @@
     </div>
 
     <!-- Overall tier card — metal-gradient hex badge + tier name + progress bar to next tier -->
-    <div style="margin-bottom: 18px; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
-      <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 10px;">Overall tier</div>
+    <button onClick="{{ onOpenRankLadder }}" title="See the full rank ladder" style="width: 100%; margin-bottom: 18px; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; text-align: left; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: block;" style-hover="background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border-color: rgba(255,255,255,0.18);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">Overall tier</div>
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">See all <span style="font-size: 11px;">›</span></div>
+      </div>
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
         <!-- Hex badge (clip-path polygon) with metal gradient + roman numeral sub-tier overlay -->
         <div style="position: relative; width: 42px; height: 48px; flex-shrink: 0;">
@@ -858,7 +861,7 @@
           </span>
         </div>
       </sc-if>
-    </div>
+    </button>
 
     <!-- Per-category section label -->
     <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin-bottom: 10px;">By category</div>
@@ -5819,6 +5822,7 @@ class Component extends DCLogic {
       overallTierIsUnranked: stats.overall.tier.isUnranked,
       overallTierIsWizard: stats.overall.tier.isWizard,
       overallTierShowProgress: !stats.overall.tier.isUnranked && !stats.overall.tier.isWizard,
+      onOpenRankLadder: this.openRankLadder,
       overallScore: stats.overall.scoreStr,
       overallPercentile: stats.overall.percentileStr,
 
