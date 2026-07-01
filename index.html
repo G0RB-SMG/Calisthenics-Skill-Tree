@@ -445,7 +445,7 @@
       </div>
 
       <!-- Vertical scroll: depth rows (elite at top, root at bottom) -->
-      <div id="mobile-scroll" style="flex: 1; overflow-y: auto; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px); position: relative;">
+      <div id="mobile-scroll" style="flex: 1; overflow-y: auto; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 170px); position: relative;">
 
         <!-- Elite cap with flanking constellation lines -->
         <div style="padding: 16px 16px 4px; text-align: center;">
@@ -550,47 +550,195 @@
 
       </div>
 
-      <!-- Floating: back + share + settings -->
-      <div data-no-pan="1" style="position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); left: 14px; right: 14px; z-index: 60; display: flex; gap: 8px; align-items: center; pointer-events: none;">
+      <!-- Floating: back button (share + settings moved into the stats widget below) -->
+      <div data-no-pan="1" style="position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); left: 14px; z-index: 60; pointer-events: none;">
         <sc-if value="{{ mobile.canBacktrack }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ mobile.onBacktrack }}" title="Go back a step" style="pointer-events: auto; height: 50px; padding: 0 22px 0 18px; border-radius: 100px; background: linear-gradient(135deg, oklch(0.42 0.18 145), oklch(0.32 0.16 145)); border: 1.5px solid oklch(0.7 0.18 145 / 0.55); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 6px 22px oklch(0.3 0.18 145 / 0.5), 0 2px 8px rgba(0,0,0,0.4); font-family: 'Space Grotesk', sans-serif;">
-            <span style="font-size: 18px; font-family: 'JetBrains Mono', monospace; line-height: 1;">↶</span>
+          <button onClick="{{ mobile.onBacktrack }}" title="Go back a step" style="pointer-events: auto; height: 44px; padding: 0 18px 0 15px; border-radius: 100px; background: linear-gradient(135deg, oklch(0.42 0.18 145), oklch(0.32 0.16 145)); border: 1.5px solid oklch(0.7 0.18 145 / 0.55); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 22px oklch(0.3 0.18 145 / 0.5), 0 2px 8px rgba(0,0,0,0.4); font-family: 'Space Grotesk', sans-serif;">
+            <span style="font-size: 16px; font-family: 'JetBrains Mono', monospace; line-height: 1;">↶</span>
             <span>Back</span>
           </button>
         </sc-if>
-        <div style="flex: 1;"></div>
-        <button onClick="{{ mobile.onShare }}" title="Share progress" style="pointer-events: auto; width: 50px; height: 50px; border-radius: 50%; background: rgba(15,15,28,0.92); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); color: #e8e8ef; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0,0,0,0.5); font-family: 'JetBrains Mono', monospace;">↗</button>
-        <button onClick="{{ mobile.onSettings }}" title="Settings" style="pointer-events: auto; width: 50px; height: 50px; border-radius: 50%; background: rgba(15,15,28,0.92); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); color: #e8e8ef; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0,0,0,0.5);">⚙</button>
       </div>
 
-      <!-- Settings sheet (slides up from bottom) -->
+      <!-- ─── Compact stats widget (always visible, fixed bottom) ──────────────────
+           Tap anywhere → opens the full drawer. Tapping just the hex badge on
+           the left jumps to the rank ladder modal (mirrors the sidebar card).
+           Constellation vibe: dark glass panel, glowy tier accent. ───────────── -->
+      <button data-no-pan="1" onClick="{{ mobile.onToggleStats }}" title="See your progress" style="position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); left: 14px; right: 14px; z-index: 55; display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; background: linear-gradient(180deg, rgba(20,20,36,0.95), rgba(10,10,22,0.95)); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; color: #e8e8ef; font-family: 'Space Grotesk', sans-serif; cursor: pointer; text-align: left; box-shadow: 0 6px 24px rgba(0,0,0,0.55), 0 0 22px {{ mobile.stats.tierColor }}22;">
+        <!-- Hex tier badge — tap to open rank ladder -->
+        <span onClick="{{ mobile.onOpenLadder }}" style="position: relative; width: 40px; height: 46px; flex-shrink: 0; cursor: pointer;">
+          <span style="position: absolute; inset: 0; background: {{ mobile.stats.tierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); box-shadow: 0 3px 12px rgba(0,0,0,0.5);"></span>
+          <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: rgba(20,12,5,0.8); letter-spacing: 0.02em; text-shadow: 0 1px 0 rgba(255,255,255,0.35);">{{ mobile.stats.tierSubName }}</span>
+        </span>
+        <!-- Tier name + progress -->
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: {{ mobile.stats.tierColor }}; line-height: 1; letter-spacing: 0.01em;">
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ mobile.stats.tierFullName }}</span>
+            <sc-if value="{{ mobile.stats.showStreak }}" hint-placeholder-val="{{ false }}">
+              <span style="display: inline-flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: oklch(0.88 0.16 50); flex-shrink: 0;">
+                <span style="font-size: 11px; line-height: 1;">🔥</span>
+                <span>{{ mobile.stats.streakValue }}d</span>
+              </span>
+            </sc-if>
+          </span>
+          <sc-if value="{{ mobile.stats.tierShowProgress }}" hint-placeholder-val="{{ true }}">
+            <span style="display: block; height: 3px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden;">
+              <span style="display: block; height: 100%; width: {{ mobile.stats.tierProgressPct }}%; background: {{ mobile.stats.tierGradient }}; border-radius: 100px;"></span>
+            </span>
+          </sc-if>
+        </span>
+        <!-- Score + chevron -->
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #d8d8e4; letter-spacing: 0.02em;">{{ mobile.stats.scoreStr }} <span style="color: #6a6a82; font-weight: 500; font-size: 9px;">pts</span></span>
+          <span style="font-size: 14px; line-height: 1; color: #6a6a82;">⌃</span>
+        </span>
+      </button>
+
+      <!-- ─── Stats drawer (slides up from bottom) ────────────────────────────
+           Full progress panel: overall tier card, score+percentile, streak,
+           per-category breakdown, account row, then settings actions. ──── -->
       <sc-if value="{{ mobile.sheetOpen }}" hint-placeholder-val="{{ false }}">
-        <div data-no-pan="1" onClick="{{ mobile.onCloseSheet }}" style="position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); display: flex; align-items: flex-end; justify-content: center; padding: 14px;">
-          <div onClick="{{ mobile.stopProp }}" style="width: 100%; max-width: 460px; background: linear-gradient(180deg, rgba(20,20,36,0.98), rgba(10,10,20,0.98)); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 22px 20px 20px; font-family: 'Space Grotesk', sans-serif; color: #e8e8ef; animation: cali-sheet-up 0.22s ease-out;">
-            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.16em; color: #6a6a82; text-transform: uppercase; margin-bottom: 14px;">Settings</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <button onClick="{{ mobile.onSwitchCanvas }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;" style-hover="background: rgba(255,255,255,0.07);">
+        <div data-no-pan="1" onClick="{{ mobile.onCloseSheet }}" style="position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.62); backdrop-filter: blur(8px); display: flex; align-items: flex-end; justify-content: center; padding: 12px;">
+          <div onClick="{{ mobile.stopProp }}" style="width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: radial-gradient(ellipse at top, oklch(0.15 0.05 280) 0%, #050510 65%); border: 1px solid rgba(255,255,255,0.14); border-radius: 18px; padding: 20px 18px 20px; font-family: 'Space Grotesk', sans-serif; color: #e8e8ef; animation: cali-sheet-up 0.22s ease-out; box-shadow: 0 -12px 60px rgba(0,0,0,0.6);">
+
+            <!-- Drag handle -->
+            <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.14); border-radius: 100px; margin: -6px auto 14px;"></div>
+
+            <!-- ─── Overall Tier card (taps → rank ladder) ─── -->
+            <button onClick="{{ mobile.onOpenLadder }}" style="width: 100%; margin-bottom: 14px; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; text-align: left; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: block; box-shadow: 0 0 20px {{ mobile.stats.tierColor }}12;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase;">Overall tier</span>
+                <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: #6a6a82; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px;">See all <span style="font-size: 11px;">›</span></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+                <span style="position: relative; width: 46px; height: 52px; flex-shrink: 0;">
+                  <span style="position: absolute; inset: 0; background: {{ mobile.stats.tierGradient }}; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); box-shadow: 0 4px 16px {{ mobile.stats.tierColor }}55;"></span>
+                  <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: rgba(20,12,5,0.8); letter-spacing: 0.02em; text-shadow: 0 1px 0 rgba(255,255,255,0.35);">{{ mobile.stats.tierSubName }}</span>
+                </span>
+                <span style="flex: 1; min-width: 0;">
+                  <span style="display: block; font-size: 19px; font-weight: 700; color: {{ mobile.stats.tierColor }}; line-height: 1.1; letter-spacing: 0.01em;">{{ mobile.stats.tierFullName }}</span>
+                  <sc-if value="{{ mobile.stats.tierNextName }}" hint-placeholder-val="{{ true }}">
+                    <span style="display: block; margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #6a6a82; letter-spacing: 0.04em; text-transform: uppercase;">Next: {{ mobile.stats.tierNextName }}</span>
+                  </sc-if>
+                </span>
+              </div>
+              <sc-if value="{{ mobile.stats.tierShowProgress }}" hint-placeholder-val="{{ true }}">
+                <span style="display: block; height: 5px; background: rgba(255,255,255,0.07); border-radius: 100px; overflow: hidden; margin-bottom: 12px;">
+                  <span style="display: block; height: 100%; width: {{ mobile.stats.tierProgressPct }}%; background: {{ mobile.stats.tierGradient }}; border-radius: 100px; box-shadow: 0 0 10px {{ mobile.stats.tierColor }}55;"></span>
+                </span>
+              </sc-if>
+              <span style="display: flex; align-items: center; gap: 9px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <span style="color: #d8d8e4; font-weight: 600;">{{ mobile.stats.scoreStr }} pts</span>
+                <span style="color: #3a3a52;">·</span>
+                <span style="color: #a8a8c0;">top {{ mobile.stats.percentileStr }}</span>
+                <span style="color: #3a3a52;">·</span>
+                <span style="color: #8a8aa0;">{{ mobile.stats.skillsLabel }}</span>
+              </span>
+              <sc-if value="{{ mobile.stats.showStreak }}" hint-placeholder-val="{{ false }}">
+                <span style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace;">
+                  <span style="color: #8a8aa0; letter-spacing: 0.06em; text-transform: uppercase; font-size: 9px; font-weight: 700;">Visit streak</span>
+                  <span style="color: oklch(0.88 0.16 50); font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 12px; line-height: 1;">🔥</span>
+                    <span>{{ mobile.stats.streakValue }}d</span>
+                  </span>
+                </span>
+              </sc-if>
+            </button>
+
+            <!-- ─── Per-category breakdown ─── -->
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin: 4px 2px 10px;">By category</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+              <sc-for list="{{ mobile.stats.categoryStats }}" as="cat" hint-placeholder-count="5">
+                <div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                      <span style="width: 10px; height: 10px; border-radius: 50%; background: {{ cat.dotColor }}; box-shadow: {{ cat.dotGlow }}; flex-shrink: 0;"></span>
+                      <span style="font-size: 13px; font-weight: 600; color: {{ cat.labelColor }};">{{ cat.name }}</span>
+                      <sc-if value="{{ cat.isStub }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #6a6a82; font-weight: 500; letter-spacing: 0.05em;">SOON</span>
+                      </sc-if>
+                    </div>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #a8a8c0;">{{ cat.statText }}</span>
+                  </div>
+                  <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; margin-bottom: 5px;">
+                    <div style="height: 100%; width: {{ cat.pct }}%; background: {{ cat.barColor }}; border-radius: 100px;"></div>
+                  </div>
+                  <sc-if value="{{ cat.hasAchievements }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px;">
+                      <span style="color: {{ cat.tierColor }}; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;">{{ cat.tierFullName }}</span>
+                      <span style="color: #3a3a52;">·</span>
+                      <span style="color: #9a9ab0;">top {{ cat.percentileStr }}</span>
+                      <span style="color: #3a3a52;">·</span>
+                      <span style="color: #9a9ab0;">{{ cat.scoreStr }} pts</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- ─── Account / social row ─── -->
+            <sc-if value="{{ mobile.stats.isSignedIn }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin: 4px 2px 10px;">Account</div>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px;">
+                <button onClick="{{ mobile.onGoToProfile }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 13px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
+                  <span style="font-size: 14px; width: 22px; text-align: center; font-family: 'JetBrains Mono', monospace;">◉</span>
+                  <div style="flex: 1;"><span style="font-size: 13px; font-weight: 600;">Your profile</span><br><span style="font-size: 10.5px; color: #8a8aa0; font-family: 'JetBrains Mono', monospace;">@{{ mobile.stats.handle }}</span></div>
+                  <span style="color: #6a6a82; font-size: 14px;">›</span>
+                </button>
+                <button onClick="{{ mobile.onGoToLeaderboard }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 13px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
+                  <span style="font-size: 14px; width: 22px; text-align: center;">▲</span>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600;">Leaderboard</span>
+                  <span style="color: #6a6a82; font-size: 14px;">›</span>
+                </button>
+                <button onClick="{{ mobile.onGoToFeed }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 13px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
+                  <span style="font-size: 14px; width: 22px; text-align: center;">◈</span>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600;">Feed</span>
+                  <span style="color: #6a6a82; font-size: 14px;">›</span>
+                </button>
+                <button onClick="{{ mobile.onOpenAccountSettings }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 13px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
+                  <span style="font-size: 14px; width: 22px; text-align: center;">⚙</span>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600;">Account settings</span>
+                  <span style="color: #6a6a82; font-size: 14px;">›</span>
+                </button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ mobile.stats.isSignedIn }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin: 4px 2px 10px;">Sync progress</div>
+              <button onClick="{{ mobile.onSignIn }}" style="width: 100%; margin-bottom: 18px; padding: 14px 16px; background: linear-gradient(135deg, oklch(0.42 0.18 145), oklch(0.32 0.16 145)); border: 1px solid oklch(0.7 0.18 145 / 0.55); border-radius: 12px; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;">Sign in / create account</button>
+            </sc-if>
+
+            <!-- ─── Actions ─── -->
+            <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #6a6a82; text-transform: uppercase; margin: 4px 2px 10px;">Actions</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <button onClick="{{ mobile.onSwitchCanvas }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
                 <span style="font-size: 18px; width: 24px; text-align: center;">⛶</span>
                 <div style="flex: 1;">
                   <div style="font-size: 13px; font-weight: 600;">Switch to canvas view</div>
                   <div style="font-size: 11px; color: #8a8aa0; margin-top: 2px; line-height: 1.4;">Pan and zoom the whole map</div>
                 </div>
               </button>
-              <button onClick="{{ mobile.onShare }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;" style-hover="background: rgba(255,255,255,0.07);">
+              <button onClick="{{ mobile.onShare }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e8e8ef; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
                 <span style="font-size: 16px; width: 24px; text-align: center; font-family: 'JetBrains Mono', monospace;">↗</span>
                 <div style="flex: 1;">
                   <div style="font-size: 13px; font-weight: 600;">Share progress</div>
                   <div style="font-size: 11px; color: #8a8aa0; margin-top: 2px; line-height: 1.4;">Copy a link to your current progress</div>
                 </div>
               </button>
-              <button onClick="{{ mobile.onReset }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid oklch(0.4 0.18 25 / 0.4); border-radius: 10px; color: oklch(0.78 0.16 25); cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;" style-hover="background: oklch(0.3 0.18 25 / 0.15);">
+              <button onClick="{{ mobile.onReset }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid oklch(0.4 0.18 25 / 0.4); border-radius: 10px; color: oklch(0.78 0.16 25); cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
                 <span style="font-size: 16px; width: 24px; text-align: center;">⟲</span>
                 <div style="flex: 1;">
                   <div style="font-size: 13px; font-weight: 600;">Reset progress</div>
                   <div style="font-size: 11px; color: #8a8aa0; margin-top: 2px; line-height: 1.4;">Clear all achieved skills</div>
                 </div>
               </button>
+              <sc-if value="{{ mobile.stats.isSignedIn }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ mobile.onSignOut }}" style="display: flex; align-items: center; gap: 13px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #8a8aa0; cursor: pointer; font-family: 'Space Grotesk', sans-serif; text-align: left;">
+                  <span style="font-size: 14px; width: 24px; text-align: center; font-family: 'JetBrains Mono', monospace;">↩</span>
+                  <div style="flex: 1; font-size: 12.5px; font-weight: 500;">Sign out</div>
+                </button>
+              </sc-if>
             </div>
+
             <button onClick="{{ mobile.onCloseSheet }}" style="width: 100%; margin-top: 16px; padding: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #c0c0d0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif;">Close</button>
           </div>
         </div>
@@ -5773,6 +5921,37 @@ class Component extends DCLogic {
 
       const totalDone = data.skills.filter((s) => !s.isStub && !s.isRoot && myCheckedSet.has(s.id)).length;
       const totalAll  = data.skills.filter((s) => !s.isStub && !s.isRoot).length;
+      // Reuse the outer `stats` (line 4442) and `categoryStats` (line 4444)
+      // + goalSnap (line 4233) which are already in scope. We build a compact
+      // stats snapshot to feed the bottom-of-mobile widget + drawer.
+      const t = stats.overall.tier;
+      const a = this.state.auth || { status: 'signed-out' };
+      const isSignedIn = a.status === 'signed-in';
+      const streak = this._computeStreak();
+      const mobileStatsSnapshot = {
+        tierFullName: t.fullName,
+        tierSubName:  t.subName || (t.isWizard ? '★' : ''),
+        tierColor:    t.color,
+        tierGradient: t.gradient,
+        tierProgressPct: t.progressPct,
+        tierNextName: t.nextFullName,
+        tierIsUnranked: t.isUnranked,
+        tierIsWizard:  t.isWizard,
+        tierShowProgress: !t.isUnranked && !t.isWizard,
+        scoreStr:     stats.overall.scoreStr,
+        percentileStr: stats.overall.percentileStr,
+        skillsLabel:  stats.overall.achieved + ' / ' + stats.overall.total + ' skills',
+        streakValue:  streak,
+        showStreak:   streak > 0,
+        checkedInToday: this._checkedInToday(),
+        // Category breakdown — same shape as sidebar's `categoryStats`.
+        categoryStats,
+        // Auth chip data — compact.
+        isSignedIn,
+        handle:       (a.profile && a.profile.handle) || '',
+        displayName:  (a.profile && a.profile.display_name) || (a.profile && a.profile.handle) || '',
+      };
+
       mobile = {
         show: true,
         title: catMeta.name + ' — ' + (totalDone) + ' of ' + totalAll + ' skills',
@@ -5781,8 +5960,17 @@ class Component extends DCLogic {
         focusId,
         canBacktrack: path.length > 0,
         sheetOpen: !!this.state.mobileSheetOpen,
+        stats: mobileStatsSnapshot,
         onBacktrack:    () => this.popMobilePath(activeCat),
         onSettings:     this.toggleMobileSheet,
+        onToggleStats:  this.toggleMobileSheet,
+        onOpenLadder:   () => { this.closeMobileSheet(); this.openRankLadder(); },
+        onGoToProfile:  () => { this.closeMobileSheet(); this.onGoToMyProfile(); },
+        onGoToLeaderboard: () => { this.closeMobileSheet(); this.onGoToLeaderboard(); },
+        onGoToFeed:     () => { this.closeMobileSheet(); this.onGoToFeed(); },
+        onSignIn:       () => { this.closeMobileSheet(); this.onSignIn(); },
+        onSignOut:      () => { this.closeMobileSheet(); this.onSignOut(); },
+        onOpenAccountSettings: () => { this.closeMobileSheet(); this.openSettings(); },
         onSearch:       this.openSearch,
         onCloseSheet:   this.closeMobileSheet,
         onSwitchCanvas: () => { this.closeMobileSheet(); this.setUiMode('canvas'); },

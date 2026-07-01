@@ -1,6 +1,42 @@
 # Calisthenics Skill Tree
 
-Interactive skill tree planner. Pure static site — no build step.
+An interactive skill tree for bodyweight training — 176 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
+
+## Features
+
+**Tree exploration**
+- Full canvas view with pan / zoom / minimap — every skill placed by category with connections showing prereqs
+- Mobile view: vertical path through one category at a time, forks presented as concept branches ("Hips", "Splits", "Handstand", …) that auto-walk through single-child chains
+- Search any skill by name; jump straight to it in either view
+
+**Progress tracking**
+- Tap a skill to mark it achieved — prereqs cascade automatically
+- Per-category progress + hardest skill callout + visit streak
+- Anonymous by default (localStorage); optional sign-in syncs across devices
+
+**Ranking system**
+- 9 tiers × 3 sub-tiers (Copper III → Grandmaster I) + a **Wizard** apex rank for full-tree completion
+- Score = rarity-weighted sum of achieved skills, with Push + Pull weighted 1.5× and a per-category hardest-skill bonus
+- Grandmaster gated behind ≥1 world-class skill (Full Maltese, Fingertip Full Planche, Victorian, One-arm FL, Manna, Pelican, Hefesto, Iron Split, Archer FL Pullup, Fingertip Full Planche Press, One-arm HS free)
+- Metal-gradient hex badges everywhere the rank appears — sidebar, profile, leaderboard, account chip
+- Click any tier badge to see the full ladder with score thresholds and gate hints
+
+**Goals**
+- Pick a target skill; the tree highlights the prereq chain to it and the sidebar shows "N of M steps · Next: X · Go to next →"
+- Toggle full "goal mode" to dim everything not on the path
+
+**Social**
+- Public profiles at `/u/<handle>` — bio, avatar (upload / pick icon+color), stats, tier badge, best-at, recent activity
+- Global leaderboard sorted by tier then score
+- One-click follow (Twitter-style, asymmetric)
+- Compare with any user side-by-side at `/compare/<handle>`
+- Activity feed of people you follow
+- Share your progress by link (hash-based, works while anonymous)
+
+**Auth**
+- Google sign-in + email/password
+- Mobile-Safari session persistence: visibility/pageshow/focus handlers force a refresh on foreground so JWTs expiring while backgrounded don't kick you out
+- `signOut({ scope: 'local' })` — signing out on one device won't kill others
 
 ## Deploy
 
@@ -15,6 +51,14 @@ npx serve .
 ```
 
 ## Changelog
+
+### 2026-07-01 — Mobile stats widget + drawer
+The mobile view now has a bottom-of-screen widget bar and full stats drawer, bringing sidebar-equivalent info to mobile.
+- **Compact widget** (always visible, fixed at bottom): hex tier badge on the left (tap → rank ladder modal), tier name + progress bar + streak in the middle, score + expand chevron on the right. Tap anywhere → opens the drawer.
+- **Full drawer** (slides up from bottom): big Overall Tier card with metal-gradient hex, progress bar to next tier, score + percentile + skill count, streak stat, per-category breakdown (all 5 categories with progress + mini tier badge + percentile + pts), account section (profile/leaderboard/feed/settings for signed-in users; sign-in CTA for anon), actions section (switch to canvas / share / reset / sign out).
+- **Floating buttons cleaned up**: Share and Settings floating circles are gone (their functions live in the drawer now). Back button remains as the sole floating action above the widget.
+- Constellation vibe: dark radial background, subtle glow on the tier badge, drawer has a drag handle at the top.
+- Same rank ladder modal as canvas view — one component, three entry points now (profile page, sidebar tier card, mobile widget hex badge).
 
 ### 2026-07-01 — Sidebar tier card is now clickable
 - The "Overall Tier" card in the sidebar (canvas view) is now a button that opens the same full rank-ladder modal as the "See all ranks" button on your profile
