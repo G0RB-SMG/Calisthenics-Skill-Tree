@@ -3585,10 +3585,9 @@ class Component extends DCLogic {
 
   // World-class gate: Grandmaster requires ≥1 of these skills.
   // (Wizard requires ALL skills, computed dynamically.)
-  // NOTE: iron_cross was previously here but was recalibrated to diff 9 in
-  // the diff-audit pass — it no longer counts as world-class apex tier.
   RANK_GATES_GRANDMASTER = [
-    'full_maltese', 'fingertip_full_planche', 'victorian',
+    'full_maltese', 'fingertip_full_planche', 'fingertip_full_planche_press',
+    'victorian', 'archer_fl_pullup',
     'one_arm_fl', 'one_arm_hs_free',
     'manna', 'pelican', 'hefesto', 'iron_split',
   ];
@@ -4469,13 +4468,12 @@ class Component extends DCLogic {
           isShared,
           isChecked: isCheckedNow,
           // Tier-bump hint: shows the *exact* tier name if achieving this
-          // skill would bump the user up a tier. Only on unachieved, available,
-          // non-shared skills.
+          // skill would bump the user up a tier. Shown on any unachieved,
+          // non-shared skill — even if the prereqs aren't yet met, since
+          // the hint is aspirational ("if you could do this, you'd rank up").
           tierBumpHint: (() => {
             if (isShared || isCheckedNow) return '';
             if (!data) return '';
-            const allPreMet = (s.pre || []).every((pid) => pid === 'root' || checked.has(pid));
-            if (!allPreMet) return '';
             const curTier = this.computeStats(data, checked).overall.tier;
             const hypoSet = new Set(checked);
             hypoSet.add(s.id);

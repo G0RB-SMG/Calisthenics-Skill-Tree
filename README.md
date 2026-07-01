@@ -16,6 +16,10 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-01 — Grandmaster gate expanded + tier-up hint no longer hidden by locked prereqs
+- Added **Fingertip full planche press** and **Archer FL pullup** to the Grandmaster gate list (now 11 skills)
+- Fixed the "Tier-up: achieving this would bump you to X" hint in the detail panel — it now shows on **any** unachieved skill that would bump your tier, not just skills whose prereqs are already met. Previously it was hidden on things like Full Maltese if you hadn't done the prereq chain yet, even though the hint is aspirational
+
 ### 2026-07-01 — Rarity recalibration for all 176 skills
 - Every `rarity` field in `skills.js` reset using a consistent framework:
   - Denominator = physically active adults (2-3×/week)
