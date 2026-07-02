@@ -3461,9 +3461,16 @@ class Component extends DCLogic {
 
   // Card tap handler: chosen path cards open the detail panel; branch cards
   // commit the branch (and also open the detail panel so the user can mark
-  // achieved in one go).
+  // achieved in one go). Exception: if the tapped branch card's first skill
+  // is already achieved, we skip opening the panel — the user is navigating
+  // through a filled-out section, not trying to view details. Saves them
+  // from having to close the panel on every hop.
   mobileCardTap = (category, skillId, isChosen) => {
-    if (!isChosen) this.commitMobileBranch(category, skillId);
+    if (!isChosen) {
+      this.commitMobileBranch(category, skillId);
+      const checked = this.state.myChecked;
+      if (checked && checked.has(skillId)) return;
+    }
     this.onNodeClick(skillId);
   };
 

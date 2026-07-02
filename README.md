@@ -52,6 +52,11 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-02 — Mobile QOL: skip detail panel when tapping an already-achieved branch card
+- Tapping a branch card whose first skill is already achieved now navigates into that branch without opening the detail panel. Prevents the constant close-panel dance when walking through filled-out sections of the tree.
+- Applies to all categories (push/pull/core/legs/mobility).
+- Chosen-path cards (the cards representing your current linear path) still open the panel on tap — that's the only way to view their details.
+
 ### 2026-07-02 — All fingertip nodes made into leaves + smarter branch labels
 Addresses two problems the previous fix over-corrected:
 
