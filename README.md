@@ -1,6 +1,6 @@
 # Calisthenics Skill Tree
 
-An interactive skill tree for bodyweight training — 218 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
+An interactive skill tree for bodyweight training — 217 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
 
 ## Features
 
@@ -51,6 +51,44 @@ npx serve .
 ```
 
 ## Changelog
+
+### 2026-07-02 — All fingertip nodes made into leaves + smarter branch labels
+Addresses two problems the previous fix over-corrected:
+
+**1. Fingertip nodes now truly leaves.** All 29 fingertip skills now have exactly one prereq — their non-fingertip counterpart. No `fingertip_X → fingertip_Y` edges anywhere in the tree.
+- Restructured lines: fingertip planche (6 nodes), fingertip planche PU (7 nodes), fingertip SA press (6 nodes), fingertip BA press (5 nodes), fingertip maltese (1 node) — previously all had `[counterpart, previous_fingertip]` chained prereqs. Now each has only `[counterpart]`.
+- **Rule now enforced across whole push tree**: main-line skills branch → their fingertip counterpart. Nothing branches back.
+- User-visible effect: at each main-line skill with a fingertip counterpart, that fingertip appears as a single sibling leaf. No more chain-preview showing a distant-future fingertip skill from an early node.
+
+**2. Branch card labels now correctly show badge labels for chains, skill names for leaves.** Previous fix used a too-simple rule ("single-node = skill name") which incorrectly blanked "Planche" and "Planche Push-ups" labels at forks like `pppu_lean`.
+- New rule: a branch is labeled with its badge name if it has at least one direct child in the same badge (meaning the branch continues within that category). Otherwise it's a semantic leaf and shows the specific skill name.
+- User-visible effect: `pppu_lean` now correctly shows "Planche" and "Planche Push-ups" cards. `decline_pu` correctly shows "Push-up Mastery" and "Fingertip decline push-up" (specific skill for the leaf). Dedup for shared badge labels among siblings still applies.
+- Total skill count unchanged: 217.
+
+### 2026-07-02 — Fingertip push-up chain: single-node leaves per mastery step
+Restructured the fingertip push-up variants so each one is a dead-end leaf attached only to its non-fingertip counterpart. No more long fingertip chain.
+- **Deleted `fingertip_pushup`** (the generic "Fingertip push-up" skill). Its role as a fingertip-conditioning gate transfers to `fingertip_decline_pu`.
+- **Pre chains now single-parent** for each fingertip pushup variant:
+  - `fingertip_decline_pu.pre` → `['decline_pu']` (was `['decline_pu', 'fingertip_pushup']`)
+  - `fingertip_diamond_pu.pre` → `['diamond_pu']`
+  - `fingertip_archer_pu.pre` → `['archer_pu']` (was `['archer_pu', 'fingertip_decline_pu']`)
+  - `fingertip_oap.pre` → `['one_arm_pu']`
+- **Downstream references updated**: `fingertip_tuck_planche`, `fingertip_tuck_planche_pu`, `fingertip_tuck_bent_press` all now use `fingertip_decline_pu` as their fingertip-conditioning prereq (was `fingertip_pushup`).
+- **`fingertip_pushup_line` badge** trimmed to remove `fingertip_pushup`.
+- Fixes the mobile-view bug where "Fingertip one-arm push-up" appeared as a branch preview from `decline_pu` (because the chain walked through all four fingertip variants). Now each pushup mastery step shows exactly one fingertip leaf sibling.
+- **Mobile branch card labeling**: single-node branches (a leaf with no downstream chain) now always show the specific skill name instead of the generic badge label — so users see "Fingertip decline push-up" (skill) rather than "Fingertip Push-ups" (category) on the decline_pu fork. Chain branches still use badge labels when they're unique among siblings.
+- Total skill count: 217 (was 218).
+
+### 2026-07-02 — Mobile branch picker: dedup labels + tree structure cleanup
+Addressed three mobile-view issues:
+1. **"Dips" appeared twice on the pushup fork** — `parallel_dip` and `fingertip_pushup` were both direct children of `pushup`. Reparented: `parallel_dip.pre` → `[single_bar_dip]` (proper dip progression); `fingertip_pushup.pre` → `[decline_pu]` (fingertip branch now spurs off the first push-up variant, per user spec).
+2. **Sub-forks labeled all children with the same badge name** (e.g. 4 "Dips" cards at `parallel_dip`'s fork). Added sibling-dedup: when 2+ branches at a fork share a badge label, that label is blanked and each branch falls back to its skill name.
+3. **Merged `hspu_master` badge into `ba_press_master`** so "HSPU" no longer shows as a separate branch. Pike push-up / wall HSPU / freestanding HSPU / ring HSPU / 90° HSPU all now sit under Bent-arm Press.
+4. **Trimmed `push_up_vet`** to skills that actually branch off the push-up mastery line (removed `knee_pu`, `incline_pu`, `pushup` — those are trunk).
+5. **Updated `_BRANCH_SHORT_NAMES`** — removed stale keys (`hspu_master`, `press_master`, `planche_presser`, `maltese_master`, `fingertip_god`), added new ones (`ba_press_master` → "Bent-arm Press", `sa_press_master` → "Straight-arm Press", `planche_pu_line` → "Planche Push-ups", `fingertip_pushup_line` → "Fingertip Push-ups"). Removing the maltese/fingertip endgame labels means those endgame nodes show as skill names when they appear, not as generic "Maltese" or "Fingertip" branch labels.
+6. **Cleaned stale reference** — removed `fingertip_straddle_maltese` from `RANK_GATES_CAT.push` (skill was deleted in the push rework).
+
+At the `pushup` fork on mobile, users now see 5 clean branches: Push-up Mastery, Dips, Bent-arm Press, Planche, Handstand. Straight-arm Press and Planche Push-ups appear as sub-branches after committing to Bent-arm Press / Planche (this reflects the biomechanical reality — they require planche progressions to reach).
 
 ### 2026-07-02 — Push layout spread + legs/mobility shifted right
 Bumped inter-column spacing in push from ~80-100px to 160px so long labels ("Fingertip pike bent-arm press", etc) stop overlapping.

@@ -3290,15 +3290,14 @@ class Component extends DCLogic {
 
   _BRANCH_SHORT_NAMES = {
     // Push
-    push_up_vet:      'Push-up Mastery',
-    iron_dipper:      'Dips',
-    handstand_vet:    'Handstand',
-    hspu_master:      'HSPU',
-    press_master:     'Press to HS',
-    planche_vet:      'Planche',
-    planche_presser:  'Planche presses',
-    maltese_master:   'Maltese',
-    fingertip_god:    'Fingertip',
+    push_up_vet:            'Push-up Mastery',
+    iron_dipper:            'Dips',
+    handstand_vet:          'Handstand',
+    ba_press_master:        'Bent-arm Press',
+    sa_press_master:        'Straight-arm Press',
+    planche_vet:            'Planche',
+    planche_pu_line:        'Planche Push-ups',
+    fingertip_pushup_line:  'Fingertip Push-ups',
     // Pull
     pull_up_vet:      'Pullup Mastery',
     front_lever_vet:  'Front lever',
@@ -3806,7 +3805,7 @@ class Component extends DCLogic {
   // to gate Grandmaster. The Legs category therefore caps at Master I until
   // harder skills get added.
   RANK_GATES_CAT = {
-    push:     ['full_maltese', 'fingertip_full_planche', 'fingertip_full_maltese', 'fingertip_straddle_maltese', 'one_arm_hs_free', 'pelican'],
+    push:     ['full_maltese', 'fingertip_full_planche', 'fingertip_full_maltese', 'one_arm_hs_free', 'pelican'],
     pull:     ['victorian', 'iron_cross', 'one_arm_fl', 'hefesto'],
     core:     ['manna', 'full_human_flag'],
     legs:     [],
@@ -5785,7 +5784,7 @@ class Component extends DCLogic {
       // "Shoulders") pulled from the badge groupings; destination + step
       // count move to the footer so users still know what they're committing
       // to. Falls back to destination-skill name if no badge matches.
-      const buildBranchCard = (firstSkillId) => {
+      const buildBranchCard = (firstSkillId, sharedLabels) => {
         const first = byId.get(firstSkillId);
         if (!first) return null;
         const { endId, steps } = this._computeBranchInfo(firstSkillId, activeCat);
@@ -5795,8 +5794,21 @@ class Component extends DCLogic {
         // a chain, otherwise the only node.
         const display = useEnd ? end : first;
         // Branch concept label — prefer this when available, else use the
-        // destination skill's name.
-        const branchLabel = this._getBranchLabel(firstSkillId);
+        // destination skill's name. Two conditions blank the label:
+        //  (1) MULTIPLE siblings at this fork share the same badge label —
+        //      it's ambiguous, so each sibling shows its actual skill name
+        //      (e.g. avoids four "Dips" cards on the parallel_dip sub-fork).
+        //  (2) This skill has no children in the same badge — it's a leaf
+        //      within its category, so the badge label overstates what's
+        //      here. Show the specific skill name instead (e.g. a fingertip
+        //      leaf shows "Fingertip decline push-up" not "Fingertip
+        //      Push-ups"; a whole chain like tuck_planche keeps "Planche"
+        //      because its downstream continues in the same badge).
+        const _kids = childrenMap.get(firstSkillId) || [];
+        let branchLabel = this._getBranchLabel(firstSkillId);
+        const _hasSameBadgeChild = !!branchLabel && _kids.some((cid) => this._getBranchLabel(cid) === branchLabel);
+        if (branchLabel && sharedLabels && sharedLabels.has(branchLabel)) branchLabel = null;
+        if (branchLabel && !_hasSameBadgeChild) branchLabel = null;
         const cardName = branchLabel || display.name;
         const isFirstChecked = myCheckedSet.has(firstSkillId);
         const isAvailable = !isFirstChecked && first.pre.every((pid) => pid === 'root' || myCheckedSet.has(pid));
@@ -5883,8 +5895,19 @@ class Component extends DCLogic {
       // Fork above the leaf — branches the user can pick to extend the path.
       const leafId = path.length ? path[path.length - 1] : 'root';
       const leafChildren = childrenMap.get(leafId) || [];
+      // Pre-compute which badge labels are shared by 2+ sibling branches at
+      // this fork so the card builder can fall back to skill names for those
+      // (see the sharedLabels branch inside buildBranchCard).
+      const _labelSeen = new Set();
+      const sharedLabels = new Set();
+      for (const cid of leafChildren) {
+        const l = this._getBranchLabel(cid);
+        if (!l) continue;
+        if (_labelSeen.has(l)) sharedLabels.add(l);
+        else _labelSeen.add(l);
+      }
       const branches = leafChildren
-        .map((cid) => buildBranchCard(cid))
+        .map((cid) => buildBranchCard(cid, sharedLabels))
         .filter(Boolean);
       if (branches.length) {
         const n = branches.length;
