@@ -1,6 +1,6 @@
 # Calisthenics Skill Tree
 
-An interactive skill tree for bodyweight training — 176 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
+An interactive skill tree for bodyweight training — 218 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
 
 ## Features
 
@@ -51,6 +51,51 @@ npx serve .
 ```
 
 ## Changelog
+
+### 2026-07-02 — Push layout spread + legs/mobility shifted right
+Bumped inter-column spacing in push from ~80-100px to 160px so long labels ("Fingertip pike bent-arm press", etc) stop overlapping.
+- **Push spans**: x=120 to x=2360 (width 2240; was 120 to 1520). Every column now 160 apart from its neighbor.
+- **Legs shifted +980**: now x=2520 to 3180 (was 1540 to 2200).
+- **Mobility shifted +980**: now x=3330 to 4430 (was 2350 to 3450).
+- Gaps: 160 between push and legs, 150 between legs and mobility. Same relative layout, just wider.
+- Pull and core untouched.
+- Header comment updated with new root positions.
+- No changes to prereqs, IDs, difficulties, descriptions, or badges.
+
+### 2026-07-02 — Push tree canvas layout: compact tree shape
+Repositioned all 91 push nodes for a proper trunk-and-branches look, keeping push contained within its own x-space (x=120–1520) so it no longer crashes into legs (x≥1540) or mobility (x≥2200).
+- **Trunk (x=520)** is now a single vertical column: `plank → knee_pu → incline_pu → pushup → pppu_lean → tuck_planche → adv_tuck → one_leg → half_lay → straddle → full → weighted full`. Cleanest read of the base progression.
+- **Fingertip variants sit adjacent to their non-fingertip parents** as sub-branches (not spread out as far-right columns):
+  - fingertip push-up column at x=220 (next to bent-arm push-up at x=120)
+  - fingertip planche at x=600 (next to planche core at x=520)
+  - fingertip planche PU at x=800 (next to planche PU at x=720)
+  - fingertip BA press at x=1300 (next to BA press core at x=1220)
+  - fingertip SA press at x=1480 (next to SA press at x=1400)
+- **Branch fan-out from pushup**: dip line (x=360) LEFT of trunk; planche continues UP trunk; planche PU + fingertip PPU RIGHT of trunk; then handstand → BA press → SA press → maltese in a clean rightward sweep.
+- **Maltese endgame** (`full_maltese`, `fingertip_full_maltese`) placed at x=1520 — close to legs boundary but only 2 nodes, both at y≤-1400 where no legs node exists (legs' highest y is around y=-900).
+- No changes to prereqs, difficulties, descriptions, badges, or IDs — only x,y positions.
+
+### 2026-07-02 — Push rework hotfix: duplicate `inverted_cross` removed
+- The 2026-07-01 push rework left a stale `inverted_cross` node in the pull section (from an older layout). Because it was declared later in the array, JS map insertion order silently overrode the new node — so `inverted_cross`'s prereq was still `ring_hspu` at runtime instead of the intended `ring_handstand`, and push count showed 92 instead of 91.
+- Deleted the stale duplicate. Push count now correctly 91; `inverted_cross` correctly built on `ring_handstand` (handstand sub-branch).
+
+### 2026-07-01 — Push tree rework: 49 → 91 nodes
+Complete overhaul of the push category. Pull / core / legs / mobility untouched.
+- **Deleted 5 nodes**: `straddle_maltese`, `fingertip_straddle_maltese`, `press_to_hs_tuck`, `press_to_hs_straddle`, `press_to_hs_pike` (last 3 replaced by the new bent-arm press chain).
+- **Renamed** (display names only; IDs kept so existing user progress is preserved): "Parallel-bar dip" → **Bar dip**, "Bulgarian dip" → **Ring dip** (also diff 6→5, rarity ~3%→~10%).
+- **`adv_tuck_planche` redefined** — now knees rotated down to floor (feet up/back), not tucked to chest. New description, cues, mistakes, and standard.
+- **Half-lay ↔ one-leg swap**: `half_lay_planche` now diff 8 / ~0.1% (above one-leg in the chain); `one_leg_planche` stays diff 7 / ~0.35%. Prereq chain now `adv_tuck → one_leg → half_lay → straddle`.
+- **7 new sub-branches with ~47 new nodes**:
+  - **Dip**: 5 new (single-bar, deep-ROM, weighted, clapping, russian dip)
+  - **Planche push-up**: 5 new tiers (tuck → adv tuck → one-leg → half-lay → straddle → planche PU → weighted → pelican)
+  - **Straight-arm press**: 5 new (tuck press → adv tuck → pike SA → straddle → full planche press → full maltese press)
+  - **Bent-arm press**: 5 new (tuck → pike → straddle 90° → 90° → dead press)
+  - **Fingertip push-up**: 5 new (pushup → decline → diamond → archer → OAP)
+  - **Fingertip planche + planche PU + SA press + BA press**: full fingertip counterpart chains (~22 new)
+- **Prereq reassignments**: `crow` now requires `wall_hs_hold` too; `wall_hspu_neg` requires `chest_to_wall`; `ninety_pu` moved into the bent-arm press chain with body-flat emphasis; `pelican` now built on `weighted_planche_pu` + `full_bl`; `full_maltese` re-parented on `full_planche` (was `straddle_maltese`).
+- **Badges**: expanded `iron_dipper` (all 7 dips), split `press_master` into `ba_press_master` + `sa_press_master`, added `planche_pu_line` + `fingertip_pushup_line`, moved `inverted_cross` from `hspu_master` to `handstand_vet`, trimmed `maltese_master` + `fingertip_god` for the deleted nodes.
+- **⚠ Flagged rarity correction**: spec said `straddle_ninety_press` was ~0.15%, but its prereq `straddle_planche` is ~0.1% — impossible for a child to be more common than its prereq. Set to ~0.08%. Bump either value if the intent was different.
+- Push count now 91 (was 49). Total tree 218 skills.
 
 ### 2026-07-01 — Mobile stats widget + drawer
 The mobile view now has a bottom-of-screen widget bar and full stats drawer, bringing sidebar-equivalent info to mobile.
