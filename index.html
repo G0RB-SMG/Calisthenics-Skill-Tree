@@ -181,6 +181,28 @@
     }
     .cali-star.big   { width: 3px; height: 3px; box-shadow: 0 0 4px rgba(255,255,255,0.8); }
     .cali-star.tiny  { width: 1px; height: 1px; opacity: 0.5; animation-duration: 6s; }
+    /* Canvas star-field — sits behind the tree at z=0 in a fixed layer so
+       pan/zoom doesn't drag the sky around. Hidden in mobile mode (mobile
+       view has its own star-field). */
+    #canvas-starfield { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    [data-cali-mode="mobile"] #canvas-starfield { display: none !important; }
+    /* Canvas node halos — breathing glow for ready-to-attempt nodes.
+       [data-halo="ready"] = subtle, [data-halo="next"] = strong (goal-next). */
+    @keyframes cali-node-halo-ready {
+      0%, 100% { box-shadow: 0 0 10px var(--halo, oklch(0.7 0.22 240 / 0.35)), inset 0 0 8px rgba(0,0,0,0.35); }
+      50%      { box-shadow: 0 0 20px var(--halo, oklch(0.7 0.22 240 / 0.55)), inset 0 0 8px rgba(0,0,0,0.35); }
+    }
+    @keyframes cali-node-halo-next {
+      0%, 100% { box-shadow: 0 0 18px var(--halo, oklch(0.7 0.22 240 / 0.55)), 0 0 34px var(--halo, oklch(0.7 0.22 240 / 0.3)), 0 0 0 2px var(--halo-ring, oklch(0.85 0.20 240)), inset 0 0 10px rgba(255,255,255,0.12); }
+      50%      { box-shadow: 0 0 26px var(--halo, oklch(0.7 0.22 240 / 0.75)), 0 0 52px var(--halo, oklch(0.7 0.22 240 / 0.45)), 0 0 0 2.5px var(--halo-ring, oklch(0.9 0.22 240)), inset 0 0 10px rgba(255,255,255,0.12); }
+    }
+    /* Only apply the halo animation to canvas nodes (via [data-node] which is
+       stamped on canvas nodes only). Mobile cards use their own halo. */
+    [data-node][data-halo="ready"] { animation: cali-node-halo-ready 3.2s ease-in-out infinite; }
+    [data-node][data-halo="next"]  { animation: cali-node-halo-next 2.4s ease-in-out infinite; }
+    /* Transient anim triggers WIN over halo (both target box-shadow via
+       [data-*] attrs; being declared later in the sheet gives them the higher
+       cascade priority when data-just-* is set). */
     @keyframes cali-halo-breathe {
       0%, 100% { opacity: 0.45; transform: scale(1); }
       50%      { opacity: 0.75; transform: scale(1.15); }
@@ -218,6 +240,15 @@
     [data-just-unlocked="1"] {
       animation: cali-newly-available 1.8s ease-in-out 0s 3 both;
     }
+    /* Canvas node variant — the base card box-shadow is a big drop shadow
+       that doesn't fit round nodes; use just the outward ring for canvas. */
+    @keyframes cali-node-newly-available {
+      0%, 100% { transform: scale(1);     box-shadow: 0 0 12px var(--cali-accent, oklch(0.7 0.22 240 / 0.5)); }
+      50%      { transform: scale(1.10);  box-shadow: 0 0 28px var(--cali-accent, oklch(0.7 0.22 240 / 0.8)), 0 0 44px var(--cali-accent, oklch(0.7 0.22 240 / 0.5)); }
+    }
+    [data-node][data-just-unlocked="1"] {
+      animation: cali-node-newly-available 1.8s ease-in-out 0s 3 both !important;
+    }
     /* Achievement flash + radial burst. Triggered by [data-just-achieved="1"]
        briefly when a node is checked off. Lasts ~900ms then auto-removes. */
     @keyframes cali-achieve-flash {
@@ -227,6 +258,15 @@
     }
     [data-just-achieved="1"] {
       animation: cali-achieve-flash 0.9s ease-out forwards;
+    }
+    /* Canvas variant — no base drop shadow, just the outward white ring. */
+    @keyframes cali-node-achieve-flash {
+      0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.9); }
+      30%  { box-shadow: 0 0 0 12px rgba(255,255,255,0.55); }
+      100% { box-shadow: 0 0 0 42px rgba(255,255,255,0); }
+    }
+    [data-node][data-just-achieved="1"] {
+      animation: cali-node-achieve-flash 0.9s ease-out forwards !important;
     }
     /* Achievement burst: 8 particles shoot out from center, fade away. */
     .cali-burst {
@@ -747,6 +787,36 @@
     </div>
   </sc-if>
 
+  <!-- Canvas star-field — fixed to viewport (doesn't move with pan/zoom).
+       Twinkles behind everything. Hidden in mobile mode via CSS. -->
+  <div id="canvas-starfield" aria-hidden="true">
+    <div class="cali-star big"  style="top:  4%; left: 12%; animation-delay: 0.2s;"></div>
+    <div class="cali-star"      style="top:  9%; left: 78%; animation-delay: 1.3s;"></div>
+    <div class="cali-star tiny" style="top: 15%; left: 32%; animation-delay: 0.7s;"></div>
+    <div class="cali-star"      style="top: 21%; left: 90%; animation-delay: 2.1s;"></div>
+    <div class="cali-star tiny" style="top: 28%; left:  6%; animation-delay: 1.6s;"></div>
+    <div class="cali-star big"  style="top: 34%; left: 62%; animation-delay: 3.2s;"></div>
+    <div class="cali-star tiny" style="top: 40%; left: 22%; animation-delay: 0.4s;"></div>
+    <div class="cali-star"      style="top: 46%; left: 84%; animation-delay: 2.7s;"></div>
+    <div class="cali-star tiny" style="top: 53%; left:  3%; animation-delay: 1.9s;"></div>
+    <div class="cali-star"      style="top: 58%; left: 48%; animation-delay: 0.9s;"></div>
+    <div class="cali-star big"  style="top: 64%; left: 80%; animation-delay: 2.4s;"></div>
+    <div class="cali-star tiny" style="top: 70%; left: 18%; animation-delay: 3.6s;"></div>
+    <div class="cali-star"      style="top: 76%; left: 56%; animation-delay: 1.1s;"></div>
+    <div class="cali-star tiny" style="top: 82%; left: 92%; animation-delay: 0.5s;"></div>
+    <div class="cali-star tiny" style="top: 88%; left: 40%; animation-delay: 2.8s;"></div>
+    <div class="cali-star tiny" style="top: 92%; left:  8%; animation-delay: 1.4s;"></div>
+    <div class="cali-star tiny" style="top:  6%; left: 46%; animation-delay: 2.0s;"></div>
+    <div class="cali-star tiny" style="top: 12%; left:  4%; animation-delay: 1.5s;"></div>
+    <div class="cali-star tiny" style="top: 18%; left: 56%; animation-delay: 3.0s;"></div>
+    <div class="cali-star tiny" style="top: 24%; left: 68%; animation-delay: 0.8s;"></div>
+    <div class="cali-star tiny" style="top: 38%; left: 92%; animation-delay: 2.3s;"></div>
+    <div class="cali-star tiny" style="top: 50%; left: 38%; animation-delay: 0.3s;"></div>
+    <div class="cali-star tiny" style="top: 62%; left: 10%; animation-delay: 1.7s;"></div>
+    <div class="cali-star tiny" style="top: 74%; left: 74%; animation-delay: 2.5s;"></div>
+    <div class="cali-star tiny" style="top: 86%; left: 28%; animation-delay: 3.4s;"></div>
+  </div>
+
   <!-- Pan/Zoom Canvas -->
   <div data-canvas="1" ref="{{ canvasRef }}" onMouseDown="{{ onPanStart }}" style="position: absolute; inset: 0; cursor: grab;">
 
@@ -771,7 +841,7 @@
 
       <!-- Skill nodes -->
       <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="50">
-        <div data-node="{{ node.id }}" onClick="{{ node.onClick }}" onContextMenu="{{ node.onContextMenu }}" style="position: absolute; left: {{ node.lx }}px; top: {{ node.ty }}px; width: {{ node.size }}px; height: {{ node.size }}px; border-radius: 50%; border: 2px solid {{ node.color }}; background: {{ node.fill }}; box-shadow: {{ node.shadow }}; cursor: {{ node.cursor }}; display: flex; align-items: center; justify-content: center; z-index: {{ node.z }}; opacity: {{ node.opacity }}; transition: box-shadow 0.25s ease, transform 0.15s ease, opacity 0.3s ease; font-family: 'Space Grotesk', sans-serif; animation: {{ node.goalAnim }};" style-hover="transform: scale(1.12); z-index: 30;">
+        <div data-node="{{ node.id }}" data-halo="{{ node.halo }}" data-just-achieved="{{ node.justAchieved }}" data-just-unlocked="{{ node.justUnlocked }}" onClick="{{ node.onClick }}" onContextMenu="{{ node.onContextMenu }}" style="position: absolute; left: {{ node.lx }}px; top: {{ node.ty }}px; width: {{ node.size }}px; height: {{ node.size }}px; border-radius: 50%; border: 2px solid {{ node.color }}; background: {{ node.fill }}; box-shadow: {{ node.shadow }}; cursor: {{ node.cursor }}; display: flex; align-items: center; justify-content: center; z-index: {{ node.z }}; opacity: {{ node.opacity }}; transition: box-shadow 0.25s ease, transform 0.15s ease, opacity 0.3s ease; font-family: 'Space Grotesk', sans-serif; animation: {{ node.goalAnim }}; --halo: {{ node.haloColor }}; --halo-ring: {{ node.haloRing }}; --cali-accent: {{ node.haloRing }};" style-hover="transform: scale(1.12); z-index: 30;">
           <!-- Stick figure -->
           <sc-if value="{{ node.hasFig }}" hint-placeholder-val="{{ false }}">
             <svg width="{{ node.figSize }}" height="{{ node.figSize }}" viewBox="0 0 60 60" fill="none" stroke="{{ node.figStroke }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; overflow: visible;">
@@ -4407,11 +4477,21 @@ class Component extends DCLogic {
     const goalNextId   = (goalActive && goalSnap.next) ? goalSnap.next.id : null;
 
     // ─── Build nodes ────────────────────────────────────────────────────────
+    // Transient animation markers (populated by toggleCheck) — applied to
+    // canvas nodes the same way they're applied to mobile cards. Auto-clear
+    // after their animations complete via the timers in toggleCheck.
+    const justAchievedIds = this.state.justAchievedIds || new Set();
+    const justUnlockedIds = this.state.justUnlockedIds || new Set();
     const nodes = data.skills.map((s) => {
       const cat = s.cat ? data.categories[s.cat] : null;
       const hue = cat ? cat.hue : null;
       const isChecked = checked.has(s.id);
       const isExpanded = s.id === this.state.expandedId;
+      // Available = every prereq is checked but the skill itself isn't. Roots
+      // and stubs don't participate. Used to give ready-to-attempt nodes a
+      // breathing halo (see haloState below).
+      const isAvailable = !isChecked && !s.isRoot && !s.isStub
+        && (s.pre || []).every((pid) => pid === 'root' || checked.has(pid));
       const r = s.isRoot ? 40 : s.isStub ? 30 : 28;
       const size = r * 2;
 
@@ -4439,8 +4519,12 @@ class Component extends DCLogic {
           : `0 0 18px ${glowMain}, 0 0 38px ${glowMain}, inset 0 0 10px rgba(255,255,255,0.15)`;
       } else if (isChecked) {
         shadow = `0 0 22px ${glowMain}, 0 0 48px ${glowMain}, inset 0 0 14px rgba(255,255,255,0.15)`;
+      } else if (isAvailable) {
+        // Base shadow when halo animation isn't running (which it usually is).
+        shadow = `0 0 10px ${glowMain}, inset 0 0 8px rgba(0,0,0,0.35)`;
       } else {
-        shadow = `0 0 14px ${glowMain}, inset 0 0 8px rgba(0,0,0,0.5)`;
+        // Locked — flat, no outer glow. Distinguishes locked from available.
+        shadow = `inset 0 0 8px rgba(0,0,0,0.5)`;
       }
 
       if (isExpanded) {
@@ -4500,6 +4584,36 @@ class Component extends DCLogic {
           : `oklch(0.82 0.14 ${hue})`;
       const figSize = Math.round(size * 0.66);
 
+      // Halo state (Q3: goal-next = strong, other available = mild, else none).
+      // When goalActive: goalTarget keeps its existing goalAnim pulse; goalNext
+      // gets the 'next' halo; other available nodes get 'ready'. When no goal
+      // set, every available (ready-to-attempt) node gets 'ready'. Locked and
+      // checked nodes never get a halo (their state is already communicated
+      // via color/opacity/checkmark).
+      let halo = '';
+      let haloColor = 'transparent';
+      let haloRing = 'transparent';
+      if (hue != null && !s.isStub && !s.isRoot && !isChecked) {
+        if (goalActive) {
+          const inChain = goalChainSet && goalChainSet.has(s.id);
+          const isGoalNext = s.id === goalNextId;
+          const isGoalTarget = s.id === goalTargetId;
+          if (isGoalNext && !isGoalTarget) {
+            halo = 'next';
+            haloColor = `oklch(0.7 0.22 ${hue} / 0.6)`;
+            haloRing = `oklch(0.85 0.20 ${hue})`;
+          } else if (isAvailable && inChain && !isGoalTarget) {
+            halo = 'ready';
+            haloColor = `oklch(0.7 0.22 ${hue} / 0.5)`;
+            haloRing = `oklch(0.85 0.20 ${hue})`;
+          }
+        } else if (isAvailable) {
+          halo = 'ready';
+          haloColor = `oklch(0.7 0.22 ${hue} / 0.4)`;
+          haloRing = `oklch(0.85 0.20 ${hue})`;
+        }
+      }
+
       return {
         id: s.id,
         name: s.name,
@@ -4533,6 +4647,11 @@ class Component extends DCLogic {
         labelColor,
         onClick: () => this.onNodeClick(s.id),
         onContextMenu: (e) => this.onNodeRightClick(s.id, e),
+        halo,
+        haloColor,
+        haloRing,
+        justAchieved: justAchievedIds.has(s.id) ? '1' : '',
+        justUnlocked: justUnlockedIds.has(s.id) ? '1' : '',
       };
     });
 

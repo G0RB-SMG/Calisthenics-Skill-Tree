@@ -52,6 +52,28 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-02 — Canvas view: mobile-style visual treatment (star-field + node halos + achievement anims)
+Brought the constellation aesthetic from mobile to canvas. Same visual language, same animations, no functional changes.
+
+**Star-field background** (Q1a): 25-star twinkling backdrop pinned to the viewport (position: fixed, so pan/zoom doesn't drag the sky around). Slow 4-6s twinkle cycles at three sizes. Automatically hidden in mobile mode (mobile has its own star-field). New `#canvas-starfield` DOM node + CSS rule.
+
+**Node halos** (Q2c + Q3b): three visible states on canvas nodes now, each with a distinct feel:
+- **Achieved**: existing bright hue glow (unchanged) — "the star is lit".
+- **Available (ready to attempt)**: subtle breathing halo, category-hue. 3.2s cycle, 10→20px glow amplitude.
+- **Goal-next** (when a goal is set + this is the next concrete step): stronger breathing halo, 2.4s cycle, 18→26px glow + outer ring. Overrides the plain 'ready' halo.
+- **Locked**: flat, no outer glow — previously they had the same mild hue glow as available; now they're clearly distinguishable.
+- Stick figures and other node content (checkmark badge, fingertip marker, diff badge) untouched.
+
+**Achievement flash + newly-unlocked pulse** (Q4): the same `data-just-achieved` / `data-just-unlocked` markers that fire on mobile now also fire on canvas nodes (they share `state.justAchievedIds` + `state.justUnlockedIds`, populated by `toggleCheck`).
+- **Canvas variants** of the animations (`cali-node-achieve-flash`, `cali-node-newly-available`) tuned for round nodes: no card drop-shadow base, just the outward ring + scale + hue glow.
+- Newly-unlocked pulse now scales ~10% (was 2.5% on cards) since the effect needs to be visible against the noisy tree background.
+- Both anims win over the halo via `!important` during their transient window; halo resumes after they clear.
+
+**Mechanism**:
+- New optional node data fields: `halo` ('ready' | 'next' | ''), `haloColor`, `haloRing`, `justAchieved` ('1' | ''), `justUnlocked` ('1' | '').
+- Emitted as data-attrs + CSS custom properties on each canvas node div. All CSS-driven — no per-frame JS, no layout thrash.
+- Skipped difficulty stars on canvas per Q5 (would be too cramped at low zoom).
+
 ### 2026-07-02 — Hotfix: tuck_planche_pu prereq cleanup
 - `tuck_planche_pu.pre` → `[tuck_planche]` (was `[pppu_lean, tuck_planche]`). The `pppu_lean` prereq was a legacy from before crow moved between pppu_lean and tuck_planche — it was causing `tuck_planche_pu` to show as a sibling branch to `crow` at the `pppu_lean` fork. It's transitively required via crow → tuck_planche anyway, so the direct gate was redundant. Planche Push-ups now fork off tuck_planche as intended.
 
