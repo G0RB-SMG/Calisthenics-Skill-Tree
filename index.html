@@ -3213,6 +3213,13 @@ class Component extends DCLogic {
 
   // Map of parent skill ID → array of child skill IDs, scoped to a category.
   // Built once per category and cached. Skills don't change at runtime.
+  //
+  // A skill can declare `displayParent: 'someId'` (which must be one of its
+  // pre[] entries) to visually attach only to that parent in this map —
+  // useful when a skill has multiple gate prereqs but should only appear as
+  // a branch off one of them (e.g. `tuck_bent_press` gated by both `pushup`
+  // and `tuck_planche` but appearing under `pushup` as a top-level fork).
+  // All prereqs still gate the skill — this only affects visualization.
   _childrenCache = new Map();
   computeChildrenMap = (category) => {
     if (this._childrenCache.has(category)) return this._childrenCache.get(category);
@@ -3223,8 +3230,16 @@ class Component extends DCLogic {
     for (const s of data.skills) {
       if (s.isStub || s.isRoot) continue;
       if (s.cat !== category) continue;
+      // If displayParent is declared AND it's actually in pre[] AND that
+      // parent is in the same category, ONLY add under that parent.
+      let displayPre = null;
+      if (s.displayParent && (s.pre || []).includes(s.displayParent)) {
+        const p = byId.get(s.displayParent);
+        if (p && p.cat === category) displayPre = s.displayParent;
+      }
       let connected = false;
       for (const pid of s.pre) {
+        if (displayPre && pid !== displayPre) continue;
         const parent = byId.get(pid);
         if (parent && parent.cat === category) {
           if (!map.has(pid)) map.set(pid, []);
@@ -3293,6 +3308,7 @@ class Component extends DCLogic {
     push_up_vet:            'Push-up Mastery',
     iron_dipper:            'Dips',
     handstand_vet:          'Handstand',
+    hspu_master:            'HSPU',
     ba_press_master:        'Bent-arm Press',
     sa_press_master:        'Straight-arm Press',
     planche_vet:            'Planche',

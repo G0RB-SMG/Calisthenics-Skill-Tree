@@ -52,6 +52,52 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-02 — Hotfix: tuck_planche_pu prereq cleanup
+- `tuck_planche_pu.pre` → `[tuck_planche]` (was `[pppu_lean, tuck_planche]`). The `pppu_lean` prereq was a legacy from before crow moved between pppu_lean and tuck_planche — it was causing `tuck_planche_pu` to show as a sibling branch to `crow` at the `pppu_lean` fork. It's transitively required via crow → tuck_planche anyway, so the direct gate was redundant. Planche Push-ups now fork off tuck_planche as intended.
+
+### 2026-07-02 — Push tree restructure: HSPU / BA press / SA press as distinct branches
+Separated three biomechanically-distinct movement families that were tangled together. Added a `displayParent` field to node data so multi-prereq skills only show as branches under their primary visual parent (while remaining gated by all their pre[]).
+
+**HSPU chain moves into Handstand branch** (starts at freestanding_hs_10s):
+- `pike_pu.pre` → `[freestanding_hs_10s]` (was `[pushup]`); rarity ~18% → ~4%
+- `wall_hspu_neg.pre` → `[pike_pu]` (was `[chest_to_wall, pike_pu]`); rarity ~6% → ~3%
+- `freestanding_hspu`: keeps `[wall_hspu, freestanding_hs_30s]` gate, displayParent = `wall_hspu` — no longer double-shows under both parents.
+- `ninety_hspu.pre` → `[freestanding_hspu]` (was `[wall_hspu, freestanding_hs_30s]`). Freestanding HSPU now precedes 90° HSPU cleanly.
+- `ring_hspu.pre` → `[freestanding_hspu, ring_handstand]` (was `[freestanding_hspu, ring_handstand]` — same but now displayParent = `freestanding_hspu`).
+
+**BA press attaches at pushup, gated by tuck_planche**:
+- `tuck_bent_press.pre` → `[pushup, tuck_planche]`, displayParent = `pushup`.
+- Chain: `tuck_bent_press → pike_bent_press → straddle_ninety_press → ninety_press → dead_press`.
+- `ninety_press` dependency on `ninety_hspu` removed — press-to-HS chain is now fully independent of HSPU.
+
+**SA press attaches at pushup, gated by tuck_planche**:
+- `tuck_planche_press.pre` → `[pushup, tuck_planche]`, displayParent = `pushup`.
+- Chain: `tuck_planche_press → adv_tuck_planche_press → pike_press_sa → straddle_planche_press → full_planche_press → full_maltese_press`.
+- `full_planche_press.pre` → `[straddle_planche_press, full_planche]` (was `[planche_pu, full_planche]`) — fixes the SA chain visually connecting to Planche PU instead of continuing its own line.
+
+**crow moves to just before tuck_planche** (planche progression):
+- Order: `pushup → pppu_lean → crow → tuck_planche` (was `pushup → crow → pppu_lean → tuck_planche`).
+- `crow.pre` → `[pppu_lean]` (was `[pushup, wall_hs_hold]`); rarity ~22% → ~10%.
+- `tuck_planche.pre` → `[crow]` (was `[pppu_lean]`).
+
+**ninety_pu moves to Planche Push-ups chain**:
+- `ninety_pu` is a horizontal push-up in a 90° planche position — it's a planche pushup, not a bent-arm press movement. Slotted between `straddle_planche_pu` and `planche_pu`.
+- `ninety_pu.pre` → `[straddle_planche_pu]` (was `[straddle_ninety_press, ninety_hspu]`).
+- `planche_pu.pre` → `[ninety_pu, full_planche]` (was `[straddle_planche_pu, full_planche]`).
+- Added to `planche_pu_line` badge, removed from `ba_press_master` badge.
+
+**Top-level branches at `pushup` are now 6**: Push-up Mastery, Dips, Handstand (contains HSPU sub-branch after freestanding_hs_10s), Planche (contains Planche Push-ups after pppu_lean), Bent-arm Press, Straight-arm Press.
+
+**Mechanism (`displayParent` field)**:
+- New field on node data. Optional. Must be one of the node's `pre[]` entries.
+- `computeChildrenMap` (mobile fork picker) attaches the node only under its `displayParent` in the tree visualization.
+- `pre[]` still enforced for gating and shown in the Prerequisites section of the skill panel — so the user sees "Also requires: Tuck planche" on tuck_bent_press even though it appears as a branch off pushup.
+- 13 push nodes now use displayParent.
+
+**Badge changes**:
+- Split `ba_press_master` into `hspu_master` (HSPU) + `ba_press_master` (bent-arm press only, no ninety_pu).
+- `_BRANCH_SHORT_NAMES` gains `hspu_master: 'HSPU'`.
+
 ### 2026-07-02 — Mobile QOL: skip detail panel when tapping an already-achieved branch card
 - Tapping a branch card whose first skill is already achieved now navigates into that branch without opening the detail panel. Prevents the constant close-panel dance when walking through filled-out sections of the tree.
 - Applies to all categories (push/pull/core/legs/mobility).
