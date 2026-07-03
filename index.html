@@ -424,6 +424,28 @@
     .mobile-card { scroll-snap-align: center; }
     .mobile-tabs { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .cali-branch-row::-webkit-scrollbar { display: none; }
+    /* Scroll affordance — when the branch row has more than can be centered
+       (>3 branches), fade the right edge so the last visible card cuts off
+       and the user reads it as "more content →". Purely visual, doesn't
+       affect layout. Mask lifts when scrolled to the end via data-at-end. */
+    .cali-branch-row[data-scrollable="1"] {
+      -webkit-mask-image: linear-gradient(to right, transparent 0px, black 24px, black calc(100% - 40px), transparent 100%);
+              mask-image: linear-gradient(to right, transparent 0px, black 24px, black calc(100% - 40px), transparent 100%);
+      -webkit-mask-repeat: no-repeat;
+              mask-repeat: no-repeat;
+    }
+    /* Small floating pill hint tucked in the outer wrapper. Uses [data-scroll-hint]
+       marker on the fork column so it only appears when the row is scrollable.
+       Subtle bounce grabs attention without being pushy. */
+    @keyframes cali-swipe-nudge {
+      0%, 100% { transform: translateX(0); opacity: 0.55; }
+      50%      { transform: translateX(4px); opacity: 1; }
+    }
+    [data-scroll-hint="1"] .cali-swipe-hint {
+      display: inline-flex;
+      animation: cali-swipe-nudge 1.6s ease-in-out infinite;
+    }
+    .cali-swipe-hint { display: none; }
     .mobile-tabs::-webkit-scrollbar { display: none; }
   </style>
   <script src="./skills.js"></script>
@@ -501,18 +523,18 @@
 
             <sc-if value="{{ row.isFork }}" hint-placeholder-val="{{ false }}">
               <!-- Fork: branches in a grid, diverging Y-lines below converging to path leaf -->
-              <div style="padding: 18px 14px 6px; display: flex; flex-direction: column; align-items: center;">
+              <div data-scroll-hint="{{ row.isScrollable }}" style="padding: 18px 14px 6px; display: flex; flex-direction: column; align-items: center;">
                 <!-- Header: '⟡ Choose path' flanked by constellation lines -->
                 <div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: 14px;">
                   <span style="width: 28px; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28));"></span>
-                  <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.78 0.16 240);">⟡ {{ row.label }}</span>
+                  <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.78 0.16 240);">⟡ {{ row.label }}<span class="cali-swipe-hint" style="margin-left: 6px; color: oklch(0.85 0.16 240);">→ swipe</span></span>
                   <span style="width: 28px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.28), transparent);"></span>
                 </div>
                 <!-- Branches row: always side-by-side, scrolls horizontally
                      when too many to fit. Snap-aligned so swipes land on a
                      card. `safe center` keeps small rows centered while still
                      allowing scroll when contents overflow. -->
-                <div class="cali-branch-row" style="display: flex; gap: 10px; width: 100%; max-width: 100%; justify-content: safe center; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 14px; margin: 0 -14px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+                <div class="cali-branch-row" data-scrollable="{{ row.isScrollable }}" style="display: flex; gap: 10px; width: 100%; max-width: 100%; justify-content: safe center; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 14px; margin: 0 -14px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
                   <sc-for list="{{ row.branches }}" as="b" hint-placeholder-count="2">
                     <button onClick="{{ b.onClick }}" data-mobile-card="{{ b.id }}" data-just-achieved="{{ b.justAchieved }}" data-just-unlocked="{{ b.justUnlocked }}" class="mobile-card" style="--cali-accent: {{ b.catAccent }}; position: relative; flex: 0 0 auto; width: 148px; scroll-snap-align: center; background: {{ b.bg }}; border: 1px solid {{ b.borderColor }}; border-radius: 14px; padding: 14px 10px 12px; color: {{ b.catColor }}; cursor: pointer; font-family: 'Space Grotesk', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: {{ b.shadow }}; opacity: {{ b.opacity }}; min-height: 154px;">
                       <!-- Constellation corner brackets — star-chart bookmark look -->
@@ -6069,6 +6091,7 @@ class Component extends DCLogic {
           kind: 'fork',
           isFork: true,
           isPath: false,
+          isScrollable: n > 3 ? '1' : '',
           label: n > 1 ? `Pick a branch — ${n} choices` : 'Next up',
           branches,
           gridCols,

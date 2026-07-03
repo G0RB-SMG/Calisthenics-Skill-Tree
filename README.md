@@ -52,6 +52,13 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-03 — Mobile fork: scroll affordance when 4+ branches
+When the branch row has more branches than can fit on-screen (any n>3), two subtle affordances appear:
+1. **Right-edge fade** — CSS mask gradient makes the rightmost card visually cut off, reading immediately as "more content →". Symmetric fade on the left too for the same feel when scrolled.
+2. **"→ swipe" hint** next to the choice count in the header, gently nudging left/right in a 1.6s loop.
+
+Only appears when actually scrollable — 3 or fewer branches keep the clean centered look. No layout changes, purely visual.
+
 ### 2026-07-02 — Canvas view: mobile-style visual treatment (star-field + node halos + achievement anims)
 Brought the constellation aesthetic from mobile to canvas. Same visual language, same animations, no functional changes.
 
