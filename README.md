@@ -1,6 +1,6 @@
 # Calisthenics Skill Tree
 
-An interactive skill tree for bodyweight training — 217 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
+An interactive skill tree for bodyweight training — 219 skills across Push, Pull, Core, Legs, and Mobility, connected by real prerequisites. Static site (pure HTML/JS), Supabase for auth + sync.
 
 ## Features
 
@@ -51,6 +51,31 @@ npx serve .
 ```
 
 ## Changelog
+
+### 2026-07-05 — Pull tree cleanup: SAT chain + half-lay/one-leg swap + tighter columns
+Three changes to the pull branch.
+
+**1. Added Straight Arm Touch (SAT) chain** — branches off `weighted_full_fl` (sibling of `one_arm_fl`):
+- `wide_fl` (Wide-grip full front lever): diff 10, ~0.001%. Bridge to SAT — ultra-wide grip stacks demand on biceps + lat insertions at extreme shoulder abduction.
+- `sat` (Straight Arm Touch): diff 10, ~0.0001%. Face-up horizontal hold on a single bar with straight arms and an ultra-wide grip, hips touching the bar. Distinct from victorian: victorian is arms-out no bar contact; SAT is hips-to-bar with wide grip.
+- Chain: `weighted_full_fl → wide_fl → sat`. New nodes at x=-1000, y=-1400 and y=-1500. Both added to `front_lever_vet` badge.
+
+**2. Swapped half-lay ↔ one-leg in FL holds and FL pullups.** Half-lay is genuinely harder than one-leg (double-knee bend torque + rotational balance), so:
+- FL holds new order: `adv_tuck_fl → one_leg_fl (~0.3%, was ~0.2%) → half_lay_fl (~0.2%, was ~0.3%) → straddle_fl`.
+- FL pullups new order: `adv_tuck_fl_pullup → one_leg_fl_pullup (~0.12%, was ~0.08%) → half_lay_fl_pullup (~0.08%, was ~0.12%) → straddle_fl_pullup`.
+- Y-positions in the tree swapped to match (one-leg now at y=-900, half-lay at y=-1000). Rarities swapped. Descriptions updated to reflect the new position in the progression.
+- `front_lever_vet` and `fl_pullup_master` badges reordered to match.
+
+**3. Tightened columns to 300px gaps** — pull span now x=-2800 to x=-1000 (width 1800; was -3200 to -800, width 2400 = 25% narrower):
+- Rings: -3200 → -2800
+- Back Lever: -2700 → -2500
+- Muscle-ups: -2400 → -2200
+- Advanced pullups: -2000 → -1900
+- Trunk + FL holds: -1600 (anchor unchanged)
+- FL pullups: -1100 → -1300
+- Victorian + SAT chain (rightmost endgame column): -800 / new → -1000
+
+Total pull nodes: 51 (was 49). No other categories affected. Existing user progress preserved (only new skills added; all IDs preserved).
 
 ### 2026-07-03 — Mobile fork: scroll affordance when 4+ branches
 When the branch row has more branches than can fit on-screen (any n>3), two subtle affordances appear:
