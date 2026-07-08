@@ -52,6 +52,11 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-08 — Pull tree shifted right (gap-to-core matches other category gaps)
+- Every pull node shifted +210 on x. New pull→core gap: 160 (was 370). Matches push→legs (160) and legs→mobility (150).
+- Pull range: -2590 to -790 (was -2800 to -1000).
+- Nothing else changed. Just position.
+
 ### 2026-07-08 — Search modal default list: show what's next, not what's easiest
 - Empty search now surfaces every skill whose prereqs are met but which isn't done yet — sorted by category then difficulty. If you just achieved assisted one-arm pullup, one-arm pullup shows up. If you just did adv tuck planche, one-leg planche + adv tuck planche PU + adv tuck press variants all show up.
 - Sees up to 30 available skills (was: first 12 skills in data order, which was mostly foundational push-ups — useless once you're past the first hour).
