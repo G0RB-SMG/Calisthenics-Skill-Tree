@@ -52,6 +52,13 @@ npx serve .
 
 ## Changelog
 
+### 2026-07-08 — Search modal default list: show what's next, not what's easiest
+- Empty search now surfaces every skill whose prereqs are met but which isn't done yet — sorted by category then difficulty. If you just achieved assisted one-arm pullup, one-arm pullup shows up. If you just did adv tuck planche, one-leg planche + adv tuck planche PU + adv tuck press variants all show up.
+- Sees up to 30 available skills (was: first 12 skills in data order, which was mostly foundational push-ups — useless once you're past the first hour).
+- Search itself unchanged — type anything and hit every skill in the tree.
+- Fallback: brand-new accounts with no achievements still see the first 12 skills as before.
+- Empty message updated.
+
 ### 2026-07-05 — Pull tree cleanup: SAT chain + half-lay/one-leg swap + tighter columns
 Three changes to the pull branch.
 
